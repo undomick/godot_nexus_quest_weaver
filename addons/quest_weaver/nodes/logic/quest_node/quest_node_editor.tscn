@@ -1,4 +1,4 @@
-﻿[gd_scene format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://addons/quest_weaver/nodes/logic/quest_node/quest_node_editor.gd" id="1_66u7u"]
 [ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_nhc80"]

@@ -4,5 +4,5 @@
 
 [resource]
 script = ExtResource("1_uvyef")
-panel_scene_path = "uid://c4s0tdg6s20ab"
+panel_scene_path = "res://addons/quest_weaver/editor/presentation/instruction_notification.tscn"
 metadata/_custom_type_script = "uid://jo26rus3ta6a"

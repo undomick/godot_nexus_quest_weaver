@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1_ugjl6")
-inventory_adapter_script = "uid://btnuywtd8ra2r"
-kill_adapter_script = "uid://mfx12t0wvgdl"
-presentation_registry_path = "uid://ds3oso48ofcph"
-item_registry_path = "uid://joenm0bc2epp"
+inventory_adapter_script = "res://addons/quest_weaver/systems/adapters/simple_inventory_adapter.gd"
+kill_adapter_script = "res://addons/quest_weaver/systems/adapters/simple_kill_adapter.gd"
+presentation_registry_path = "res://addons/quest_weaver/editor/presentation/presentation_registry.tres"
+item_registry_path = "res://addons/quest_weaver/examples/resources/sample_item_registry.tres"
 quest_scan_folder = "res://addons/quest_weaver/examples/quests"
-auto_start_quests = Array[String](["uid://ct3wy6g0awjqv"])
-quest_registry_path = "uid://wmyp5edipqt5"
-editor_data_path = "uid://dysspp0gwx0fx"
+auto_start_quests = Array[String](["res://addons/quest_weaver/examples/quests/main/questline.quest"])
+quest_registry_path = "res://addons/quest_weaver/quest_registry.tres"
+editor_data_path = "res://addons/quest_weaver/core/quest_editor_data.tres"
 metadata/_custom_type_script = "uid://dup5r1ylyhuxo"

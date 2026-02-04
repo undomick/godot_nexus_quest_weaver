@@ -1,4 +1,4 @@
-﻿[gd_scene format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.gd" id="1_hr1ni"]
 [ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_popup.tres" id="2_k3vfd"]

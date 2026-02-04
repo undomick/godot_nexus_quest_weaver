@@ -1,4 +1,4 @@
-﻿[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://addons/quest_weaver/editor/side_panel.gd" id="1_5q1rv"]
 [ext_resource type="Texture2D" path="res://addons/quest_weaver/assets/icons/save_all.svg" id="2_r5pjp"]

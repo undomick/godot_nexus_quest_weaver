@@ -1,4 +1,4 @@
-﻿[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/quest_weaver_ui_message_theme.tres" id="1_di5c4"]
 [ext_resource type="Script" path="res://addons/quest_weaver/editor/presentation/base_ui_panel.gd" id="2_767bq"]

@@ -4,5 +4,5 @@
 
 [resource]
 script = ExtResource("1_th5rr")
-panel_scene_path = "uid://eljmk7f8ojxj"
+panel_scene_path = "res://addons/quest_weaver/editor/presentation/bottom_centered_ui_panel.tscn"
 metadata/_custom_type_script = "uid://jo26rus3ta6a"

@@ -1,4 +1,4 @@
-﻿[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://addons/quest_weaver/editor/components/simple_condition_entry.gd" id="1_d26pr"]
 

@@ -1,4 +1,4 @@
-﻿[gd_scene format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://addons/quest_weaver/examples/scenes/main_quest_test.gd" id="1_wqj30"]
 [ext_resource type="Texture2D" path="res://addons/quest_weaver/examples/assets/bg_winter.jpg" id="2_iuw1t"]

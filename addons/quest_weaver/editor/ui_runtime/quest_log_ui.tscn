@@ -1,4 +1,4 @@
-﻿[gd_scene format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://addons/quest_weaver/editor/ui_runtime/quest_log_ui.gd" id="1_45syc"]
 [ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/ui_runtime/quest_category_header.tscn" id="2_bss5o"]

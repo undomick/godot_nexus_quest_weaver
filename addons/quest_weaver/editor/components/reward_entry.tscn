@@ -1,4 +1,4 @@
-﻿[gd_scene format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://addons/quest_weaver/editor/components/reward_entry.gd" id="1_c2inq"]
 [ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.tscn" id="2_w3paf"]
