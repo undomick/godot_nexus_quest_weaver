@@ -6,7 +6,7 @@ extends Resource
 ## Contains the configuration for a single output of a ParallelNode.
 
 ## The name displayed on the port in the GraphEdit.
-@export var port_name: String = "Out"
+@export var port_name: StringName = &"Out"
 
 ## An optional condition that must be met for this output to activate.
 ## If null, the output will always activate.
@@ -29,7 +29,7 @@ func to_dictionary() -> Dictionary:
 	return data
 
 func from_dictionary(data: Dictionary) -> void:
-	port_name = data.get("port_name", "Out")
+	port_name = StringName(data.get("port_name", &"Out"))
 	
 	var condition_data: Variant = data.get("condition")
 	if condition_data is Dictionary:

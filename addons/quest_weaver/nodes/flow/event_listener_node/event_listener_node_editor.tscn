@@ -1,45 +1,52 @@
-[gd_scene load_steps=2 format=3 uid="uid://cgrbd1g8idtfj"]
+[gd_scene format=3 uid="uid://cgrbd1g8idtfj"]
 
 [ext_resource type="Script" uid="uid://bb3yfir305k48" path="res://addons/quest_weaver/nodes/flow/event_listener_node/event_listener_node_editor.gd" id="1_qp6v3"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_qymus"]
 
-[node name="EventListenerNodeEditor" type="VBoxContainer"]
+[node name="EventListenerNodeEditor" type="PanelContainer" unique_id=1037986026]
+offset_right = 201.0
+offset_bottom = 152.0
+theme = ExtResource("1_qymus")
 script = ExtResource("1_qp6v3")
 
-[node name="KeepListeningCheckbox" type="CheckBox" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1093561088]
+layout_mode = 2
+
+[node name="KeepListeningCheckbox" type="CheckBox" parent="MainLayout" unique_id=752897181]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Keep Listening (Loop)"
 
-[node name="HSeparator" type="HSeparator" parent="."]
+[node name="HSeparator" type="HSeparator" parent="MainLayout" unique_id=1151218303]
 layout_mode = 2
 
-[node name="SimpleModeCheckBox" type="CheckBox" parent="."]
+[node name="SimpleModeCheckBox" type="CheckBox" parent="MainLayout" unique_id=1038030227]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Use Simple Conditions"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1099570419]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer" unique_id=64142465]
 layout_mode = 2
 text = "Event Name: "
 
-[node name="EventNameEdit" type="LineEdit" parent="HBoxContainer"]
+[node name="EventNameEdit" type="LineEdit" parent="MainLayout/HBoxContainer" unique_id=1527680238]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ConditionContainer" type="VBoxContainer" parent="."]
+[node name="ConditionContainer" type="VBoxContainer" parent="MainLayout" unique_id=1698171912]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="AddSimpleConditionButton" type="Button" parent="."]
+[node name="AddSimpleConditionButton" type="Button" parent="MainLayout" unique_id=1710403285]
 unique_name_in_owner = true
 layout_mode = 2
 text = "+ Add Condition"
 
-[node name="SimpleConditionsContainer" type="VBoxContainer" parent="."]
+[node name="SimpleConditionsContainer" type="VBoxContainer" parent="MainLayout" unique_id=819616294]
 unique_name_in_owner = true
 layout_mode = 2

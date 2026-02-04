@@ -1,23 +1,32 @@
-[gd_scene load_steps=2 format=3 uid="uid://p6j6uq3hjltr"]
+[gd_scene format=3 uid="uid://p6j6uq3hjltr"]
 
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_bxmcv"]
 [ext_resource type="Script" uid="uid://djgy7coe6mang" path="res://addons/quest_weaver/nodes/logic/reset_progress_node/reset_progress_node_editor.gd" id="1_mhly0"]
 
-[node name="ResetProgressNodeEditor" type="VBoxContainer"]
+[node name="ResetProgressNodeEditor" type="PanelContainer" unique_id=1730355720]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 67.0
+grow_horizontal = 2
+theme = ExtResource("1_bxmcv")
 script = ExtResource("1_mhly0")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=630878320]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1934451926]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer" unique_id=556840504]
 layout_mode = 2
 text = "Target Scope ID: "
 
-[node name="TargetScopeIDEdit" type="LineEdit" parent="HBoxContainer"]
+[node name="TargetScopeIDEdit" type="LineEdit" parent="MainLayout/HBoxContainer" unique_id=1913040137]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="RestartScopeCheckbox" type="CheckBox" parent="."]
+[node name="RestartScopeCheckbox" type="CheckBox" parent="MainLayout" unique_id=1097187266]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Restart Scope on Completion"

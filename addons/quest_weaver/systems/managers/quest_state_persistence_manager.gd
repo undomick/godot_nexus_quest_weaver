@@ -25,8 +25,7 @@ func load_state(controller: QuestController, data: Dictionary) -> void:
 	if not instances_data is Array: return
 
 	for inst_data in instances_data:
-		# load Instance
-		var instance = QuestInstance.new("") 
+		var instance = QuestInstance.new(&"") 
 		instance.load_save_data(inst_data)
 		
 		# Validation 1: Check if the Quest File still exists
@@ -48,7 +47,7 @@ func load_state(controller: QuestController, data: Dictionary) -> void:
 	# Notify UI
 	for file_id in controller._active_instances:
 		var inst = controller._active_instances[file_id]
-		var signal_id = inst.quest_id if not inst.quest_id.is_empty() else inst.file_id
+		var signal_id = inst.quest_id if inst.quest_id != &"" else inst.file_id
 		controller.quest_data_changed.emit(signal_id)
 
 	if logger: logger.log("SaveLoad", "Load complete. %d quests restored." % controller._active_instances.size())
@@ -61,33 +60,32 @@ func _restore_event_listeners(controller: QuestController) -> void:
 	
 	for instance: QuestInstance in controller._active_instances.values():
 		for node_id in instance.active_node_ids:
-			# Safety check: if node does not exist in definition, skip (Sanitization handled this already, but double check is fine)
+			# Safety check: if node does not exist in definition, skip
 			var node_def = controller._node_definitions.get(node_id)
 			if not node_def: continue
 			
 			if node_def is EventListenerNodeResource:
 				event_manager.register_listener(node_def)
 			elif node_def is TaskNodeResource:
-				# Use the shared static logic from the Executor
 				if is_instance_valid(controller._execution_context):
 					TaskNodeExecutor.register_listeners(controller._execution_context, node_def, instance)
 
+# Removes stale nodes from save data to prevent crashes
 func _sanitize_instance_data(controller: QuestController, instance: QuestInstance) -> void:
-	var nodes_to_remove: Array[String] = []
+	var nodes_to_remove: Array[StringName] = []
+	var logger = controller._get_logger()
 	
-	# 1. Check Active Nodes (Critical for runtime crashes)
+	# 1. Check Active Nodes
 	for node_id in instance.active_node_ids.keys():
 		if not controller._node_definitions.has(node_id):
 			nodes_to_remove.append(node_id)
 	
 	for invalid_id in nodes_to_remove:
 		instance.active_node_ids.erase(invalid_id)
-		
-		var logger = controller._get_logger()
 		if logger:
 			logger.warn("SaveLoad", "Sanitized savegame: Node '%s' in quest '%s' no longer exists. Removed from active state." % [invalid_id, instance.file_id])
 
-	# 2. Check Node States (Cleanup of stale data)
+	# 2. Check Node States
 	nodes_to_remove.clear()
 	for node_id in instance.node_states.keys():
 		if not controller._node_definitions.has(node_id):

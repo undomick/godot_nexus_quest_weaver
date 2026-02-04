@@ -5,7 +5,7 @@ extends Resource
 
 ## Defines a single, weighted output of a RandomNode.
 
-@export var port_name: String = "Out"
+@export var port_name: StringName = &"Out"
 @export_range(1, 1000) var weight: int = 50
 
 
@@ -21,5 +21,5 @@ func to_dictionary() -> Dictionary:
 	return data
 
 func from_dictionary(data: Dictionary) -> void:
-	port_name = data.get("port_name", "Out")
+	port_name = StringName(data.get("port_name", &"Out"))
 	weight = data.get("weight", 50)

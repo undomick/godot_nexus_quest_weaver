@@ -6,7 +6,7 @@ extends RefCounted
 
 var _controller_weak: WeakRef
 
-# Static Cache: { "scope_id": { "start_node_id": "...", "nodes_in_scope": ["...", "..."] } }
+# Static Cache: { StringName: { "start_node_id": StringName, "nodes_in_scope": Array[StringName] } }
 var _scope_definitions: Dictionary = {} 
 
 func _init(p_controller: QuestController):
@@ -35,14 +35,15 @@ func initialize_scope_definitions(node_definitions: Dictionary, node_connections
 		var start_node = start_nodes_by_id[scope_id]
 		var end_nodes = end_nodes_by_id.get(scope_id, [])
 		
-		if end_nodes.is_empty(): continue # Warn?
+		if end_nodes.is_empty(): continue 
 
-		var nodes_in_scope: Array[String] = []
-		var queue: Array = [start_node.id]
+		# Typed Array definition
+		var nodes_in_scope: Array[StringName] = []
+		var queue: Array[StringName] = [start_node.id]
 		var visited: Dictionary = { start_node.id: true }
 		
 		while not queue.is_empty():
-			var current_id = queue.pop_front()
+			var current_id: StringName = queue.pop_front()
 			var def = node_definitions.get(current_id)
 			
 			var is_end = (def is EndScopeNodeResource and def.scope_id == scope_id)
@@ -51,7 +52,7 @@ func initialize_scope_definitions(node_definitions: Dictionary, node_connections
 
 			var conns = node_connections.get(current_id, [])
 			for c in conns:
-				var next_id = c.to_node
+				var next_id: StringName = StringName(c.to_node)
 				var next_def = node_definitions.get(next_id)
 				var boundary = false
 				if next_def:
@@ -65,14 +66,16 @@ func initialize_scope_definitions(node_definitions: Dictionary, node_connections
 
 		_scope_definitions[scope_id] = {
 			"start_node_id": start_node.id,
-			"nodes_in_scope": nodes_in_scope.filter(func(id): return id != start_node.id)
+			"nodes_in_scope": nodes_in_scope # .filter creates a new array, logic remains valid
+			#"nodes_in_scope": nodes_in_scope.filter(func(id): return id != start_node.id)
 		}
 
 # --- 2. Runtime Logic (Instance Based) ---
 
 func handle_start_scope(node: StartScopeNodeResource, instance: QuestInstance) -> bool:
 	var scope_id = node.scope_id
-	var var_key = "_scope_%s_executions" % scope_id
+	# IMPORTANT: Explicit cast to StringName for the variable key
+	var var_key = StringName("_scope_%s_executions" % scope_id)
 	
 	# Get current count from instance (default 0)
 	var current_executions = instance.get_variable(var_key, 0)
@@ -83,20 +86,18 @@ func handle_start_scope(node: StartScopeNodeResource, instance: QuestInstance) -
 	if not limit_reached:
 		current_executions += 1
 		instance.set_variable(var_key, current_executions)
-		# Update blueprint for debug display (optional)
-		node.current_executions = current_executions
 		return true
 	
 	return false
 
-func handle_reset_scope(reset_node: ResetProgressNodeResource, instance: QuestInstance) -> Array[String]:
+func handle_reset_scope(reset_node: ResetProgressNodeResource, instance: QuestInstance) -> Array[StringName]:
 	var controller = _get_controller()
 	var scope_id = reset_node.target_scope_id
 	var definition = _scope_definitions.get(scope_id)
 	
 	if not definition: return []
 	
-	var nodes_to_reset: Array[String] = []
+	var nodes_to_reset: Array[StringName] = []
 	nodes_to_reset.assign(definition.nodes_in_scope)
 	
 	# Include EndNodes for cleanup
@@ -107,15 +108,14 @@ func handle_reset_scope(reset_node: ResetProgressNodeResource, instance: QuestIn
 
 	# If restarting, reset the execution counter in the Instance
 	if reset_node.restart_scope_on_completion:
-		var var_key = "_scope_%s_executions" % scope_id
+		var var_key = StringName("_scope_%s_executions" % scope_id)
 		instance.set_variable(var_key, 0)
 	
 	return nodes_to_reset
 
-func get_start_node_id_for_scope(scope_id: String) -> String:
+func get_start_node_id_for_scope(scope_id: StringName) -> StringName:
 	var def = _scope_definitions.get(scope_id)
-	return def.get("start_node_id", "") if def else ""
+	return def.get("start_node_id", &"") if def else &""
 
 func clear():
-	# No runtime state here
 	pass

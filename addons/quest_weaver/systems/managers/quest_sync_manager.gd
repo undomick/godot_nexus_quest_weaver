@@ -2,9 +2,11 @@
 class_name QuestSyncManager
 extends RefCounted
 
-## Manages synchronization logic. State is stored in QuestInstance.
+## Manages synchronization logic using Pattern Matching.
+## Uses deferred batching to bundle multiple inputs arriving in the same frame.
 
 var _controller_weak: WeakRef
+var _deferred_scheduled: Dictionary = {}  # Key: "node_id|file_id" -> true
 
 func _init(p_controller: QuestController):
 	self._controller_weak = weakref(p_controller)
@@ -13,6 +15,7 @@ func _get_controller() -> QuestController:
 	return _controller_weak.get_ref() as QuestController
 
 ## Called by SynchronizeNodeExecutor when an input is received.
+## Collects inputs and processes them deferred to bundle signals from the same frame.
 func handle_input(node_def: SynchronizeNodeResource, instance: QuestInstance, received_on_port: int) -> void:
 	var controller = _get_controller()
 	if not controller: return
@@ -20,77 +23,113 @@ func handle_input(node_def: SynchronizeNodeResource, instance: QuestInstance, re
 	var node_id = node_def.id
 	var logger = controller._get_logger()
 
-	# 1. Fetch State (or init)
-	# State Format: { "inputs_received": [false, false, true] }
-	var state = instance.get_node_state(node_id)
-	var inputs_received: Array = state.get("inputs_received", [])
-	
-	# Init array if empty or size mismatch (e.g. after editing graph)
-	if inputs_received.size() != node_def.inputs.size():
+	if received_on_port < 0 or received_on_port >= node_def.inputs.size():
+		return
+
+	if logger: logger.log("Flow", "Synchronizer '%s' received input on port %d." % [node_id, received_on_port])
+
+	# 1. Add to pending
+	var pending: Array = instance.get_node_data(node_id, &"_sync_pending", [])
+	pending.append(received_on_port)
+	instance.set_node_data(node_id, &"_sync_pending", pending)
+
+	# 2. Schedule deferred processing (only once per node/instance per batch)
+	var key = "%s|%s" % [node_id, instance.file_id]
+	if not _deferred_scheduled.has(key):
+		_deferred_scheduled[key] = true
+		controller.call_deferred(&"_process_sync_node_batch", node_id, instance)
+
+## Called deferred to process all inputs collected in the current frame.
+func process_pending(node_id: StringName, instance: QuestInstance) -> void:
+	var controller = _get_controller()
+	if not controller: return
+
+	var key = "%s|%s" % [node_id, instance.file_id]
+	_deferred_scheduled.erase(key)
+
+	var node_def = controller._node_definitions.get(node_id)
+	if not node_def or not (node_def is SynchronizeNodeResource):
+		return
+
+	var sync_node = node_def as SynchronizeNodeResource
+	var logger = controller._get_logger()
+
+	# 1. Get and clear pending
+	var pending: Array = instance.get_node_data(node_id, &"_sync_pending", [])
+	instance.set_node_data(node_id, &"_sync_pending", [])
+
+	# 2. Merge pending into inputs_received
+	var inputs_received: Array = instance.get_node_data(node_id, &"inputs_received", [])
+	if inputs_received.size() != sync_node.inputs.size():
 		inputs_received = []
-		inputs_received.resize(node_def.inputs.size())
+		inputs_received.resize(sync_node.inputs.size())
 		inputs_received.fill(false)
 
-	if logger:
-		logger.log("Flow", "Synchronizer '%s' received input on port %d." % [node_id, received_on_port])
+	for port in pending:
+		if port >= 0 and port < inputs_received.size():
+			inputs_received[port] = true
 
-	# 2. Update State
-	if received_on_port >= 0 and received_on_port < inputs_received.size():
-		if not inputs_received[received_on_port]:
-			inputs_received[received_on_port] = true
-			instance.set_node_data(node_id, "inputs_received", inputs_received)
+	instance.set_node_data(node_id, &"inputs_received", inputs_received)
+
+	# 3. Check Patterns
+	var matched_indices: Array[int] = []
+
+	if sync_node.logic_mode == SynchronizeNodeResource.LogicMode.EXCLUSIVE:
+		for i in range(sync_node.outputs.size()):
+			if _does_pattern_match(sync_node.outputs[i].patterns, inputs_received):
+				matched_indices.append(i)
+				break
 	else:
-		push_warning("Synchronizer '%s' received signal on invalid port %d." % [node_id, received_on_port])
+		for i in range(sync_node.outputs.size()):
+			if _does_pattern_match(sync_node.outputs[i].patterns, inputs_received):
+				matched_indices.append(i)
 
-	# 3. Check Completion
-	var should_complete = false
-	match node_def.completion_mode:
-		SynchronizeNodeResource.CompletionMode.WAIT_FOR_ALL:
-			if not false in inputs_received: should_complete = true
-		SynchronizeNodeResource.CompletionMode.WAIT_FOR_ANY:
-			# Fires only on the very first input received (count == 1)
-			if inputs_received.count(true) == 1: should_complete = true
-		SynchronizeNodeResource.CompletionMode.WAIT_FOR_N_INPUTS:
-			if inputs_received.count(true) >= node_def.required_input_count: should_complete = true
+	# 4. Fire & Reset
+	if not matched_indices.is_empty():
+		if logger: logger.log("Flow", "  - Synchronizer matched outputs: %s" % str(matched_indices))
 
-	if should_complete:
-		if logger: logger.log("Flow", "  - Synchronizer '%s' met completion condition." % node_id)
-		
-		# Fire outputs
-		_fire_outputs(node_def, instance, inputs_received, controller)
-		
-		# Mark logically complete (cleanup state)
-		instance.set_node_active(node_id, false)
-		instance.clear_node_state(node_id)
+		var state_snapshot = inputs_received.duplicate()
+
+		inputs_received.fill(false)
+		instance.set_node_data(node_id, &"inputs_received", inputs_received)
+
+		for idx in matched_indices:
+			_fire_output(sync_node, instance, idx, state_snapshot, controller)
 	else:
-		if logger: logger.log("Flow", "  - Synchronizer '%s' waiting. State: %s" % [node_id, inputs_received])
+		if logger: logger.log("Flow", "  - No pattern matched yet (Waiting).")
 
-func _fire_outputs(node_def: SynchronizeNodeResource, instance: QuestInstance, inputs_state: Array, controller: QuestController) -> void:
+func _does_pattern_match(pattern: Array, current_inputs: Array) -> bool:
+	var limit = min(pattern.size(), current_inputs.size())
+	
+	for i in range(limit):
+		var requirement = pattern[i]
+		var is_active = current_inputs[i]
+		
+		match requirement:
+			SynchronizeNodeResource.InputState.REQUIRED:
+				if not is_active: return false
+			SynchronizeNodeResource.InputState.FORBIDDEN:
+				if is_active: return false
+			SynchronizeNodeResource.InputState.IGNORE:
+				pass 
+				
+	return true
+
+func _fire_output(node_def: SynchronizeNodeResource, instance: QuestInstance, output_index: int, inputs_state: Array, controller: QuestController) -> void:
 	var connections = controller._node_connections.get(node_def.id, [])
+	var output_port = node_def.outputs[output_index]
+	
+	# Check Output Condition (if any)
+	if is_instance_valid(output_port.condition):
+		var check_context = { "sync_inputs_received_array": inputs_state }
+		if not output_port.condition.check(check_context, instance):
+			return # Condition failed
 
-	for i in range(node_def.outputs.size()):
-		var output_port = node_def.outputs[i]
-		var should_fire = true
-		
-		if is_instance_valid(output_port.condition):
-			# Special handling for CHECK_SYNCHRONIZER condition type
-			# We construct a temporary context just for this check if needed,
-			# OR we ensure ConditionResource reads from instance if implemented.
-			# Since CHECK_SYNCHRONIZER relies on the array, we pass it via a Dictionary context.
-			var check_context = controller._execution_context
-			
-			if output_port.condition.type == ConditionResource.ConditionType.CHECK_SYNCHRONIZER:
-				check_context = { "sync_inputs_received_array": inputs_state }
-			
-			should_fire = output_port.condition.check(check_context, instance)
-		
-		if should_fire:
-			for connection in connections:
-				if connection.from_port == i:
-					var next_node_def = controller._node_definitions.get(connection.to_node)
-					if next_node_def:
-						controller._activate_node(next_node_def, connection.to_port)
+	for connection in connections:
+		if connection.from_port == output_index:
+			var next_node_def = controller._node_definitions.get(connection.to_node)
+			if next_node_def:
+				controller._activate_node(next_node_def, connection.to_port)
 
 func clear():
-	# No internal state to clear anymore
-	pass
+	_deferred_scheduled.clear()

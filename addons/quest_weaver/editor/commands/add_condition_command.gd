@@ -17,5 +17,4 @@ func execute() -> void:
 	_branch_node.conditions.append(_condition_to_add)
 
 func undo() -> void:
-	# Undo is simple: just remove the condition we just added.
 	_branch_node.conditions.erase(_condition_to_add)

@@ -4,11 +4,11 @@ class_name QuestWeaverGraphController
 extends GraphEdit
 
 ## SIGNALS ##
-signal selection_finished(node_id: String)
-signal node_selection_requested(node_id: String)
+signal selection_finished(node_id: StringName)
+signal node_selection_requested(node_id: StringName)
 signal deletion_requested(node_ids: Array[StringName])
 signal connection_to_empty_requested(from_node: StringName, from_port: int, release_position: Vector2)
-signal node_moved(node_id: String, new_position: Vector2)
+signal node_moved(node_id: StringName, new_position: Vector2)
 signal connection_request_forwarded(from_node: StringName, from_port: int, to_node: StringName, to_port: int)
 signal disconnection_request_forwarded(from_node: StringName, from_port: int, to_node: StringName, to_port: int)
 signal view_changed(scroll_offset: Vector2, zoom: float)
@@ -26,6 +26,13 @@ var _graph_resource_for_connection: QuestGraphResource = null
 
 # Debounce flag for GLOBAL rebuilds
 var _is_connection_rebuild_scheduled: bool = false
+
+# Backdrop drag: last position per frame for delta calculation when moving inner nodes
+var _last_backdrop_positions: Dictionary = {}
+# Backdrop drag: only nodes that were inside the frame at drag start move with it (frame_id -> Array[StringName])
+var _backdrop_drag_inner_nodes: Dictionary = {}
+# Last selection when left-click was released; used so Backdrop menu can use it if right-click cleared selection.
+var _last_selected_visual_nodes: Array[GraphElement] = []
 
 ## INITIALIZATION ##
 
@@ -67,21 +74,47 @@ func get_mouse_position_in_graph() -> Vector2:
 	if current_zoom <= 0.001: current_zoom = 1.0
 	
 	# 3. Apply GraphEdit Zoom and Scroll logic
-	# FIX: In Godot 4 GraphEdit, scroll_offset often represents the offset in the 
-	# zoomed viewport space. Therefore we must add it BEFORE dividing by zoom.
 	var graph_point = (local_mouse + scroll_offset) / current_zoom
 	
 	return graph_point
 
-func update_node_ports(graph_resource: QuestGraphResource, node_id: String):
+func clear_backdrop_drag_state() -> void:
+	_last_backdrop_positions.clear()
+	_backdrop_drag_inner_nodes.clear()
+
+## Sets which nodes are "attached" to this backdrop for the current drag. Only these nodes will move with the backdrop.
+func set_backdrop_drag_inner_nodes(frame_id: StringName, inner_ids: Array) -> void:
+	_backdrop_drag_inner_nodes[frame_id] = inner_ids.duplicate()
+
+## Updates only the visual title font size of a backdrop (e.g. while dragging the slider). Does not change the resource.
+func set_backdrop_title_font_size_preview(node_id: StringName, font_size: int) -> void:
+	_set_backdrop_title_font_size(node_id, font_size)
+
+## Sets the title font size on a GraphFrame. GraphFrame has no title_font_size theme property; the title Label must be updated directly.
+func _set_backdrop_title_font_size(node_id: StringName, font_size: int) -> void:
+	var visual_node = get_node_or_null(NodePath(node_id))
+	if not (visual_node is GraphFrame):
+		return
+	var titlebar = visual_node.get_titlebar_hbox()
+	if not is_instance_valid(titlebar):
+		return
+	for child in titlebar.get_children():
+		if child is Label:
+			child.add_theme_font_size_override("font_size", font_size)
+			return
+
+func update_node_ports(graph_resource: QuestGraphResource, node_id: StringName):
 	if _is_rebuilding_graph: return
 	if not is_instance_valid(graph_resource): return
 	
-	var visual_node: GraphElement = get_node_or_null(node_id)
+	var visual_node: GraphElement = get_node_or_null(String(node_id)) 
 	var node_data = graph_resource.nodes.get(node_id)
 	
 	if not (is_instance_valid(visual_node) and is_instance_valid(node_data)):
 		return
+	
+	if node_data.has_method("_update_ports_from_data"):
+		node_data._update_ports_from_data()
 	
 	_disconnect_visuals_for_node(node_id)
 
@@ -128,22 +161,22 @@ func _schedule_connection_rebuild(graph_resource: QuestGraphResource) -> void:
 	_rebuild_visual_connections_only(graph_resource)
 	_is_connection_rebuild_scheduled = false
 
-func update_visual_node_position(graph_resource: QuestGraphResource, node_id: String):
+func update_visual_node_position(graph_resource: QuestGraphResource, node_id: StringName):
 	if not is_instance_valid(graph_resource): return
-	var visual_node = get_node_or_null(node_id)
+	var visual_node = get_node_or_null(String(node_id)) 
 	var node_data = graph_resource.nodes.get(node_id)
 	if is_instance_valid(visual_node) and is_instance_valid(node_data):
 		visual_node.position_offset = node_data.graph_position
 
-func update_summary_text(graph_resource: QuestGraphResource, node_id: String):
+func update_summary_text(graph_resource: QuestGraphResource, node_id: StringName):
 	if _is_rebuilding_graph: return
-	var visual_node: QWGraphNode = get_node_or_null(node_id)
+	var visual_node: QWGraphNode = get_node_or_null(String(node_id)) 
 	var node_data = graph_resource.nodes.get(node_id)
 	if is_instance_valid(visual_node) and is_instance_valid(node_data):
 		visual_node.summary_text = node_data.get_editor_summary()
 		visual_node.queue_redraw()
 
-func redraw_node_structure(graph_resource: QuestGraphResource, node_id: String):
+func redraw_node_structure(graph_resource: QuestGraphResource, node_id: StringName):
 	update_node_ports(graph_resource, node_id)
 
 func create_single_visual_node(node_data: GraphNodeResource):
@@ -172,8 +205,8 @@ func remove_visual_connection(from_node: StringName, from_port: int, to_node: St
 	if has_node(NodePath(from_node)) and has_node(NodePath(to_node)):
 		disconnect_node(from_node, from_port, to_node, to_port)
 
-func select_visual_node(node_id: String) -> void:
-	var node = get_node_or_null(node_id)
+func select_visual_node(node_id: StringName) -> void:
+	var node = get_node_or_null(String(node_id)) 
 	if node is GraphElement:
 		node.selected = true
 	for child in get_children():
@@ -186,11 +219,11 @@ func refresh_from_data(graph_resource: QuestGraphResource):
 		return
 	_synchronize_visual_graph(graph_resource)
 
-func refresh_single_node_visuals(node_id: String) -> void:
+func refresh_single_node_visuals(node_id: StringName) -> void:
 	var current_graph = data_manager.get_active_graph()
 	if not is_instance_valid(current_graph): return
 	var node_data = current_graph.nodes.get(node_id)
-	var visual_node = get_node_or_null(node_id)
+	var visual_node = get_node_or_null(String(node_id)) 
 	if not (is_instance_valid(node_data) and is_instance_valid(visual_node)): return
 
 	if node_data.has_method("_update_ports_from_data"):
@@ -201,8 +234,10 @@ func refresh_single_node_visuals(node_id: String) -> void:
 		style_copy.bg_color = node_data.color
 		visual_node.add_theme_stylebox_override("panel", style_copy)
 		visual_node.add_theme_stylebox_override("panel_selected", style_copy)
-		visual_node.add_theme_font_size_override("title_font_size", node_data.title_font_size)
+		_set_backdrop_title_font_size(node_id, node_data.title_font_size)
 		visual_node.title = node_data.title
+		visual_node.autoshrink_enabled = false
+		visual_node.custom_minimum_size = Vector2(120, 80)
 		visual_node.update_minimum_size()
 	
 	elif visual_node is GraphNode:
@@ -216,13 +251,13 @@ func refresh_single_node_visuals(node_id: String) -> void:
 		_build_node_internal_structure(visual_node, node_data)
 		_enforce_node_size(visual_node, node_data)
 
-func clear_visual_connections_from_port(node_id: String, port_index: int):
+func clear_visual_connections_from_port(node_id: StringName, port_index: int):
 	var connection_list = get_connection_list()
 	for connection in connection_list:
 		if connection.from == node_id and connection.from_port == port_index:
 			disconnect_node(connection.from, connection.from_port, connection.to, connection.to_port)
 
-func update_node_structure_and_connections(node_id: String) -> void:
+func update_node_structure_and_connections(node_id: StringName) -> void:
 	if _is_rebuilding_graph: return
 	var current_graph = data_manager.get_active_graph()
 	# This calls the optimized local update now
@@ -232,7 +267,7 @@ func update_node_structure_and_connections(node_id: String) -> void:
 
 func _synchronize_visual_graph(graph_resource: QuestGraphResource) -> void:
 	for node_id in graph_resource.nodes:
-		var visual_node = get_node_or_null(node_id)
+		var visual_node = get_node_or_null(String(node_id))
 		
 		if is_instance_valid(visual_node):
 			refresh_single_node_visuals(node_id)
@@ -313,8 +348,9 @@ func _build_node_internal_structure(visual_node: GraphNode, node_data: GraphNode
 func _rebuild_visual_graph(graph_resource: QuestGraphResource):
 	_is_rebuilding_graph = true
 	clear_connections()
+	# Remove all graph elements (GraphNode and GraphFrame/Backdrop) so backdrops don't appear in other quests.
 	for child in get_children():
-		if child is GraphNode:
+		if child is GraphElement:
 			child.queue_free()
 	
 	_graph_resource_for_connection = null
@@ -344,6 +380,8 @@ func _create_visual_node(node_data: GraphNodeResource, is_part_of_full_rebuild: 
 		var frame = GraphFrame.new()
 		frame.mouse_filter = Control.MOUSE_FILTER_PASS
 		frame.resizable = true
+		frame.autoshrink_enabled = false
+		frame.custom_minimum_size = Vector2(120, 80)
 		frame.size = node_data.node_size
 		frame.resize_request.connect(func(new_size: Vector2):
 			frame.size = new_size
@@ -439,9 +477,11 @@ func _apply_node_decorations(visual_node: GraphElement, node_data: GraphNodeReso
 	
 		visual_node.add_theme_stylebox_override("panel", style_copy)
 		visual_node.add_theme_stylebox_override("panel_selected", style_copy)
-		visual_node.add_theme_font_size_override("title_font_size", node_data.title_font_size)
+		_set_backdrop_title_font_size(visual_node.name, node_data.title_font_size)
 		visual_node.title = node_data.title
 		visual_node.resizable = true
+		visual_node.autoshrink_enabled = false
+		visual_node.custom_minimum_size = Vector2(120, 80)
 		
 		var resizer_icon = get_theme_icon("resizer", "GraphNode")
 		visual_node.add_theme_icon_override("resizer", resizer_icon)
@@ -505,15 +545,55 @@ func _enforce_node_size(visual_node: GraphElement, node_data: GraphNodeResource)
 		
 		visual_node.update_minimum_size()
 
+func get_nodes_inside_frame(frame_id: StringName) -> Array[StringName]:
+	var frame = get_node_or_null(NodePath(frame_id))
+	if not (frame is GraphFrame):
+		return []
+	return _get_nodes_inside_frame(frame)
+
+func _get_nodes_inside_frame(frame: GraphFrame) -> Array[StringName]:
+	var result: Array[StringName] = []
+	var frame_rect = Rect2(frame.position_offset, frame.size)
+	for child in get_children():
+		# GraphFrames dürfen andere GraphFrames nicht mitbewegen
+		if child is GraphFrame:
+			continue
+		if child is GraphElement and child != frame:
+			var elem: GraphElement = child
+			var center = elem.position_offset + elem.size / 2
+			if frame_rect.has_point(center):
+				result.append(child.name)
+	return result
+
 func _on_view_node_moved(node_id: StringName):
 	var node_path = NodePath(node_id)
 	if not has_node(node_path): return
 	var visual_node: GraphElement = get_node(node_path)
+	# When a backdrop (GraphFrame) is moved, move only nodes that were inside it at drag start
+	if visual_node is GraphFrame:
+		var new_pos = visual_node.position_offset
+		var last_pos = _last_backdrop_positions.get(node_id, new_pos)
+		_last_backdrop_positions[node_id] = new_pos
+		var delta = new_pos - last_pos
+		if delta != Vector2.ZERO:
+			var inner_ids: Array = _backdrop_drag_inner_nodes.get(node_id, [])
+			for inner_id in inner_ids:
+				var inner_node: GraphElement = get_node_or_null(NodePath(inner_id))
+				if is_instance_valid(inner_node):
+					inner_node.position_offset += delta
 	node_moved.emit(String(node_id), visual_node.position_offset)
 
 func _on_view_node_selected(p_visual_node: Node):
 	if p_visual_node is GraphElement:
 		node_selection_requested.emit(p_visual_node.name)
+	# Store current selection so Backdrop menu can use it if right-click clears it.
+	call_deferred("_store_current_selection")
+
+func _store_current_selection() -> void:
+	_last_selected_visual_nodes.clear()
+	for child in get_children():
+		if child is GraphElement and child.selected:
+			_last_selected_visual_nodes.append(child)
 
 func _on_view_nodes_deleted(nodes: Array[StringName]):
 	var nodes_to_process: Array[StringName] = nodes.duplicate()
@@ -551,8 +631,13 @@ func _emit_selection_finished() -> void:
 	for child in get_children():
 		if child is GraphElement and child.selected:
 			selected_nodes.append(child)
+	_last_selected_visual_nodes = selected_nodes
 	
 	if selected_nodes.size() == 1:
 		var single_node: GraphElement = selected_nodes[0]
 		if is_instance_valid(single_node):
 			selection_finished.emit(single_node.name)
+
+## Returns the last stored selection (when left-click was released). Used so Backdrop creation can use it if right-click cleared selection.
+func get_last_selected_visual_nodes() -> Array[GraphElement]:
+	return _last_selected_visual_nodes.duplicate()

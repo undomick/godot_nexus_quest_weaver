@@ -107,6 +107,17 @@ func update_objective_trigger_param(payload: Dictionary):
 		
 		objective.trigger_params[param_name] = param_value
 
+func update_objective_id(payload: Dictionary):
+	if payload.has("objective") and payload.has("new_id"):
+		var obj: ObjectiveResource = payload["objective"]
+		obj.id = payload["new_id"]
+
+func update_objective_requirements(payload: Dictionary):
+	if payload.has("objective") and payload.has("requirements"):
+		var obj: ObjectiveResource = payload["objective"]
+		# Clone dictionary to ensure unique ref for history
+		obj.requirements = payload["requirements"].duplicate()
+
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
 	
@@ -144,41 +155,29 @@ func _validate(context: Dictionary) -> Array[ValidationResult]:
 				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Task Node contains an invalid/empty Objective.", id))
 				continue
 				
-			# Internal validation of the objective
 			if objective.id.is_empty():
-				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Objective has no ID (should not happen).", id))
-			if objective.description.is_empty():
-				results.append(ValidationResult.new(ValidationResult.Severity.INFO, "Objective in Node '%s' has no description." % id, id))
+				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Objective has no ID.", id))
 
+			# Validate based on requirements dictionary
 			match objective.trigger_type:
 				ObjectiveResource.TriggerType.ITEM_COLLECT:
-					var item_id = objective.trigger_params.get("item_id", "")
-					if item_id.is_empty():
-						results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Objective 'Item Collect': No Item ID specified.", id))
+					if objective.requirements.is_empty():
+						results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Objective 'Item Collect': No items defined in requirements.", id))
 					elif is_instance_valid(item_registry):
-						if item_registry.has_method("find"):
-							if not item_registry.find(item_id):
-								results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Item ID '%s' not found in Registry." % item_id, id))
-						elif "item_definitions" in item_registry:
-							var found = false
-							for def in item_registry.item_definitions:
-								if def.id == item_id: found = true; break
-							if not found:
+						for item_id in objective.requirements.keys():
+							if not item_registry.find(str(item_id)):
 								results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Item ID '%s' not found in Registry." % item_id, id))
 
 				ObjectiveResource.TriggerType.KILL:
-					var enemy_id = objective.trigger_params.get("enemy_id", "")
-					if enemy_id.is_empty():
-						results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Objective 'Kill': No Enemy ID specified.", id))
+					if objective.requirements.is_empty():
+						results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Objective 'Kill': No enemies defined in requirements.", id))
 
 				ObjectiveResource.TriggerType.INTERACT:
-					var target_path = objective.trigger_params.get("target_path", "")
-					if target_path.is_empty():
+					if objective.trigger_params.get("target_path", "").is_empty():
 						results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Objective 'Interact': No Target Path specified.", id))
 				
 				ObjectiveResource.TriggerType.LOCATION_ENTER:
-					var loc_id = objective.trigger_params.get("location_id", "")
-					if loc_id.is_empty():
+					if objective.trigger_params.get("location_id", "").is_empty():
 						results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Objective 'Location Enter': No Location ID specified.", id))
 	
 	return results

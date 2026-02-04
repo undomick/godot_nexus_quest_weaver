@@ -21,5 +21,4 @@ func execute() -> void:
 	_task_node.objectives.append(_objective_to_add)
 
 func undo() -> void:
-	# Undo is simple: just remove the objective we just added.
 	_task_node.objectives.erase(_objective_to_add)

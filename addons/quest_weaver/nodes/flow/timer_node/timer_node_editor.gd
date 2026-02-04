@@ -39,4 +39,4 @@ func _on_value_confirmed():
 			"new_value": new_value
 		}
 
-		property_update_requested.emit(edited_node_data.id, "duration", new_value)
+		property_update_requested.emit(edited_node_data.id, "duration", new_value, null, {})

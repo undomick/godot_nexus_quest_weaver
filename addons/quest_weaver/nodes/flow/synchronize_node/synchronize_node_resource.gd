@@ -3,17 +3,12 @@
 class_name SynchronizeNodeResource
 extends GraphNodeResource
 
-enum CompletionMode {
-	WAIT_FOR_ALL,
-	WAIT_FOR_ANY,
-	WAIT_FOR_N_INPUTS
-}
+enum InputState { IGNORE = 0, REQUIRED = 1, FORBIDDEN = 2 }
+enum LogicMode { EXCLUSIVE, PARALLEL }
 
-@export var completion_mode: CompletionMode = CompletionMode.WAIT_FOR_ALL
-@export_range(1, 100) var required_input_count: int = 2
 @export var inputs: Array[SynchronizeInputPort] = []
 @export var outputs: Array[SynchronizeOutputPort] = []
-
+@export var logic_mode: LogicMode = LogicMode.EXCLUSIVE
 
 func _init():
 	category = "Flow"
@@ -28,20 +23,15 @@ func _init():
 			var out1 = SynchronizeOutputPort.new(); out1.port_name = "Out"
 			outputs.append(out1)
 		
+	_ensure_pattern_integrity()
 	_update_ports_from_data()
 
 func get_editor_summary() -> String:
-	match completion_mode:
-		CompletionMode.WAIT_FOR_ALL:
-			return "Wait for\nALL inputs"
-		CompletionMode.WAIT_FOR_ANY:
-			return "Wait for\nANY input"
-		CompletionMode.WAIT_FOR_N_INPUTS:
-			return "Wait for\n%d input(s)" % required_input_count
-	return ""
+	var mode_text = "Priority" if logic_mode == LogicMode.EXCLUSIVE else "Gateway"
+	return "Sync (%s)\n%d In -> %d Out" % [mode_text, inputs.size(), outputs.size()]
 
 func get_description() -> String:
-	return "Pauses execution until specific or all input paths have reached this node (AND-Gate logic)."
+	return "Pattern Matching Gate. \nExclusive: First matching output fires.\nParallel: All matching outputs fire."
 
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/join.svg")
@@ -56,11 +46,22 @@ func add_sync_input(_payload: Dictionary):
 	var new_input = SynchronizeInputPort.new()
 	new_input.port_name = "In %d" % (inputs.size() + 1)
 	inputs.append(new_input)
+	
+	# Add a default IGNORE state for this new input to all existing outputs
+	for out in outputs:
+		out.patterns.append(InputState.IGNORE)
+		
 	_update_ports_from_data()
 
 func remove_sync_input(payload: Dictionary):
 	if payload.has("index") and payload.index >= 0 and payload.index < inputs.size():
 		inputs.remove_at(payload.index)
+		
+		# Remove the corresponding pattern column from all outputs
+		for out in outputs:
+			if payload.index < out.patterns.size():
+				out.patterns.remove_at(payload.index)
+				
 		_update_ports_from_data()
 
 func update_sync_input_name(payload: Dictionary):
@@ -75,6 +76,11 @@ func update_sync_input_name(payload: Dictionary):
 func add_sync_output(_payload: Dictionary):
 	var new_output = SynchronizeOutputPort.new()
 	new_output.port_name = "Out %d" % (outputs.size() + 1)
+	
+	# Initialize pattern with IGNORE for current input count
+	new_output.patterns.resize(inputs.size())
+	new_output.patterns.fill(InputState.IGNORE)
+	
 	outputs.append(new_output)
 	_update_ports_from_data()
 
@@ -90,23 +96,19 @@ func update_sync_output_name(payload: Dictionary):
 			outputs[index].port_name = payload.get("new_name")
 			_update_ports_from_data()
 
-func update_sync_output_condition_property(payload: Dictionary):
-	if payload.has("index") and payload.has("property_name") and payload.has("new_value"):
-		var index = payload.get("index")
-		if index >= 0 and index < outputs.size():
-			var port: SynchronizeOutputPort = outputs[index]
-			if is_instance_valid(port.condition):
-				port.condition.set(payload.get("property_name"), payload.get("new_value"))
+# --- Matrix Logic ---
 
-func change_sync_output_condition_type(payload: Dictionary):
-	if payload.has("index") and payload.has("new_script"):
-		var index = payload.get("index")
-		if index >= 0 and index < outputs.size():
-			var port: SynchronizeOutputPort = outputs[index]
-			var new_script = payload.get("new_script")
-			if is_instance_valid(new_script):
-				port.condition = new_script.new()
-
+func update_sync_pattern(payload: Dictionary):
+	if payload.has_all(["output_index", "input_index", "state"]):
+		var out_idx = payload.output_index
+		var in_idx = payload.input_index
+		var state = payload.state
+		
+		if out_idx >= 0 and out_idx < outputs.size():
+			var out = outputs[out_idx]
+			# Ensure array size safety
+			if in_idx >= 0 and in_idx < out.patterns.size():
+				out.patterns[in_idx] = state
 
 # ==============================================================================
 # SERIALIZATION
@@ -114,8 +116,7 @@ func change_sync_output_condition_type(payload: Dictionary):
 
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
-	data["completion_mode"] = self.completion_mode
-	data["required_input_count"] = self.required_input_count
+	data["logic_mode"] = self.logic_mode
 	
 	var inputs_data = []
 	for i in self.inputs:
@@ -131,8 +132,7 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.completion_mode = data.get("completion_mode", CompletionMode.WAIT_FOR_ALL)
-	self.required_input_count = data.get("required_input_count", 2)
+	self.logic_mode = data.get("logic_mode", LogicMode.EXCLUSIVE)
 	
 	self.inputs.clear()
 	for i_data in data.get("inputs", []):
@@ -149,10 +149,25 @@ func from_dictionary(data: Dictionary):
 			var new_o = script.new()
 			new_o.from_dictionary(o_data)
 			self.outputs.append(new_o)
+	
+	_ensure_pattern_integrity()
 
 # --- PRIVATE HELPER FUNCTIONS ---
 
+func _ensure_pattern_integrity():
+	var needed_size = inputs.size()
+	for out in outputs:
+		if out.patterns.size() != needed_size:
+			var old = out.patterns.duplicate()
+			out.patterns.resize(needed_size)
+			out.patterns.fill(InputState.IGNORE)
+			
+			# Restore what fits
+			for i in range(min(old.size(), needed_size)):
+				out.patterns[i] = old[i]
+
 func _update_ports_from_data():
+	_ensure_pattern_integrity()
 	input_ports.clear()
 	for port in inputs:
 		if is_instance_valid(port):
@@ -162,11 +177,6 @@ func _update_ports_from_data():
 	for port in outputs:
 		if is_instance_valid(port):
 			output_ports.append(port.port_name)
-
-	if required_input_count > inputs.size():
-		required_input_count = inputs.size()
-	if required_input_count < 1:
-		required_input_count = 1
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.TOWER

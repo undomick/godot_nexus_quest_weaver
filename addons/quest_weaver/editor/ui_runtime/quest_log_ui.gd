@@ -28,6 +28,7 @@ const QuestCategoryHeader = preload("./quest_category_header.gd")
 var _all_quest_entries: Array[QuestLogEntry] = []
 var quest_controller: QuestController
 var _current_selected_quest_id: String = ""
+var _item_registry: Resource = null
 
 # Redraw flag to prevent multiple rebuilds in the same frame
 var _list_needs_redraw := false
@@ -36,6 +37,11 @@ var _redraw_request_count_this_frame := 0
 
 func _ready() -> void:
 	self.visible = false
+	
+	# Validate Input Action exists to prevent runtime errors
+	if not toggle_log_action.is_empty() and not InputMap.has_action(toggle_log_action):
+		#push_warning("QuestLogUI: Input Action '%s' not found in Project Settings. Log toggle via keyboard disabled." % toggle_log_action)
+		toggle_log_action = &"" # Disable action to prevent crashes in _input
 	
 	# Initialize headers with default titles
 	active_quests_header.set_category_name("Active Quests")
@@ -52,21 +58,29 @@ func _ready() -> void:
 		if is_instance_valid(quest_controller):
 			_initialize_connections()
 		else:
-			# Warten, bis Controller bereit ist
+			# Wait until controller is ready
 			services.controller_ready.connect(_on_controller_ready, CONNECT_ONE_SHOT)
+
+func _input(event: InputEvent) -> void:
+	if not toggle_log_action.is_empty() and event.is_action_pressed(toggle_log_action):
+		visible = !visible
+		get_viewport().set_input_as_handled()
 
 func _on_visibility_changed() -> void:
 	# Refresh data only when the UI becomes visible to save performance
 	if visible:
 		_request_list_redraw()
 
+# Connect to all relevant signals from the QuestController logic
 func _initialize_connections() -> void:
-	# Connect to all relevant signals from the QuestController logic
-	quest_controller.quest_started.connect(_on_quest_list_changed)
-	quest_controller.quest_completed.connect(_on_quest_list_changed)
-	quest_controller.quest_failed.connect(_on_quest_list_changed)
-	# 'quest_data_changed' handles updates to objectives, logs, or descriptions
-	quest_controller.quest_data_changed.connect(_on_quest_data_changed)
+	if not quest_controller.quest_started.is_connected(_on_quest_list_changed):
+		quest_controller.quest_started.connect(_on_quest_list_changed)
+	if not quest_controller.quest_completed.is_connected(_on_quest_list_changed):
+		quest_controller.quest_completed.connect(_on_quest_list_changed)
+	if not quest_controller.quest_failed.is_connected(_on_quest_list_changed):
+		quest_controller.quest_failed.connect(_on_quest_list_changed)
+	if not quest_controller.quest_data_changed.is_connected(_on_quest_data_changed):
+		quest_controller.quest_data_changed.connect(_on_quest_data_changed)
 
 	if self.visible:
 		_request_list_redraw()
@@ -119,6 +133,8 @@ func _process_redraw() -> void:
 		_update_detail_view()
 
 func _redraw_quest_list() -> void:
+	if not is_instance_valid(quest_controller): return
+
 	# 1. Clear all existing entries from the UI
 	active_quests_header.clear_entries()
 	completed_quests_header.clear_entries()
@@ -130,10 +146,11 @@ func _redraw_quest_list() -> void:
 	
 	# 3. Iterate and sort into categories
 	for quest_data in all_quests:
-		var status = quest_data.get("status")
+		var status = quest_data.get("status", QWEnums.QuestState.UNAVAILABLE)
 		
-		# Never show inactive (not yet started) quests
-		if status == QWEnums.QuestState.INACTIVE:
+		# Filter: Don't show UNAVAILABLE or AVAILABLE quests in the active log.
+		# AVAILABLE quests usually belong on a "Quest Board", not the personal Journal.
+		if status == QWEnums.QuestState.UNAVAILABLE or status == QWEnums.QuestState.AVAILABLE:
 			continue
 
 		var entry_instance: QuestLogEntry = QuestLogEntryScene.instantiate()
@@ -193,13 +210,17 @@ func _clear_detail_view() -> void:
 	for child in detail_log_list.get_children(): child.queue_free()
 
 func _update_detail_view() -> void:
+	if _current_selected_quest_id.is_empty():
+		_clear_detail_view()
+		return
+
 	var quest_data = quest_controller.get_quest_data(_current_selected_quest_id)
 	if quest_data.is_empty():
 		_clear_detail_view()
 		return
 	
 	# 1. Set Title and Description
-	var title_string = quest_data.get("title", "FLAWED_TITLE")
+	var title_string = quest_data.get("title", "ERROR_TITLE")
 	var description_string = quest_data.get("description", "")
 
 	detail_title_label.text = tr(title_string)
@@ -221,36 +242,77 @@ func _update_detail_view() -> void:
 		child.queue_free()
 
 	var active_objectives = quest_controller.get_active_objectives_for_quest(_current_selected_quest_id)
+	var quest_status = quest_data.get("status")
 	
-	if active_objectives.is_empty():
+	if active_objectives.is_empty() and quest_status == QWEnums.QuestState.ACTIVE:
 		var no_obj_label = Label.new()
-		no_obj_label.text = "no active objectives."
+		no_obj_label.text = "No active objectives."
 		no_obj_label.modulate = Color(1, 1, 1, 0.5)
 		detail_objectives_list.add_child(no_obj_label)
+	elif quest_status == QWEnums.QuestState.COMPLETED:
+		var comp_label = Label.new()
+		comp_label.text = "Quest Completed."
+		comp_label.modulate = Color(0.5, 1.0, 0.5)
+		detail_objectives_list.add_child(comp_label)
+	elif quest_status == QWEnums.QuestState.FAILED:
+		var fail_label = Label.new()
+		fail_label.text = "Quest Failed."
+		fail_label.modulate = Color(1.0, 0.5, 0.5)
+		detail_objectives_list.add_child(fail_label)
 	else:
 		for objective in active_objectives:
+			if objective.is_hidden: continue #hides hidden objectives
 			var obj_label = Label.new()
 			
 			var prefix = "[ ] "
+			# Check against ObjectiveResource Status Enum (or raw int 2)
 			if objective.status == ObjectiveResource.Status.COMPLETED:
 				prefix = "[X] "
 			
 			var display_text = prefix + tr(objective.description)
 			
-			# Add progress counter for items or kills
+			# Add progress counter for items or kills (only when show_counter is enabled)
 			var progress_text = ""
-			match objective.trigger_type:
-				ObjectiveResource.TriggerType.ITEM_COLLECT:
-					var required = objective.trigger_params.get("amount", 1)
-					if required > 1:
-						progress_text = " (%d / %d)" % [objective.current_progress, required]
-				ObjectiveResource.TriggerType.KILL:
-					if objective.required_progress > 1:
-						progress_text = " (%d / %d)" % [objective.current_progress, objective.required_progress]
+			if objective.get("show_counter") != false:
+				match objective.trigger_type:
+					ObjectiveResource.TriggerType.ITEM_COLLECT, ObjectiveResource.TriggerType.KILL:
+						if not objective.requirements.is_empty():
+							var parts: Array[String] = []
+							var keys = objective.requirements.keys()
+							keys.sort_custom(func(a, b): return str(a) < str(b))
+							for key in keys:
+								var key_str = str(key)
+								if key_str.begins_with("new_target_"):
+									continue
+								var max_val = objective.requirements[key]
+								var current = quest_controller.get_objective_progress_by_key(objective.id, key)
+								var display_name = _get_item_display_name(key_str)
+								parts.append("%s (%d/%d)" % [display_name, current, max_val])
+							if parts.size() > 0:
+								progress_text = " " + " + ".join(parts)
 			
 			display_text += progress_text
 			obj_label.text = display_text
+			
+			if objective.is_optional:
+				obj_label.modulate = Color(0.8, 0.8, 0.8)
+				
 			detail_objectives_list.add_child(obj_label)
+
+func _get_item_registry() -> Resource:
+	if _item_registry == null:
+		var settings = QWConstants.get_settings()
+		if settings and settings.item_registry_path and ResourceLoader.exists(settings.item_registry_path):
+			_item_registry = ResourceLoader.load(settings.item_registry_path)
+	return _item_registry
+
+func _get_item_display_name(item_id: String) -> String:
+	var registry = _get_item_registry()
+	if registry and registry.has_method("find"):
+		var def = registry.find(item_id)
+		if def and "display_name" in def and def.display_name:
+			return str(def.display_name)
+	return item_id.capitalize()
 
 func _get_services_safe() -> Node:
 	var main_loop = Engine.get_main_loop()

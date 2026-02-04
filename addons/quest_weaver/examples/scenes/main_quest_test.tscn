@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bofejnrnhn0ei"]
+[gd_scene format=3 uid="uid://bofejnrnhn0ei"]
 
 [ext_resource type="Script" uid="uid://m6kbkprnn5ts" path="res://addons/quest_weaver/examples/scenes/main_quest_test.gd" id="1_wqj30"]
 [ext_resource type="Texture2D" uid="uid://b6jrdwqvmqow7" path="res://addons/quest_weaver/examples/assets/bg_winter.jpg" id="2_iuw1t"]
@@ -8,15 +8,15 @@
 [ext_resource type="Script" uid="uid://cfqarxnxa5hgv" path="res://addons/quest_weaver/core/quest_controller.gd" id="5_i4cg0"]
 [ext_resource type="PackedScene" uid="uid://cfjujdo2dk1xe" path="res://addons/quest_weaver/editor/ui_runtime/quest_log_ui.tscn" id="7_iqkk4"]
 
-[node name="main_quest_test" type="Node"]
+[node name="main_quest_test" type="Node" unique_id=373961287]
 script = ExtResource("1_wqj30")
 
-[node name="BG" type="TextureRect" parent="."]
+[node name="BG" type="TextureRect" parent="." unique_id=571152484]
 offset_right = 1152.0
 offset_bottom = 648.0
 texture = ExtResource("2_iuw1t")
 
-[node name="AdventureMarginContainer" type="MarginContainer" parent="."]
+[node name="AdventureMarginContainer" type="MarginContainer" parent="." unique_id=218039936]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -27,40 +27,40 @@ theme_override_constants/margin_top = 100
 theme_override_constants/margin_right = 100
 theme_override_constants/margin_bottom = 100
 
-[node name="PanelContainer" type="PanelContainer" parent="AdventureMarginContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="AdventureMarginContainer" unique_id=1307845474]
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="AdventureMarginContainer/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="AdventureMarginContainer/PanelContainer" unique_id=1294933538]
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="VBoxContainer" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer" unique_id=780233473]
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=838151384]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="MQ_VBoxContainer" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="MQ_VBoxContainer" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=965435982]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer" unique_id=207754924]
 layout_mode = 2
 
-[node name="tex_portrait" type="TextureRect" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/HBoxContainer"]
+[node name="tex_portrait" type="TextureRect" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/HBoxContainer" unique_id=724831424]
 layout_mode = 2
 texture = ExtResource("2_rh56j")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/HBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/HBoxContainer" unique_id=697374096]
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="OldManTalkButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/HBoxContainer/VBoxContainer"]
+[node name="OldManTalkButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1922784101]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 82)
 layout_mode = 2
@@ -68,7 +68,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "Talk to Nestor"
 
-[node name="OldManKillButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/HBoxContainer/VBoxContainer"]
+[node name="OldManKillButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/HBoxContainer/VBoxContainer" unique_id=1665132001]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 82)
 layout_mode = 2
@@ -76,61 +76,61 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "Kill Him"
 
-[node name="HSeparator" type="HSeparator" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer" unique_id=791583518]
 layout_mode = 2
 
-[node name="CollectVBoxContainer" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer"]
+[node name="CollectVBoxContainer" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer" unique_id=896310319]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Label" type="Label" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer"]
+[node name="Label" type="Label" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer" unique_id=1368027936]
 layout_mode = 2
 text = "Collect Stuff"
 
-[node name="MQ_GridContainer" type="GridContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer"]
+[node name="MQ_GridContainer" type="GridContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer" unique_id=764247528]
 layout_mode = 2
 columns = 2
 
-[node name="CollectButton1" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer/MQ_GridContainer"]
+[node name="CollectButton1" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer/MQ_GridContainer" unique_id=549997528]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Wood"
 
-[node name="CollectButton2" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer/MQ_GridContainer"]
+[node name="CollectButton2" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer/MQ_GridContainer" unique_id=1346471070]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Iron"
 
-[node name="CollectButton3" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer/MQ_GridContainer"]
+[node name="CollectButton3" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer/MQ_GridContainer" unique_id=916486964]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Silk"
 
-[node name="CollectButton4" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer/MQ_GridContainer"]
+[node name="CollectButton4" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer/MQ_GridContainer" unique_id=886663586]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Meat"
 
-[node name="HSeparator2" type="HSeparator" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer/CollectVBoxContainer" unique_id=360422401]
 layout_mode = 2
 
-[node name="MQ_VBoxContainer2" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="MQ_VBoxContainer2" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=1236950141]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8
 
-[node name="HBoxContainer" type="HBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2"]
+[node name="HBoxContainer" type="HBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2" unique_id=768103166]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2/HBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2/HBoxContainer" unique_id=1719564321]
 layout_mode = 2
 size_flags_vertical = 0
 
-[node name="LadyTalkButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2/HBoxContainer/VBoxContainer"]
+[node name="LadyTalkButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2/HBoxContainer/VBoxContainer" unique_id=771055334]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 82)
 layout_mode = 2
@@ -138,7 +138,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "Talk to Lydia"
 
-[node name="LadyKillButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2/HBoxContainer/VBoxContainer"]
+[node name="LadyKillButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2/HBoxContainer/VBoxContainer" unique_id=1998976787]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 82)
 layout_mode = 2
@@ -146,7 +146,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "Kill Her"
 
-[node name="LadySpareButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2/HBoxContainer/VBoxContainer"]
+[node name="LadySpareButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2/HBoxContainer/VBoxContainer" unique_id=1923396853]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 82)
 layout_mode = 2
@@ -154,14 +154,14 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "Spare Her"
 
-[node name="tex_portrait" type="TextureRect" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2/HBoxContainer"]
+[node name="tex_portrait" type="TextureRect" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2/HBoxContainer" unique_id=127315668]
 layout_mode = 2
 texture = ExtResource("3_iuw1t")
 
-[node name="HSeparator" type="HSeparator" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2"]
+[node name="HSeparator" type="HSeparator" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/MQ_VBoxContainer2" unique_id=2075374165]
 layout_mode = 2
 
-[node name="JournalButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="JournalButton" type="Button" parent="AdventureMarginContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1159820602]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(256, 0)
 layout_mode = 2
@@ -170,20 +170,20 @@ size_flags_vertical = 8
 text = "Open Quest Journal
 "
 
-[node name="LanguageMarginContainer" type="MarginContainer" parent="."]
+[node name="LanguageMarginContainer" type="MarginContainer" parent="." unique_id=837258796]
 visible = false
 offset_right = 260.0
 offset_bottom = 50.0
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 
-[node name="Panel" type="Panel" parent="LanguageMarginContainer"]
+[node name="Panel" type="Panel" parent="LanguageMarginContainer" unique_id=1072917981]
 custom_minimum_size = Vector2(250, 40)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="MarginContainer" type="MarginContainer" parent="LanguageMarginContainer/Panel"]
+[node name="MarginContainer" type="MarginContainer" parent="LanguageMarginContainer/Panel" unique_id=453384692]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -195,15 +195,15 @@ theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 
-[node name="HBoxContainer" type="HBoxContainer" parent="LanguageMarginContainer/Panel/MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="LanguageMarginContainer/Panel/MarginContainer" unique_id=1158269297]
 layout_mode = 2
 
-[node name="LangLabel" type="Label" parent="LanguageMarginContainer/Panel/MarginContainer/HBoxContainer"]
+[node name="LangLabel" type="Label" parent="LanguageMarginContainer/Panel/MarginContainer/HBoxContainer" unique_id=1697581752]
 layout_mode = 2
 size_flags_horizontal = 2
 text = "Language"
 
-[node name="LangOptButton" type="OptionButton" parent="LanguageMarginContainer/Panel/MarginContainer/HBoxContainer"]
+[node name="LangOptButton" type="OptionButton" parent="LanguageMarginContainer/Panel/MarginContainer/HBoxContainer" unique_id=1775845084]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
@@ -217,17 +217,17 @@ popup/item_1/id = 1
 popup/item_2/text = "french"
 popup/item_2/id = 2
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=150635352]
 unique_name_in_owner = true
 
-[node name="QuestController" type="Node" parent="UI"]
+[node name="QuestController" type="Node" parent="UI" unique_id=771999740]
 script = ExtResource("5_i4cg0")
 
-[node name="SimpleInventoryController" type="Node" parent="UI" groups=["inventory_controller"]]
+[node name="SimpleInventoryController" type="Node" parent="UI" unique_id=683814178 groups=["inventory_controller"]]
 unique_name_in_owner = true
 script = ExtResource("3_s2h8j")
 
-[node name="QuestLogUI" parent="UI" instance=ExtResource("7_iqkk4")]
+[node name="QuestLogUI" parent="UI" unique_id=2094706237 instance=ExtResource("7_iqkk4")]
 unique_name_in_owner = true
 layer = 4
 visible = false

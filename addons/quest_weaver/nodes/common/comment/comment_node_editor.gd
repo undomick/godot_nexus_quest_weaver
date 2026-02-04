@@ -16,4 +16,4 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 func _on_text_confirmed() -> void:
 	# Check if the text has actually changed before creating a history entry.
 	if is_instance_valid(edited_node_data) and edited_node_data.text != text_edit.text:
-		property_update_requested.emit(edited_node_data.id, "text", text_edit.text)
+		property_update_requested.emit(edited_node_data.id, "text", text_edit.text, null, {})

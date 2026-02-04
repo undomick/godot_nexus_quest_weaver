@@ -1,23 +1,30 @@
-[gd_scene load_steps=2 format=3 uid="uid://efkk82glwqs2"]
+[gd_scene format=3 uid="uid://efkk82glwqs2"]
 
 [ext_resource type="Script" uid="uid://vob25o2mphqc" path="res://addons/quest_weaver/nodes/action/show_ui_message_node/show_ui_message_node_editor.gd" id="1_at24h"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_cngdw"]
 
-[node name="ShowUIMessageNodeEditor" type="VBoxContainer"]
-anchors_preset = 15
+[node name="ShowUIMessageNodeEditor" type="PanelContainer" unique_id=2019145122]
+anchors_preset = 10
 anchor_right = 1.0
-anchor_bottom = 1.0
+offset_bottom = 362.0
 grow_horizontal = 2
-grow_vertical = 2
+theme = ExtResource("1_cngdw")
 script = ExtResource("1_at24h")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1537004175]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="MainLayout" unique_id=262659777]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout/PanelContainer" unique_id=502344901]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/PanelContainer/HBoxContainer" unique_id=780318176]
 layout_mode = 2
 text = "Message Type: "
 
-[node name="MessageTypeEdit" type="OptionButton" parent="HBoxContainer"]
+[node name="MessageTypeEdit" type="OptionButton" parent="MainLayout/PanelContainer/HBoxContainer" unique_id=1702745254]
 unique_name_in_owner = true
 layout_mode = 2
 selected = 0
@@ -29,233 +36,231 @@ popup/item_1/id = 1
 popup/item_2/text = "Instruction"
 popup/item_2/id = 2
 
-[node name="WaitForCompletionCheckbox" type="CheckBox" parent="HBoxContainer"]
+[node name="PanelContainer2" type="PanelContainer" parent="MainLayout" unique_id=1455442309]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout/PanelContainer2" unique_id=1856101091]
+layout_mode = 2
+
+[node name="WaitForCompletionCheckbox" type="CheckBox" parent="MainLayout/PanelContainer2/HBoxContainer" unique_id=1201457974]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Wait For Completion"
 
-[node name="HSeparator" type="HSeparator" parent="."]
-layout_mode = 2
-
-[node name="TabContainer" type="TabContainer" parent="."]
-layout_mode = 2
-current_tab = 0
-
-[node name="In Animation" type="VBoxContainer" parent="TabContainer"]
-layout_mode = 2
-metadata/_tab_index = 0
-
-[node name="InAnimContainer" type="HBoxContainer" parent="TabContainer/In Animation"]
-layout_mode = 2
-
-[node name="Label3" type="Label" parent="TabContainer/In Animation/InAnimContainer"]
-layout_mode = 2
-text = "Anim In: "
-
-[node name="AnimationInPicker" type="OptionButton" parent="TabContainer/In Animation/InAnimContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-selected = 0
-item_count = 7
-popup/item_0/text = "NONE"
-popup/item_0/id = 0
-popup/item_1/text = "FADE"
-popup/item_1/id = 1
-popup/item_2/text = "SLIDE_UP"
-popup/item_2/id = 2
-popup/item_3/text = "SLIDE_DOWN"
-popup/item_3/id = 3
-popup/item_4/text = "SCALE_UP"
-popup/item_4/id = 4
-popup/item_5/text = "SCALE_DOWN"
-popup/item_5/id = 5
-popup/item_6/text = "SLIDE_ROTATED"
-popup/item_6/id = 6
-
-[node name="EaseInPicker" type="OptionButton" parent="TabContainer/In Animation/InAnimContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-selected = 0
-item_count = 4
-popup/item_0/text = "In"
-popup/item_0/id = 0
-popup/item_1/text = "Out"
-popup/item_1/id = 1
-popup/item_2/text = "In Out"
-popup/item_2/id = 2
-popup/item_3/text = "Out In"
-popup/item_3/id = 3
-
-[node name="HBoxContainer2" type="HBoxContainer" parent="TabContainer/In Animation"]
-layout_mode = 2
-
-[node name="PerCharacterInCheckbox" type="CheckBox" parent="TabContainer/In Animation/HBoxContainer2"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Per Char"
-
-[node name="DurationInContainer" type="HBoxContainer" parent="TabContainer/In Animation/HBoxContainer2"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="Label2" type="Label" parent="TabContainer/In Animation/HBoxContainer2/DurationInContainer"]
-layout_mode = 2
-text = "Duration"
-
-[node name="DurationInSpinBox" type="SpinBox" parent="TabContainer/In Animation/HBoxContainer2/DurationInContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-step = 0.05
-
-[node name="Out Animation" type="VBoxContainer" parent="TabContainer"]
-visible = false
-layout_mode = 2
-metadata/_tab_index = 1
-
-[node name="OutAnimContainer" type="HBoxContainer" parent="TabContainer/Out Animation"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="Label4" type="Label" parent="TabContainer/Out Animation/OutAnimContainer"]
-layout_mode = 2
-text = "Anim Out:  "
-
-[node name="AnimationOutPicker" type="OptionButton" parent="TabContainer/Out Animation/OutAnimContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-selected = 0
-item_count = 7
-popup/item_0/text = "NONE"
-popup/item_0/id = 0
-popup/item_1/text = "FADE"
-popup/item_1/id = 1
-popup/item_2/text = "SLIDE_UP"
-popup/item_2/id = 2
-popup/item_3/text = "SLIDE_DOWN"
-popup/item_3/id = 3
-popup/item_4/text = "SCALE_UP"
-popup/item_4/id = 4
-popup/item_5/text = "SCALE_DOWN"
-popup/item_5/id = 5
-popup/item_6/text = "SLIDE_ROTATED"
-popup/item_6/id = 6
-
-[node name="EaseOutPicker" type="OptionButton" parent="TabContainer/Out Animation/OutAnimContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-selected = 0
-item_count = 4
-popup/item_0/text = "In"
-popup/item_0/id = 0
-popup/item_1/text = "Out"
-popup/item_1/id = 1
-popup/item_2/text = "In Out"
-popup/item_2/id = 2
-popup/item_3/text = "Out In"
-popup/item_3/id = 3
-
-[node name="HBoxContainer3" type="HBoxContainer" parent="TabContainer/Out Animation"]
-layout_mode = 2
-
-[node name="PerCharacterOutCheckbox" type="CheckBox" parent="TabContainer/Out Animation/HBoxContainer3"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Per Char"
-
-[node name="DurationOutContainer" type="HBoxContainer" parent="TabContainer/Out Animation/HBoxContainer3"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="Label" type="Label" parent="TabContainer/Out Animation/HBoxContainer3/DurationOutContainer"]
-layout_mode = 2
-text = "Duration"
-
-[node name="DurationOutSpinBox" type="SpinBox" parent="TabContainer/Out Animation/HBoxContainer3/DurationOutContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-step = 0.05
-
-[node name="HSeparator2" type="HSeparator" parent="."]
-layout_mode = 2
-
-[node name="HBoxContainer7" type="HBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="DelayTitleMessageContainer" type="HBoxContainer" parent="HBoxContainer7"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="Label2" type="Label" parent="HBoxContainer7/DelayTitleMessageContainer"]
-layout_mode = 2
-text = "Delay Title to Message (s)"
-
-[node name="DelayTitleMessageSpinBox" type="SpinBox" parent="HBoxContainer7/DelayTitleMessageContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-step = 0.05
-
-[node name="DelayInOutContainer" type="HBoxContainer" parent="HBoxContainer7"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="HBoxContainer7/DelayInOutContainer"]
-layout_mode = 2
-text = "Hold Duration (s)"
-
-[node name="HoldDurationSpinBox" type="SpinBox" parent="HBoxContainer7/DelayInOutContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-step = 0.05
-
-[node name="CharacterStaggerContainer" type="HBoxContainer" parent="HBoxContainer7"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="Label" type="Label" parent="HBoxContainer7/CharacterStaggerContainer"]
-layout_mode = 2
-text = "Char stagger (ms)"
-
-[node name="CharacterStaggerSpinBox" type="SpinBox" parent="HBoxContainer7/CharacterStaggerContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="HSeparator3" type="HSeparator" parent="."]
-layout_mode = 2
-
-[node name="TitleContainer" type="VBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="TitleContainer"]
-layout_mode = 2
-text = "Title Override: "
-
-[node name="TitleOverrideEdit" type="LineEdit" parent="TitleContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="MessageContainer" type="VBoxContainer" parent="."]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="Label" type="Label" parent="MessageContainer"]
-layout_mode = 2
-size_flags_vertical = 0
-text = "Message Override: "
-
-[node name="MessageOverrideEdit" type="TextEdit" parent="MessageContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-wrap_mode = 1
-scroll_fit_content_height = true
-scroll_fit_content_width = true
-
-[node name="HSeparator4" type="HSeparator" parent="."]
-layout_mode = 2
-
-[node name="TerminalCheckBox" type="CheckBox" parent="."]
+[node name="TerminalCheckBox" type="CheckBox" parent="MainLayout/PanelContainer2/HBoxContainer" unique_id=1727174925]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Disables Output-Port(s). Helps to avoid warnings in the validator."
 text = "End of Flow"
+
+[node name="TabContainer" type="TabContainer" parent="MainLayout" unique_id=2133967362]
+layout_mode = 2
+current_tab = 1
+
+[node name="In Animation" type="PanelContainer" parent="MainLayout/TabContainer" unique_id=1577405851]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="InAnimContainer" type="GridContainer" parent="MainLayout/TabContainer/In Animation" unique_id=332732615]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+columns = 2
+
+[node name="Label3" type="Label" parent="MainLayout/TabContainer/In Animation/InAnimContainer" unique_id=143723162]
+layout_mode = 2
+text = "Animation Style: "
+
+[node name="AnimationInPicker" type="OptionButton" parent="MainLayout/TabContainer/In Animation/InAnimContainer" unique_id=301495876]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 7
+popup/item_0/text = "NONE"
+popup/item_0/id = 0
+popup/item_1/text = "FADE"
+popup/item_1/id = 1
+popup/item_2/text = "SLIDE_UP"
+popup/item_2/id = 2
+popup/item_3/text = "SLIDE_DOWN"
+popup/item_3/id = 3
+popup/item_4/text = "SCALE_UP"
+popup/item_4/id = 4
+popup/item_5/text = "SCALE_DOWN"
+popup/item_5/id = 5
+popup/item_6/text = "SLIDE_ROTATED"
+popup/item_6/id = 6
+
+[node name="Label" type="Label" parent="MainLayout/TabContainer/In Animation/InAnimContainer" unique_id=1335192520]
+layout_mode = 2
+text = "Ease In:"
+
+[node name="EaseInPicker" type="OptionButton" parent="MainLayout/TabContainer/In Animation/InAnimContainer" unique_id=1416773347]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 4
+popup/item_0/text = "In"
+popup/item_0/id = 0
+popup/item_1/text = "Out"
+popup/item_1/id = 1
+popup/item_2/text = "In Out"
+popup/item_2/id = 2
+popup/item_3/text = "Out In"
+popup/item_3/id = 3
+
+[node name="PerCharacterInCheckbox" type="CheckBox" parent="MainLayout/TabContainer/In Animation/InAnimContainer" unique_id=1423068855]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Per Char"
+
+[node name="DurationInContainer" type="HBoxContainer" parent="MainLayout/TabContainer/In Animation/InAnimContainer" unique_id=1095331022]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="MainLayout/TabContainer/In Animation/InAnimContainer/DurationInContainer" unique_id=2063645101]
+layout_mode = 2
+text = "Duration: "
+
+[node name="DurationInSpinBox" type="SpinBox" parent="MainLayout/TabContainer/In Animation/InAnimContainer/DurationInContainer" unique_id=1747464143]
+unique_name_in_owner = true
+layout_mode = 2
+step = 0.05
+
+[node name="Out Animation" type="PanelContainer" parent="MainLayout/TabContainer" unique_id=1901892356]
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="OutAnimContainer" type="GridContainer" parent="MainLayout/TabContainer/Out Animation" unique_id=58280544]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 2
+
+[node name="Label4" type="Label" parent="MainLayout/TabContainer/Out Animation/OutAnimContainer" unique_id=2042832745]
+layout_mode = 2
+text = "Animation Style: "
+
+[node name="AnimationOutPicker" type="OptionButton" parent="MainLayout/TabContainer/Out Animation/OutAnimContainer" unique_id=1737956222]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 7
+popup/item_0/text = "NONE"
+popup/item_0/id = 0
+popup/item_1/text = "FADE"
+popup/item_1/id = 1
+popup/item_2/text = "SLIDE_UP"
+popup/item_2/id = 2
+popup/item_3/text = "SLIDE_DOWN"
+popup/item_3/id = 3
+popup/item_4/text = "SCALE_UP"
+popup/item_4/id = 4
+popup/item_5/text = "SCALE_DOWN"
+popup/item_5/id = 5
+popup/item_6/text = "SLIDE_ROTATED"
+popup/item_6/id = 6
+
+[node name="Label2" type="Label" parent="MainLayout/TabContainer/Out Animation/OutAnimContainer" unique_id=231729651]
+layout_mode = 2
+text = "Ease Out:"
+
+[node name="EaseOutPicker" type="OptionButton" parent="MainLayout/TabContainer/Out Animation/OutAnimContainer" unique_id=248647109]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 4
+popup/item_0/text = "In"
+popup/item_0/id = 0
+popup/item_1/text = "Out"
+popup/item_1/id = 1
+popup/item_2/text = "In Out"
+popup/item_2/id = 2
+popup/item_3/text = "Out In"
+popup/item_3/id = 3
+
+[node name="PerCharacterOutCheckbox" type="CheckBox" parent="MainLayout/TabContainer/Out Animation/OutAnimContainer" unique_id=1125629154]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Per Char"
+
+[node name="DurationOutContainer" type="HBoxContainer" parent="MainLayout/TabContainer/Out Animation/OutAnimContainer" unique_id=765956228]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/TabContainer/Out Animation/OutAnimContainer/DurationOutContainer" unique_id=1613933701]
+layout_mode = 2
+text = "Duration: "
+
+[node name="DurationOutSpinBox" type="SpinBox" parent="MainLayout/TabContainer/Out Animation/OutAnimContainer/DurationOutContainer" unique_id=1606489292]
+unique_name_in_owner = true
+layout_mode = 2
+step = 0.05
+
+[node name="PanelContainer3" type="PanelContainer" parent="MainLayout" unique_id=577827029]
+layout_mode = 2
+
+[node name="HBoxContainer7" type="GridContainer" parent="MainLayout/PanelContainer3" unique_id=1364943534]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="DelayTitleMessageContainer" type="HBoxContainer" parent="MainLayout/PanelContainer3/HBoxContainer7" unique_id=127028824]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="MainLayout/PanelContainer3/HBoxContainer7/DelayTitleMessageContainer" unique_id=1520720929]
+layout_mode = 2
+text = "Delay Title to Message (s)"
+
+[node name="DelayTitleMessageSpinBox" type="SpinBox" parent="MainLayout/PanelContainer3/HBoxContainer7/DelayTitleMessageContainer" unique_id=886280750]
+unique_name_in_owner = true
+layout_mode = 2
+step = 0.05
+
+[node name="DelayInOutContainer" type="HBoxContainer" parent="MainLayout/PanelContainer3/HBoxContainer7" unique_id=468734700]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/PanelContainer3/HBoxContainer7/DelayInOutContainer" unique_id=1175514183]
+layout_mode = 2
+text = "Hold Duration (s)"
+
+[node name="HoldDurationSpinBox" type="SpinBox" parent="MainLayout/PanelContainer3/HBoxContainer7/DelayInOutContainer" unique_id=1886295477]
+unique_name_in_owner = true
+layout_mode = 2
+step = 0.05
+
+[node name="CharacterStaggerContainer" type="HBoxContainer" parent="MainLayout/PanelContainer3/HBoxContainer7" unique_id=1548091123]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/PanelContainer3/HBoxContainer7/CharacterStaggerContainer" unique_id=427048615]
+layout_mode = 2
+text = "Char stagger (ms)"
+
+[node name="CharacterStaggerSpinBox" type="SpinBox" parent="MainLayout/PanelContainer3/HBoxContainer7/CharacterStaggerContainer" unique_id=137218017]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HSeparator3" type="HSeparator" parent="MainLayout" unique_id=560548198]
+layout_mode = 2
+
+[node name="TextContainer" type="VBoxContainer" parent="MainLayout" unique_id=1911905166]
+layout_mode = 2
+
+[node name="TitleOverrideEdit" type="LineEdit" parent="MainLayout/TextContainer" unique_id=240062450]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Title Override"
+
+[node name="MessageOverrideEdit" type="TextEdit" parent="MainLayout/TextContainer" unique_id=296484833]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+placeholder_text = "Message Override"
+wrap_mode = 1
+scroll_fit_content_height = true
+scroll_fit_content_width = true

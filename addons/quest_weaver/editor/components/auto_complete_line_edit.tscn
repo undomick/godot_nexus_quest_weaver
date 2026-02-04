@@ -1,27 +1,31 @@
-[gd_scene load_steps=2 format=3 uid="uid://bulr50esg11es"]
+[gd_scene format=3 uid="uid://bulr50esg11es"]
 
 [ext_resource type="Script" uid="uid://buhaxwoyo0ce3" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.gd" id="1_hr1ni"]
+[ext_resource type="Theme" uid="uid://cabjxagvvqos5" path="res://addons/quest_weaver/assets/themes/qw_popup.tres" id="2_k3vfd"]
 
-[node name="AutoCompleteLineEdit" type="VBoxContainer"]
+[node name="AutoCompleteLineEdit" type="VBoxContainer" unique_id=1554170656]
 custom_minimum_size = Vector2(200, 20)
 offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("1_hr1ni")
 
-[node name="FilterEdit" type="LineEdit" parent="."]
+[node name="FilterEdit" type="LineEdit" parent="." unique_id=151191849]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 20)
+custom_minimum_size = Vector2(100, 24)
 layout_mode = 2
+size_flags_vertical = 3
 placeholder_text = "AutoCompleted Text"
 
-[node name="PopupContainer" type="PanelContainer" parent="."]
+[node name="PopupContainer" type="PanelContainer" parent="." unique_id=851508786]
 unique_name_in_owner = true
 visible = false
+top_level = true
 z_index = 10
 layout_mode = 2
 mouse_filter = 1
+theme = ExtResource("2_k3vfd")
 
-[node name="ResultList" type="ItemList" parent="PopupContainer"]
+[node name="ResultList" type="ItemList" parent="PopupContainer" unique_id=785308421]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 20)
 layout_mode = 2

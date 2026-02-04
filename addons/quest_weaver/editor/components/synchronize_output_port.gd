@@ -3,26 +3,28 @@
 class_name SynchronizeOutputPort
 extends Resource
 
-## Defines a single, conditional output of a SynchronizeNode.
+## Defines a single output of a SynchronizeNode.
+## Now holds a pattern definition matching the inputs.
 
-@export var port_name: String = "Out"
+@export var port_name: StringName = &"Out"
 
-## Optional: A condition that is checked AFTER synchronization.
-## If null, the output will always activate.
+## Optional: A condition that is checked AFTER synchronization pattern match.
 @export var condition: ConditionResource
 
+## Stores the expected state for each input index.
+## Values correspond to SynchronizeNodeResource.InputState
+## [0: IGNORE, 1: REQUIRED, 2: FORBIDDEN]
+@export var patterns: Array[int] = []
 
 func _init() -> void:
-	# A new SynchronizeOutputPort always starts with a condition
-	# that checks the synchronizer's state by default.
 	condition = ConditionResource.new()
-	condition.type = ConditionResource.ConditionType.CHECK_SYNCHRONIZER
-
+	condition.type = ConditionResource.ConditionType.BOOL # Default to always true if pattern matches
 
 func to_dictionary() -> Dictionary:
 	var data: Dictionary = {
 		"@script_path": get_script().get_path(),
-		"port_name": port_name
+		"port_name": port_name,
+		"patterns": patterns
 	}
 	
 	if is_instance_valid(condition):
@@ -30,9 +32,14 @@ func to_dictionary() -> Dictionary:
 		
 	return data
 
-
 func from_dictionary(data: Dictionary) -> void:
-	port_name = data.get("port_name", "Out")
+	port_name = StringName(data.get("port_name", &"Out"))
+	
+	var pat_data = data.get("patterns", [])
+	if pat_data is Array:
+		# JSON numbers come as floats often, force int
+		patterns.clear()
+		for val in pat_data: patterns.append(int(val))
 	
 	var condition_data: Variant = data.get("condition")
 	if condition_data is Dictionary:

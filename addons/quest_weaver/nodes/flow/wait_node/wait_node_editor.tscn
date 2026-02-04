@@ -1,20 +1,25 @@
-[gd_scene load_steps=2 format=3 uid="uid://dk7p6fdmp4wma"]
+[gd_scene format=3 uid="uid://dk7p6fdmp4wma"]
 
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_dp8ud"]
 [ext_resource type="Script" uid="uid://cq1t57ktvqp6v" path="res://addons/quest_weaver/nodes/flow/wait_node/wait_node_editor.gd" id="1_v1ae1"]
 
-[node name="WaitNodeEditor" type="VBoxContainer"]
-offset_right = 40.0
+[node name="WaitNodeEditor" type="PanelContainer" unique_id=1624147186]
+offset_right = 229.0
 offset_bottom = 40.0
+theme = ExtResource("1_dp8ud")
 script = ExtResource("1_v1ae1")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1292257758]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=968083826]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer" unique_id=1883435553]
 layout_mode = 2
 text = "Wait Duration (sec): "
 
-[node name="WaitDurationEdit" type="LineEdit" parent="HBoxContainer"]
+[node name="WaitDurationEdit" type="LineEdit" parent="MainLayout/HBoxContainer" unique_id=1898578067]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

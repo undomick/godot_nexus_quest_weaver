@@ -1,48 +1,57 @@
-[gd_scene load_steps=2 format=3 uid="uid://d3w4esbxl2s34"]
+[gd_scene format=3 uid="uid://d3w4esbxl2s34"]
 
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_1p0vs"]
 [ext_resource type="Script" uid="uid://bk3xwasqmqb24" path="res://addons/quest_weaver/nodes/logic/sub_graph_node/sub_graph_node_editor.gd" id="1_4kwsi"]
 
-[node name="SubGraphNodeEditor" type="VBoxContainer"]
+[node name="SubGraphNodeEditor" type="PanelContainer" unique_id=1166570874]
 custom_minimum_size = Vector2(100, 100)
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 138.0
+grow_horizontal = 2
+theme = ExtResource("1_1p0vs")
 script = ExtResource("1_4kwsi")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=30364675]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=901537016]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer" unique_id=236694860]
 layout_mode = 2
 text = "Path: "
 
-[node name="QuestGraphPathEdit" type="LineEdit" parent="HBoxContainer"]
+[node name="QuestGraphPathEdit" type="LineEdit" parent="MainLayout/HBoxContainer" unique_id=261331797]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
 placeholder_text = "res://path.quest"
 
-[node name="BrowseButton" type="Button" parent="HBoxContainer"]
+[node name="BrowseButton" type="Button" parent="MainLayout/HBoxContainer" unique_id=719835509]
 unique_name_in_owner = true
 layout_mode = 2
 text = "..."
 
-[node name="HSeparator4" type="HSeparator" parent="."]
+[node name="HSeparator4" type="HSeparator" parent="MainLayout" unique_id=1553492844]
 layout_mode = 2
 
-[node name="WaitForCompletionCheckbox" type="CheckBox" parent="."]
+[node name="WaitForCompletionCheckbox" type="CheckBox" parent="MainLayout" unique_id=900252473]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Wait for Completion"
 
-[node name="TerminalCheckBox" type="CheckBox" parent="."]
+[node name="TerminalCheckBox" type="CheckBox" parent="MainLayout" unique_id=1671723951]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Disables Output-Port(s). Helps to avoid warnings in the validator."
 text = "End of Flow"
 
-[node name="HSeparator5" type="HSeparator" parent="."]
+[node name="HSeparator5" type="HSeparator" parent="MainLayout" unique_id=933866627]
 layout_mode = 2
 
-[node name="DiveInButton" type="Button" parent="."]
+[node name="DiveInButton" type="Button" parent="MainLayout" unique_id=1298258692]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Open Sub-Graph"

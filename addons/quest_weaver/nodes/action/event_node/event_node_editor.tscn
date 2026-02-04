@@ -1,31 +1,47 @@
-[gd_scene load_steps=2 format=3 uid="uid://cqumuvwa83uj6"]
+[gd_scene format=3 uid="uid://cqumuvwa83uj6"]
 
 [ext_resource type="Script" uid="uid://cty3igweawyet" path="res://addons/quest_weaver/nodes/action/event_node/event_node_editor.gd" id="1_6a2ip"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_t2pdi"]
 
-[node name="EventNodeEditor" type="VBoxContainer"]
-offset_right = 127.0
-offset_bottom = 82.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
+[node name="EventNodeEditor" type="PanelContainer" unique_id=1190404209]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 125.0
+grow_horizontal = 2
+theme = ExtResource("1_t2pdi")
 script = ExtResource("1_6a2ip")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=354687891]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=1376290745]
 layout_mode = 2
 
-[node name="EventLabel" type="Label" parent="HBoxContainer"]
+[node name="EventLabel" type="Label" parent="VBoxContainer/HBoxContainer" unique_id=818543673]
 layout_mode = 2
 text = "Event: "
 
-[node name="SignalNameEdit" type="LineEdit" parent="HBoxContainer"]
+[node name="SignalNameEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer" unique_id=2055080082]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HSeparator" type="HSeparator" parent="."]
+[node name="HSeparator4" type="HSeparator" parent="VBoxContainer" unique_id=990553275]
+layout_mode = 2
+
+[node name="TerminalCheckBox" type="CheckBox" parent="VBoxContainer" unique_id=1047041813]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Disables Output-Port(s). Helps to avoid warnings in the validator."
+text = "End of Flow"
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer" unique_id=730300625]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="VBoxContainer" unique_id=283827197]
 visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
@@ -38,7 +54,7 @@ Use it to:
 
 The Event Listener Node can read and act on this data."
 
-[node name="AddPayloadButton" type="Button" parent="."]
+[node name="AddPayloadButton" type="Button" parent="VBoxContainer" unique_id=1857608152]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "\"Payload\" data is optional information sent along with the event name.
@@ -51,15 +67,6 @@ Use it to:
 The Event Listener Node can read and act on this data."
 text = "Add Payload"
 
-[node name="PayloadListContainer" type="VBoxContainer" parent="."]
+[node name="PayloadListContainer" type="VBoxContainer" parent="VBoxContainer" unique_id=947932343]
 unique_name_in_owner = true
 layout_mode = 2
-
-[node name="HSeparator4" type="HSeparator" parent="."]
-layout_mode = 2
-
-[node name="TerminalCheckBox" type="CheckBox" parent="."]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Disables Output-Port(s). Helps to avoid warnings in the validator."
-text = "End of Flow"

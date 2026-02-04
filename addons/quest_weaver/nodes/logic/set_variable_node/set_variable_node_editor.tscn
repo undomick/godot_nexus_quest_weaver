@@ -1,56 +1,60 @@
-[gd_scene load_steps=2 format=3 uid="uid://bcxfmkhrqik6d"]
+[gd_scene format=3 uid="uid://bcxfmkhrqik6d"]
 
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_77jnp"]
 [ext_resource type="Script" uid="uid://kamvpwgmm46i" path="res://addons/quest_weaver/nodes/logic/set_variable_node/set_variable_node_editor.gd" id="1_qppw5"]
 
-[node name="SetVariableNodeEditor" type="VBoxContainer"]
-custom_minimum_size = Vector2(100, 100)
-offset_right = 40.0
-offset_bottom = 40.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
+[node name="SetVariableNodeEditor" type="PanelContainer" unique_id=1269122861]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 137.0
+grow_horizontal = 2
+theme = ExtResource("1_77jnp")
 script = ExtResource("1_qppw5")
 
-[node name="NameContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=619795529]
 layout_mode = 2
 
-[node name="VariableLabel" type="Label" parent="NameContainer"]
+[node name="NameContainer" type="HBoxContainer" parent="MainLayout" unique_id=1442918390]
+layout_mode = 2
+
+[node name="VariableLabel" type="Label" parent="MainLayout/NameContainer" unique_id=209646094]
 layout_mode = 2
 text = "Variable Name"
 
-[node name="VariableNameEdit" type="LineEdit" parent="NameContainer"]
+[node name="VariableNameEdit" type="LineEdit" parent="MainLayout/NameContainer" unique_id=1834584137]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ValueContainer" type="HBoxContainer" parent="."]
+[node name="ValueContainer" type="HBoxContainer" parent="MainLayout" unique_id=786337939]
 layout_mode = 2
 
-[node name="ValueLabel" type="Label" parent="ValueContainer"]
+[node name="ValueLabel" type="Label" parent="MainLayout/ValueContainer" unique_id=1909431949]
 layout_mode = 2
 text = "Value to Set"
 
-[node name="ValueToSetEdit" type="LineEdit" parent="ValueContainer"]
+[node name="ValueToSetEdit" type="LineEdit" parent="MainLayout/ValueContainer" unique_id=1860797928]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "string, 123, 4.56, true"
 
-[node name="OperatorContainer" type="HBoxContainer" parent="."]
+[node name="OperatorContainer" type="HBoxContainer" parent="MainLayout" unique_id=33408170]
 layout_mode = 2
 
-[node name="OperatorLabel" type="Label" parent="OperatorContainer"]
+[node name="OperatorLabel" type="Label" parent="MainLayout/OperatorContainer" unique_id=1248405465]
 layout_mode = 2
 text = "Operator"
 
-[node name="OperatorPicker" type="OptionButton" parent="OperatorContainer"]
+[node name="OperatorPicker" type="OptionButton" parent="MainLayout/OperatorContainer" unique_id=1762075765]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HSeparator4" type="HSeparator" parent="."]
+[node name="HSeparator4" type="HSeparator" parent="MainLayout" unique_id=1245906244]
 layout_mode = 2
 
-[node name="TerminalCheckBox" type="CheckBox" parent="."]
+[node name="TerminalCheckBox" type="CheckBox" parent="MainLayout" unique_id=1839737786]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Disables Output-Port(s). Helps to avoid warnings in the validator."

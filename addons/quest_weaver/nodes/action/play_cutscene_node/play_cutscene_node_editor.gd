@@ -26,13 +26,13 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 func _on_path_confirmed() -> void:
 	var new_text = path_edit.text
 	if is_instance_valid(edited_node_data) and str(edited_node_data.animation_player_path) != new_text:
-		property_update_requested.emit(edited_node_data.id, "animation_player_path", NodePath(new_text))
+		property_update_requested.emit(edited_node_data.id, "animation_player_path", NodePath(new_text), null, {})
 
 func _on_name_confirmed() -> void:
 	var new_text = name_edit.text
 	if is_instance_valid(edited_node_data) and str(edited_node_data.animation_name) != new_text:
-		property_update_requested.emit(edited_node_data.id, "animation_name", StringName(new_text))
+		property_update_requested.emit(edited_node_data.id, "animation_name", StringName(new_text), null, {})
 
 func _on_wait_toggled(is_pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.wait_for_completion != is_pressed:
-		property_update_requested.emit(edited_node_data.id, "wait_for_completion", is_pressed)
+		property_update_requested.emit(edited_node_data.id, "wait_for_completion", is_pressed, null, {})

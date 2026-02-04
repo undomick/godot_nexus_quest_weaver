@@ -86,5 +86,5 @@ func _on_weight_edit_finished(index: int, output_port: RandomOutputPort, spinbox
 	output_port.weight = _weight_undo_value
 	
 	if _weight_undo_value != final_weight:
-		# Use property_update_requested to create a clean undo action for the sub-resource
-		property_update_requested.emit(edited_node_data.id, "weight", final_weight, output_port)
+		# Use output_index so the action handler resolves the target from the editable graph
+		property_update_requested.emit(edited_node_data.id, "weight", final_weight, null, {"output_index": index})

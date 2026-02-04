@@ -62,6 +62,7 @@ func initialize(plugin, p_session_data: QuestEditorData, p_editor_interface) -> 
 	properties_panel.initialize(node_registry, data_manager, editor_plugin_instance)
 	graph_controller.initialize(node_registry, data_manager, 1.0)
 	side_panel.initialize(data_manager, p_editor_interface)
+	QWEditorUtils.set_active_graph_callback(data_manager.get_active_graph)
 	
 	version_label.text = "v%s" % editor_plugin_instance.get_version()
 	_init_debug_styles()
@@ -77,6 +78,7 @@ func _notification(what: int) -> void:
 
 func _connect_signals() -> void:
 	properties_panel.property_update_requested.connect(_action_handler.on_node_property_update_requested)
+	properties_panel.property_preview_requested.connect(_on_property_preview_requested)
 	properties_panel.complex_action_requested.connect(_action_handler.on_complex_action_requested)
 	properties_panel.dive_in_requested.connect(edit_graph)
 	properties_panel.node_ports_changed.connect(_on_node_ports_changed)
@@ -181,6 +183,7 @@ func _on_history_changed() -> void:
 		return
 	
 	graph_controller.refresh_from_data(current_graph)
+	data_manager.notify_dirty_status_if_unsaved()
 	
 	if properties_panel.is_visible():
 		properties_panel.call_deferred("refresh_inspected_node")
@@ -218,15 +221,15 @@ func _create_backdrop_from_selection() -> void:
 		if node is GraphElement and node.selected:
 			selected_visual_nodes.append(node)
 	
-	if selected_visual_nodes.is_empty(): return
-	
-	var command = CreateBackdropCommand.new(editable_graph, selected_visual_nodes)
+	var creation_position = graph_controller.get_mouse_position_in_graph()
+	var command = CreateBackdropCommand.new(editable_graph, selected_visual_nodes, creation_position)
 	_history.execute_command(command)
 
 func _on_active_graph_changed(new_graph_resource: QuestGraphResource) -> void:
 	_stop_all_debug_tweens()
 	graph_controller.display_graph(new_graph_resource)
 	side_panel.update_selection(data_manager.get_active_graph_path())
+	QWEditorUtils.refresh_quest_id_cache_for_graph(new_graph_resource)
 	
 	if is_instance_valid(properties_panel): properties_panel.clear_inspection()
 	
@@ -336,6 +339,10 @@ func remove_visual_connection(from_node: StringName, from_port: int, to_node: St
 	if is_instance_valid(graph_controller):
 		graph_controller.remove_visual_connection(from_node, from_port, to_node, to_port)
 
+func _on_property_preview_requested(node_id: StringName, property_name: String, value: Variant) -> void:
+	if property_name == "title_font_size" and value is int:
+		graph_controller.set_backdrop_title_font_size_preview(node_id, value)
+
 # This function is called whenever the ActionHandler confirms that node data has changed.
 func _on_node_data_changed(node_id: String, action: String) -> void:
 	# 1. Full Rebuild Actions (HEAVY)
@@ -343,7 +350,7 @@ func _on_node_data_changed(node_id: String, action: String) -> void:
 	
 	# 2. Local Structure Actions (Optimized)
 	var local_structure_actions = [
-		"is_terminal", 
+		"is_terminal", "allow_partial_deposit",
 		"add_parallel_output", "remove_parallel_output", "update_parallel_port_name",
 		"add_random_output", "remove_random_output", "update_random_output_name",
 		"add_sync_input", "remove_sync_input", "update_sync_input_name",
@@ -497,7 +504,6 @@ func _pulse_live_node(node_id: String):
 	var visual_node = graph_controller.get_node_or_null(NodePath(node_id))
 	if not is_instance_valid(visual_node): return
 	
-	# Performance fix
 	if _active_debug_nodes.has(node_id):
 		var existing_tween = _active_debug_nodes[node_id]
 		if is_instance_valid(existing_tween) and existing_tween.is_running():

@@ -1,35 +1,40 @@
-[gd_scene load_steps=2 format=3 uid="uid://q4bgigjmikn5"]
+[gd_scene format=3 uid="uid://q4bgigjmikn5"]
 
 [ext_resource type="Script" uid="uid://bvqgini7q04y6" path="res://addons/quest_weaver/nodes/action/play_cutscene_node/play_cutscene_node_editor.gd" id="1_8qsti"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_qoa8a"]
 
-[node name="PlayCutsceneNodeEditor" type="VBoxContainer"]
+[node name="PlayCutsceneNodeEditor" type="PanelContainer" unique_id=1520297123]
+offset_right = 214.0
+offset_bottom = 101.0
+theme = ExtResource("1_qoa8a")
 script = ExtResource("1_8qsti")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1387082852]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="GridContainer" type="GridContainer" parent="MainLayout" unique_id=1918317306]
+layout_mode = 2
+columns = 2
+
+[node name="Label" type="Label" parent="MainLayout/GridContainer" unique_id=1342911519]
 layout_mode = 2
 text = "Anim Player Path: "
 
-[node name="AnimationPlayerPathEdit" type="LineEdit" parent="HBoxContainer"]
+[node name="AnimationPlayerPathEdit" type="LineEdit" parent="MainLayout/GridContainer" unique_id=261529307]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="HBoxContainer2"]
+[node name="Label2" type="Label" parent="MainLayout/GridContainer" unique_id=1276278038]
 layout_mode = 2
 text = "Animation Name: "
 
-[node name="AnimationNameEdit" type="LineEdit" parent="HBoxContainer2"]
+[node name="AnimationNameEdit" type="LineEdit" parent="MainLayout/GridContainer" unique_id=1001925776]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="WaitForCompletionCheckbox" type="CheckBox" parent="."]
+[node name="WaitForCompletionCheckbox" type="CheckBox" parent="MainLayout" unique_id=1264602156]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Wait for Completion"

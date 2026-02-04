@@ -26,10 +26,9 @@ func handle_event(event: InputEvent) -> bool:
 	var key_event := event as InputEventKey
 	var is_command_pressed = key_event.is_command_or_control_pressed()
 
+	# When a LineEdit/TextEdit has focus, only let Ctrl+Z/Y through so they go to history, not the control.
 	if _is_text_input_focused():
-		if is_command_pressed and (key_event.keycode == KEY_Z or key_event.keycode == KEY_Y):
-			pass
-		else:
+		if not (is_command_pressed and (key_event.keycode == KEY_Z or key_event.keycode == KEY_Y)):
 			return false
 
 	if is_command_pressed:
@@ -46,12 +45,14 @@ func handle_event(event: InputEvent) -> bool:
 			KEY_Z:
 				if _history.has_undo():
 					_history.undo()
+				# Always consume so LineEdit/TextEdit does not steal Undo; multiple Undos work.
 				return true
 			KEY_Y:
 				if _history.has_redo():
 					_history.redo()
+				# Always consume so LineEdit/TextEdit does not steal Redo; multiple Redos work.
 				return true
-	
+
 	if key_event.keycode == KEY_DELETE:
 		var selected_node_ids: Array[StringName] = []
 		for child in _graph_controller.get_children():

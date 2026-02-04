@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://dn00x3j117sau"]
+
+[ext_resource type="Script" uid="uid://355qeney55ms" path="res://addons/quest_weaver/editor/components/item_stack_entry.gd" id="1_clcdj"]
+[ext_resource type="PackedScene" uid="uid://bulr50esg11es" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.tscn" id="2_5tufj"]
+
+[node name="ItemStackEntry" type="HBoxContainer" unique_id=602274055]
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_clcdj")
+
+[node name="IndexLabel" type="Label" parent="." unique_id=1145781122]
+unique_name_in_owner = true
+modulate = Color(0.5, 0.5, 0.5, 1)
+layout_mode = 2
+text = "[0]"
+
+[node name="AutoComplete" parent="." unique_id=1554170656 instance=ExtResource("2_5tufj")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="AmountSpinBox" type="SpinBox" parent="." unique_id=440533789]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 999999.0
+value = 1.0
+rounded = true
+
+[node name="DeleteButton" type="Button" parent="." unique_id=1640350804]
+unique_name_in_owner = true
+layout_mode = 2
+text = "X"

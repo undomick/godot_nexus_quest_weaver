@@ -6,7 +6,7 @@ extends GraphNodeResource
 enum Action { COMPLETE, FAIL, RESET }
 
 # The ID of the objective to be completed.
-@export var target_objective_id: String = ""
+@export var target_objective_id: StringName = &""
 
 @export var action: Action = Action.COMPLETE
 
@@ -49,7 +49,7 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.target_objective_id = data.get("target_objective_id", "")
+	self.target_objective_id = StringName(data.get("target_objective_id", &""))
 	self.action = data.get("action", Action.COMPLETE)
 	_update_ports_from_data()
 

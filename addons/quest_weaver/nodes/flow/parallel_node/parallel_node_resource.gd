@@ -72,6 +72,7 @@ func _update_ports_from_data():
 					ConditionResource.ConditionType.CHECK_QUEST_STATUS: hint_text = "QUEST"
 					ConditionResource.ConditionType.CHECK_VARIABLE: hint_text = "VAR"
 					ConditionResource.ConditionType.CHECK_OBJECTIVE_STATUS: hint_text = "OBJ"
+					ConditionResource.ConditionType.CHECK_OBJECTIVE_REQUIREMENT: hint_text = "REQ"
 					ConditionResource.ConditionType.COMPOUND: hint_text = "AND/OR"
 
 				if not hint_text.is_empty():

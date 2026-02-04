@@ -6,8 +6,9 @@ extends RefCounted
 ## to avoid dependencies on external game state scripts.
 
 enum QuestState {
-	INACTIVE,
-	ACTIVE,
-	COMPLETED,
-	FAILED
+	UNAVAILABLE, # 0 Hidden / Not discovered
+	AVAILABLE,   # 1 Visible on Quest Board / Minimap, but logic not running
+	ACTIVE,      # 2 Running
+	COMPLETED,   # 3 Done
+	FAILED       # 4 Failed
 }

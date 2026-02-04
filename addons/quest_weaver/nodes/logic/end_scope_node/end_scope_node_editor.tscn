@@ -1,18 +1,31 @@
-[gd_scene load_steps=2 format=3 uid="uid://cdl4xdsohn5wl"]
+[gd_scene format=3 uid="uid://cdl4xdsohn5wl"]
 
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_45nqs"]
 [ext_resource type="Script" uid="uid://b6ei1inf2x5wg" path="res://addons/quest_weaver/nodes/logic/end_scope_node/end_scope_node_editor.gd" id="1_rgy5y"]
 
-[node name="EndScopeNodeEditor" type="VBoxContainer"]
+[node name="EndScopeNodeEditor" type="PanelContainer" unique_id=1355441616]
+offset_right = 148.0
+offset_bottom = 31.0
+theme = ExtResource("1_45nqs")
 script = ExtResource("1_rgy5y")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=790246023]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1451107240]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer" unique_id=1867867781]
 layout_mode = 2
 text = "Scope ID: "
 
-[node name="ScopeIDEdit" type="LineEdit" parent="HBoxContainer"]
+[node name="ScopeIDEdit" type="LineEdit" parent="MainLayout/HBoxContainer" unique_id=1420949310]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="TerminalCheckBox" type="CheckBox" parent="MainLayout" unique_id=1722455573]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Disables Output-Port(s). Helps to avoid warnings in the validator."
+text = "End of Flow"

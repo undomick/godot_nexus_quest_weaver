@@ -15,7 +15,7 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 	quest_path_edit.text = node_data.get("quest_path")
 
 func _on_path_changed(new_path: String) -> void:
-	property_update_requested.emit(edited_node_data.id, "quest_path", new_path)
+	property_update_requested.emit(edited_node_data.id, "quest_path", new_path, null, {})
 
 func _on_browse_pressed() -> void:
 	var dialog = QWConstants.QuestFileDialogScene.instantiate()

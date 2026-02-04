@@ -2,10 +2,11 @@
 @tool
 extends PanelContainer
 
-signal property_update_requested(node_id: String, property_name: String, new_value: Variant, sub_resource: Resource)
-signal complex_action_requested(node_id: String, action: String, payload: Dictionary)
+signal property_update_requested(node_id: StringName, property_name: String, new_value: Variant, sub_resource: Resource, extra: Dictionary)
+signal property_preview_requested(node_id: StringName, property_name: String, value: Variant)
+signal complex_action_requested(node_id: StringName, action: String, payload: Dictionary)
 signal dive_in_requested(graph_path: String)
-signal node_ports_changed(node_id: String)
+signal node_ports_changed(node_id: StringName)
 
 # --- UI References ---
 @onready var node_type_label: Label = %NodeTypeLabel
@@ -32,6 +33,7 @@ func initialize(p_node_registry: NodeTypeRegistry, p_data_manager: QWGraphData, 
 func inspect_node(node_data: GraphNodeResource) -> void:
 	self._inspected_node_data = node_data
 	_update_visibility() # Update UI state
+	QWEditorUtils.refresh_quest_id_cache_for_graph(data_manager.get_active_graph())
 
 	if not is_instance_valid(node_data):
 		return
@@ -54,8 +56,13 @@ func inspect_node(node_data: GraphNodeResource) -> void:
 		
 		if current_editor_instance.has_signal("property_update_requested"):
 			current_editor_instance.connect("property_update_requested", 
-				func(id: String, prop: String, val: Variant, sub_res: Resource = null):
-					property_update_requested.emit(id, prop, val, sub_res)
+				func(id: StringName, prop: String, val: Variant, sub_res: Resource, extra: Dictionary):
+					property_update_requested.emit(id, prop, val, sub_res, extra)
+			)
+		if current_editor_instance.has_signal("property_preview_requested"):
+			current_editor_instance.connect("property_preview_requested",
+				func(id: StringName, prop: String, val: Variant):
+					property_preview_requested.emit(id, prop, val)
 			)
 		if current_editor_instance.has_signal("complex_action_requested"):
 			current_editor_instance.complex_action_requested.connect(complex_action_requested.emit)
@@ -88,9 +95,9 @@ func refresh_inspected_node() -> void:
 	if is_instance_valid(fresh_node_data):
 		inspect_node(fresh_node_data)
 
-func get_inspected_node_id() -> String:
+func get_inspected_node_id() -> StringName:
 	if is_instance_valid(_inspected_node_data): return _inspected_node_data.id
-	return ""
+	return &""
 
 # --- Helper ---
 func _update_visibility() -> void:

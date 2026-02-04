@@ -1,23 +1,30 @@
-[gd_scene load_steps=3 format=3 uid="uid://d4e1perp4lmu0"]
+[gd_scene format=3 uid="uid://d4e1perp4lmu0"]
 
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_ipafn"]
 [ext_resource type="Script" uid="uid://btbr58f3v356w" path="res://addons/quest_weaver/nodes/flow/anchor_node/anchor_node_editor.gd" id="1_pf6yt"]
 
 [sub_resource type="DPITexture" id="DPITexture_pf6yt"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#ff5d5d\" d=\"M2 1v8.586l1.293-1.293a1 1 0 0 1 1.414 0L7 10.587l2.293-2.293a1 1 0 0 1 1.414 0L13 10.586l1-1V6H9V1H2zm8 0v4h4zm-6 9.414-2 2V15h12v-2.586l-.293.293a1 1 0 0 1-1.414 0L10 10.414l-2.293 2.293a1 1 0 0 1-1.414 0L4 10.414z\"/></svg>
 "
 
-[node name="AnchorNodeEditor" type="VBoxContainer"]
+[node name="AnchorNodeEditor" type="PanelContainer" unique_id=1028668420]
+offset_right = 136.0
+offset_bottom = 31.0
+theme = ExtResource("1_ipafn")
 script = ExtResource("1_pf6yt")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1529263696]
 layout_mode = 2
 
-[node name="AnchorNameEdit" type="LineEdit" parent="HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1162265379]
+layout_mode = 2
+
+[node name="AnchorNameEdit" type="LineEdit" parent="MainLayout/HBoxContainer" unique_id=455091441]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="PasteNameButton" type="Button" parent="HBoxContainer"]
+[node name="PasteNameButton" type="Button" parent="MainLayout/HBoxContainer" unique_id=1576248589]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
@@ -25,7 +32,7 @@ tooltip_text = "Copy Objective ID to clipboard"
 icon = SubResource("DPITexture_pf6yt")
 flat = true
 
-[node name="CopyNameButton" type="Button" parent="HBoxContainer"]
+[node name="CopyNameButton" type="Button" parent="MainLayout/HBoxContainer" unique_id=1142334842]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2

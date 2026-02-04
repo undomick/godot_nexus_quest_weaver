@@ -44,7 +44,7 @@ func check_all_conditions(context: ExecutionContext, instance: QuestInstance) ->
 					return false
 			return true
 			
-	return false # Should never be the case
+	return false 
 
 func get_editor_summary() -> String:
 	if conditions.is_empty():
@@ -105,6 +105,12 @@ func _format_condition_summary(condition: ConditionResource) -> String:
 		ConditionResource.ConditionType.CHECK_SYNCHRONIZER:
 			var check_name = condition.CheckType.keys()[condition.check_type].replace("_", " ").capitalize()
 			return "SYNC:\n%s" % check_name
+		# FIX: Added formatting for the new Requirement Type
+		ConditionResource.ConditionType.CHECK_OBJECTIVE_REQUIREMENT:
+			var id_text = condition.objective_id if not condition.objective_id.is_empty() else "(Missing ID)"
+			var inv_hint = " (+Inv)" if condition.include_inventory_holdings else ""
+			var any_hint = " (any)" if condition.has_any_progress else ""
+			return "REQ MET:\n'%s'%s%s" % [id_text, inv_hint, any_hint]
 		_:
 			return "Unknown Condition"
 
@@ -155,7 +161,6 @@ func from_dictionary(data: Dictionary):
 			new_c.from_dictionary(c_data)
 			self.conditions.append(new_c)
 
-## PRIVATE METHOD: Checks if an integer value is valid for the enum type.
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
 	var val = data.get(prop, default_val)
 	if val is int and val >= 0 and val < keys.size():

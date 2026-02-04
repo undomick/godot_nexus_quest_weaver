@@ -40,11 +40,9 @@ static func update_registry_from_project(registry: QuestRegistry, scan_folder: S
 				directories_to_scan.push_back(full_path)
 				
 			elif full_path.ends_with("." + QWConstants.FILE_EXTENSION):
-				# CHANGE 1: Register File-ID immediately
 				var file_id = item_name.get_basename()
 				new_map[file_id] = full_path
 				
-				# CHANGE 2: Scan for additional Logical IDs inside the file
 				_scan_file_for_id(full_path, new_map)
 			
 			item_name = dir.get_next()

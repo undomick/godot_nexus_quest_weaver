@@ -145,6 +145,12 @@ func close_graph(path: String) -> void:
 func has_unsaved_changes(path: String) -> bool:
 	return _dirty_instances.has(path)
 
+## Emits graph_dirty_status_changed for the active graph if it has unsaved changes.
+## Call after redo to ensure the UI shows the modified state.
+func notify_dirty_status_if_unsaved() -> void:
+	if not _active_graph_path.is_empty() and _dirty_instances.has(_active_graph_path):
+		graph_dirty_status_changed.emit(_active_graph_path, true)
+
 func get_all_unsaved_paths() -> Array[String]:
 	var typed_paths: Array[String] = []
 	if _dirty_instances != null:
@@ -165,6 +171,11 @@ func _load_graph_from_disk(path: String) -> void:
 
 func _validate_and_clean_graph_data(graph: QuestGraphResource) -> bool:
 	if not is_instance_valid(graph): return false
+	# Ensure GiveTakeItem (and similar) nodes have correct output_ports before validating connections.
+	# Otherwise connections from port 1 (Partial) would be dropped when output_ports.size() was 2.
+	for node in graph.nodes.values():
+		if is_instance_valid(node) and node.has_method("_update_ports_from_data"):
+			node._update_ports_from_data()
 	var original_connections = graph.connections
 	var connections_before_clean = original_connections.duplicate(true)
 	var cleaned_connections: Array[Dictionary] = []

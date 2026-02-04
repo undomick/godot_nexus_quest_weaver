@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="QuestWeaverSettings" load_steps=2 format=3 uid="uid://e1d3a25kticw"]
+[gd_resource type="Resource" script_class="QuestWeaverSettings" format=3 uid="uid://e1d3a25kticw"]
 
 [ext_resource type="Script" uid="uid://dup5r1ylyhuxo" path="res://addons/quest_weaver/core/quest_weaver_settings.gd" id="1_ugjl6"]
 
 [resource]
 script = ExtResource("1_ugjl6")
 inventory_adapter_script = "uid://btnuywtd8ra2r"
+kill_adapter_script = "uid://mfx12t0wvgdl"
 presentation_registry_path = "uid://ds3oso48ofcph"
 item_registry_path = "uid://joenm0bc2epp"
 quest_scan_folder = "res://addons/quest_weaver/examples/quests"

@@ -11,6 +11,10 @@ extends Resource
 ## Your Adapter has to extend 'QuestInventoryAdapterBase'!
 @export_file("*.gd") var inventory_adapter_script: String
 
+## KILL objectives can optionally use a Kill Adapter for track_progress_since_activation.
+## Your Adapter has to extend 'QuestKillAdapterBase'!
+@export_file("*.gd") var kill_adapter_script: String
+
 ## Path to the PresentationRegistry resource. 
 ## This defines which UI templates (popup styles) are available for the 'Show UI Message' node.
 @export_file("*.tres", "res://") var presentation_registry_path: String

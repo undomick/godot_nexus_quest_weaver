@@ -21,8 +21,8 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 func _on_scope_id_confirmed() -> void:
 	var new_text = target_scope_id_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.target_scope_id != new_text:
-		property_update_requested.emit(edited_node_data.id, "target_scope_id", new_text)
+		property_update_requested.emit(edited_node_data.id, "target_scope_id", StringName(new_text), null, {})
 
 func _on_restart_toggled(is_pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.restart_scope_on_completion != is_pressed:
-		property_update_requested.emit(edited_node_data.id, "restart_scope_on_completion", is_pressed)
+		property_update_requested.emit(edited_node_data.id, "restart_scope_on_completion", is_pressed, null, {})

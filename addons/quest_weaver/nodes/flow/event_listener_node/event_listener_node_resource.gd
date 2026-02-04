@@ -3,7 +3,7 @@
 class_name EventListenerNodeResource
 extends GraphNodeResource
 
-@export var event_name: String = "my_game_event"
+@export var event_name: StringName = &"my_game_event"
 @export var payload_condition: ConditionResource
 
 @export var use_simple_conditions: bool = true
@@ -44,7 +44,7 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.event_name = data.get("event_name", "my_game_event")
+	self.event_name = StringName(data.get("event_name", &"my_game_event"))
 	self.use_simple_conditions = data.get("use_simple_conditions", true)
 	self.keep_listening = data.get("keep_listening", false)
 	

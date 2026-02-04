@@ -1,37 +1,37 @@
-[gd_scene load_steps=3 format=3 uid="uid://brnfrybqtkbft"]
+[gd_scene format=3 uid="uid://brnfrybqtkbft"]
 
 [ext_resource type="PackedScene" uid="uid://d3tc1f1gyjxcd" path="res://addons/quest_weaver/editor/conditions/condition_editor.tscn" id="1_b0xhf"]
 [ext_resource type="Script" uid="uid://do2wp4ayk0bry" path="res://addons/quest_weaver/editor/components/parallel_output_editor_entry.gd" id="1_dwg6e"]
 
-[node name="ParallelOutputEditorEntry" type="VBoxContainer"]
+[node name="ParallelOutputEditorEntry" type="VBoxContainer" unique_id=234650588]
 script = ExtResource("1_dwg6e")
 
-[node name="HSeparator" type="HSeparator" parent="."]
+[node name="HSeparator" type="HSeparator" parent="." unique_id=650324112]
 layout_mode = 2
 
-[node name="HSplitContainer" type="HSplitContainer" parent="."]
+[node name="HSplitContainer" type="HSplitContainer" parent="." unique_id=2067773979]
 layout_mode = 2
 
-[node name="RemoveButton" type="Button" parent="HSplitContainer"]
+[node name="RemoveButton" type="Button" parent="HSplitContainer" unique_id=220908796]
 unique_name_in_owner = true
 layout_mode = 2
 text = "X"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HSplitContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="HSplitContainer" unique_id=1573461815]
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="HSplitContainer/VBoxContainer"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="HSplitContainer/VBoxContainer" unique_id=1659313666]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HSplitContainer/VBoxContainer/HBoxContainer2"]
+[node name="Label" type="Label" parent="HSplitContainer/VBoxContainer/HBoxContainer2" unique_id=514138222]
 layout_mode = 2
 text = "Port Name: "
 
-[node name="PortNameEdit" type="LineEdit" parent="HSplitContainer/VBoxContainer/HBoxContainer2"]
+[node name="PortNameEdit" type="LineEdit" parent="HSplitContainer/VBoxContainer/HBoxContainer2" unique_id=1660474868]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ConditionEditor" parent="HSplitContainer/VBoxContainer" instance=ExtResource("1_b0xhf")]
+[node name="ConditionEditor" parent="HSplitContainer/VBoxContainer" unique_id=1851453842 instance=ExtResource("1_b0xhf")]
 unique_name_in_owner = true
 layout_mode = 2

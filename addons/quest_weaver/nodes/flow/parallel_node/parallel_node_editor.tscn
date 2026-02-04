@@ -1,17 +1,22 @@
-[gd_scene load_steps=2 format=3 uid="uid://rd5k6w347t03"]
+[gd_scene format=3 uid="uid://rd5k6w347t03"]
 
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_75hfx"]
 [ext_resource type="Script" uid="uid://b8jqjax1gewow" path="res://addons/quest_weaver/nodes/flow/parallel_node/parallel_node_editor.gd" id="1_utiop"]
 
-[node name="ParallelNodeEditor" type="VBoxContainer"]
-offset_right = 40.0
+[node name="ParallelNodeEditor" type="PanelContainer" unique_id=1454602737]
+offset_right = 136.0
 offset_bottom = 40.0
+theme = ExtResource("1_75hfx")
 script = ExtResource("1_utiop")
 
-[node name="AddOutputButton" type="Button" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1071694585]
+layout_mode = 2
+
+[node name="AddOutputButton" type="Button" parent="MainLayout" unique_id=1421685641]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Add Output Port"
 
-[node name="OutputsContainer" type="VBoxContainer" parent="."]
+[node name="OutputsContainer" type="VBoxContainer" parent="MainLayout" unique_id=1997343014]
 unique_name_in_owner = true
 layout_mode = 2

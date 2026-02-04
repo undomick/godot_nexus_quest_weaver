@@ -22,9 +22,9 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 
 func _on_target_selected(index: int) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.target_property != index:
-		property_update_requested.emit(edited_node_data.id, "target_property", index)
+		property_update_requested.emit(edited_node_data.id, "target_property", index, null, {})
 
 func _on_content_confirmed() -> void:
 	var new_text = content_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.text_content != new_text:
-		property_update_requested.emit(edited_node_data.id, "text_content", new_text)
+		property_update_requested.emit(edited_node_data.id, "text_content", new_text, null, {})

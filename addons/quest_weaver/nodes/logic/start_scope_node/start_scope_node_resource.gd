@@ -3,7 +3,7 @@
 class_name StartScopeNodeResource
 extends GraphNodeResource
 
-@export var scope_id: String = "my_scope_1"
+@export var scope_id: StringName = &"my_scope_1"
 
 ## 0 = infinite.
 @export_range(0, 100, 1) var max_executions: int = 0
@@ -32,7 +32,7 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.scope_id = data.get("scope_id", "my_scope_1")
+	self.scope_id = StringName(data.get("scope_id", &"my_scope_1"))
 	self.max_executions = data.get("max_executions", 0)
 
 func determine_default_size() -> QWNodeSizes.Size:

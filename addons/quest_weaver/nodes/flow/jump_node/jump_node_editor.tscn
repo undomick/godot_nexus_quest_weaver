@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://o6ehsaqic4vv"]
+[gd_scene format=3 uid="uid://o6ehsaqic4vv"]
 
 [ext_resource type="Script" uid="uid://nfpnmk5lc86t" path="res://addons/quest_weaver/nodes/flow/jump_node/jump_node_editor.gd" id="1_5acln"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_lpcbe"]
 
 [sub_resource type="DPITexture" id="DPITexture_lpcbe"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#ff5d5d\" d=\"M2 1v8.586l1.293-1.293a1 1 0 0 1 1.414 0L7 10.587l2.293-2.293a1 1 0 0 1 1.414 0L13 10.586l1-1V6H9V1H2zm8 0v4h4zm-6 9.414-2 2V15h12v-2.586l-.293.293a1 1 0 0 1-1.414 0L10 10.414l-2.293 2.293a1 1 0 0 1-1.414 0L4 10.414z\"/></svg>
@@ -10,18 +11,24 @@ _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\">
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#ff5d5d\" d=\"M2 1v8.586l1.293-1.293a1 1 0 0 1 1.414 0L7 10.587l2.293-2.293a1 1 0 0 1 1.414 0L13 10.586l1-1V6H9V1H2zm8 0v4h4zm-6 9.414-2 2V15h12v-2.586l-.293.293a1 1 0 0 1-1.414 0L10 10.414l-2.293 2.293a1 1 0 0 1-1.414 0L4 10.414z\"/></svg>
 "
 
-[node name="JumpNodeEditor" type="VBoxContainer"]
+[node name="JumpNodeEditor" type="PanelContainer" unique_id=2029594790]
+offset_right = 136.0
+offset_bottom = 31.0
+theme = ExtResource("1_lpcbe")
 script = ExtResource("1_5acln")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=942461270]
 layout_mode = 2
 
-[node name="TargetNameEdit" type="LineEdit" parent="HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1827568270]
+layout_mode = 2
+
+[node name="TargetNameEdit" type="LineEdit" parent="MainLayout/HBoxContainer" unique_id=628123950]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="PasteNameButton" type="Button" parent="HBoxContainer"]
+[node name="PasteNameButton" type="Button" parent="MainLayout/HBoxContainer" unique_id=1571393395]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
@@ -29,7 +36,7 @@ tooltip_text = "Copy Objective ID to clipboard"
 icon = SubResource("DPITexture_lpcbe")
 flat = true
 
-[node name="CopyNameButton" type="Button" parent="HBoxContainer"]
+[node name="CopyNameButton" type="Button" parent="MainLayout/HBoxContainer" unique_id=1073847136]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2

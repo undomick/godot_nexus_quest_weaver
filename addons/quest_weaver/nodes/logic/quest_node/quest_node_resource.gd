@@ -10,7 +10,7 @@ enum QuestAction {
 }
 
 ## Reference to the Quest ID that should be affected.
-@export var target_quest_id: String = ""
+@export var target_quest_id: StringName = &""
 @export var action: QuestAction = QuestAction.COMPLETE
 
 func _init() -> void:
@@ -48,7 +48,7 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.target_quest_id = data.get("target_quest_id", "")
+	self.target_quest_id = StringName(data.get("target_quest_id", &""))
 	self.action = data.get("action", QuestAction.COMPLETE)
 	_update_ports_from_data()
 
@@ -56,9 +56,9 @@ func _validate(context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	var quest_registry = context.get("quest_registry")
 	
-	if target_quest_id.is_empty():
+	if target_quest_id == &"":
 		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Quest Node: Target Quest ID is not set.", id))
-	elif is_instance_valid(quest_registry) and not target_quest_id in quest_registry.registered_quest_ids:
+	elif is_instance_valid(quest_registry) and not quest_registry.quest_path_map.has(target_quest_id):
 		results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Quest Node: Target Quest ID '%s' not found in the Quest Registry." % target_quest_id, id))
 		
 	return results

@@ -1,24 +1,31 @@
-[gd_scene load_steps=3 format=3 uid="uid://cp04piynvt8wl"]
+[gd_scene format=3 uid="uid://cp04piynvt8wl"]
 
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_kp8oi"]
 [ext_resource type="Script" uid="uid://cyx1dl1b4ge2d" path="res://addons/quest_weaver/nodes/logic/text_node/text_node_editor.gd" id="1_qph40"]
 [ext_resource type="Script" uid="uid://c6oph8cilr6lc" path="res://addons/quest_weaver/editor/components/tab_focus_text_edit.gd" id="2_ar0fv"]
 
-[node name="TextNodeEditor" type="VBoxContainer"]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="TextNodeEditor" type="PanelContainer" unique_id=1382979667]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 135.0
+grow_horizontal = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme = ExtResource("1_kp8oi")
 script = ExtResource("1_qph40")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=442707324]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=2146729580]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer" unique_id=791862638]
 layout_mode = 2
 size_flags_horizontal = 0
 text = "Set Target: "
 
-[node name="TargetPicker" type="OptionButton" parent="HBoxContainer"]
+[node name="TargetPicker" type="OptionButton" parent="MainLayout/HBoxContainer" unique_id=993979572]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(150, 20)
 layout_mode = 2
@@ -26,7 +33,7 @@ size_flags_horizontal = 8
 focus_neighbor_top = NodePath("../../ContentEdit")
 focus_neighbor_bottom = NodePath("../../ContentEdit")
 
-[node name="ContentEdit" type="TextEdit" parent="."]
+[node name="ContentEdit" type="TextEdit" parent="MainLayout" unique_id=1486951420]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 100)
 layout_mode = 2

@@ -1,32 +1,37 @@
-[gd_scene load_steps=2 format=3 uid="uid://daa5kumhadh1k"]
+[gd_scene format=3 uid="uid://daa5kumhadh1k"]
 
 [ext_resource type="Script" uid="uid://bvij56vq3n4es" path="res://addons/quest_weaver/nodes/flow/branch_node/branch_node_editor.gd" id="1_rmfmm"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_vpa6x"]
 
-[node name="BranchNodeEditor" type="VBoxContainer"]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="BranchNodeEditor" type="PanelContainer" unique_id=566077508]
+offset_right = 118.0
+offset_bottom = 112.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme = ExtResource("1_vpa6x")
 script = ExtResource("1_rmfmm")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=2007710121]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1142981080]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer" unique_id=687989383]
 layout_mode = 2
 text = "Logic: "
 
-[node name="OperatorPicker" type="OptionButton" parent="HBoxContainer"]
+[node name="OperatorPicker" type="OptionButton" parent="MainLayout/HBoxContainer" unique_id=1195097791]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="AddConditionButton" type="Button" parent="."]
+[node name="AddConditionButton" type="Button" parent="MainLayout" unique_id=653270245]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Add Condition"
 
-[node name="ConditionsList" type="VBoxContainer" parent="."]
+[node name="ConditionsList" type="VBoxContainer" parent="MainLayout" unique_id=1112559710]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 2

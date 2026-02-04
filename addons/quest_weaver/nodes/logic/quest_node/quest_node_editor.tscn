@@ -1,35 +1,42 @@
-[gd_scene load_steps=3 format=3 uid="uid://cpxwe2qsigy4g"]
+[gd_scene format=3 uid="uid://cpxwe2qsigy4g"]
 
 [ext_resource type="Script" uid="uid://dcnpf6dgam0e3" path="res://addons/quest_weaver/nodes/logic/quest_node/quest_node_editor.gd" id="1_66u7u"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_nhc80"]
 [ext_resource type="PackedScene" uid="uid://bulr50esg11es" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.tscn" id="2_x766l"]
 
-[node name="QuestNodeEditor" type="VBoxContainer"]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="QuestNodeEditor" type="PanelContainer" unique_id=1779776777]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 109.0
+grow_horizontal = 2
+theme = ExtResource("1_nhc80")
 script = ExtResource("1_66u7u")
 
-[node name="ActionPicker" type="OptionButton" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=883346584]
+layout_mode = 2
+
+[node name="ActionPicker" type="OptionButton" parent="MainLayout" unique_id=847272308]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 30)
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1011068574]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer" unique_id=1655785641]
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 text = "Quest: "
 
-[node name="TargetQuestIdEdit" parent="HBoxContainer" instance=ExtResource("2_x766l")]
+[node name="TargetQuestIdEdit" parent="MainLayout/HBoxContainer" unique_id=1490652583 instance=ExtResource("2_x766l")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="HSeparator" type="HSeparator" parent="."]
+[node name="HSeparator" type="HSeparator" parent="MainLayout" unique_id=2041628858]
 layout_mode = 2
 
-[node name="TerminalCheckBox" type="CheckBox" parent="."]
+[node name="TerminalCheckBox" type="CheckBox" parent="MainLayout" unique_id=1058294919]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Disables Output-Port(s). Helps to avoid warnings in the validator."

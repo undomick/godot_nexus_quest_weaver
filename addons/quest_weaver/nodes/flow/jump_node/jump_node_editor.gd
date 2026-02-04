@@ -29,7 +29,7 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 func _on_target_confirmed() -> void:
 	var new_text = target_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.target_anchor_name != new_text:
-		property_update_requested.emit(edited_node_data.id, "target_anchor_name", new_text)
+		property_update_requested.emit(edited_node_data.id, "target_anchor_name", StringName(new_text), null, {})
 
 func _on_paste_name_pressed() -> void:
 	var text = DisplayServer.clipboard_get()

@@ -1,29 +1,38 @@
-[gd_scene load_steps=2 format=3 uid="uid://dx2w1ardcrnu6"]
+[gd_scene format=3 uid="uid://dx2w1ardcrnu6"]
 
 [ext_resource type="Script" uid="uid://btfi82amoysd0" path="res://addons/quest_weaver/nodes/logic/start_scope_node/start_scope_node_editor.gd" id="1_al0co"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_p666q"]
 
-[node name="StartScopeNodeEditor" type="VBoxContainer"]
+[node name="StartScopeNodeEditor" type="PanelContainer" unique_id=478650767]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 74.0
+grow_horizontal = 2
+theme = ExtResource("1_p666q")
 script = ExtResource("1_al0co")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1940644644]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1439331108]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer" unique_id=1368076838]
 layout_mode = 2
 text = "Scope ID: "
 
-[node name="ScopeIDEdit" type="LineEdit" parent="HBoxContainer"]
+[node name="ScopeIDEdit" type="LineEdit" parent="MainLayout/HBoxContainer" unique_id=2059266102]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="."]
+[node name="HBoxContainer2" type="HBoxContainer" parent="MainLayout" unique_id=1861476121]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer2"]
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer2" unique_id=1885911640]
 layout_mode = 2
 text = "Max. Executions: "
 
-[node name="MaxExecutionsSpinBox" type="SpinBox" parent="HBoxContainer2"]
+[node name="MaxExecutionsSpinBox" type="SpinBox" parent="MainLayout/HBoxContainer2" unique_id=716352993]
 unique_name_in_owner = true
 layout_mode = 2

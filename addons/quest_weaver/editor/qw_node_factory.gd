@@ -17,9 +17,10 @@ var _add_node_menu: NodeSelectionMenu
 var _editor: QuestWeaverEditor # Reference to the main editor for selection/inspection logic
 
 # --- State ---
-var _pending_node_creation_pos: Vector2
-var _pending_connection_data: Dictionary
-var _is_initialized := false
+var _pending_node_creation_pos: Vector2 # Position for the new node
+var _pending_connection_data: Dictionary # Connection data for the new node
+var _is_initialized := false # Flag to check if the node factory is initialized
+var _pending_selected_visual_nodes: Array[GraphElement] = [] # Selection at menu open (right-click); used for Backdrop so selection isn't lost when menu gets focus.
 
 
 func initialize(p_editor: QuestWeaverEditor, p_registry: NodeTypeRegistry, p_data_manager: QWGraphData, p_history: QWEditorHistory, p_graph_controller: QuestWeaverGraphController, p_menu: NodeSelectionMenu) -> void:
@@ -41,6 +42,15 @@ func show_add_node_menu(graph_position: Vector2, connect_from_data: Dictionary =
 	
 	_pending_node_creation_pos = graph_position
 	_pending_connection_data = connect_from_data
+	# Snapshot selection now; right-click may have already cleared it, so fall back to last stored selection.
+	_pending_selected_visual_nodes.clear()
+	for node in _graph_controller.get_children():
+		if node is GraphElement and node.selected:
+			_pending_selected_visual_nodes.append(node)
+	if _pending_selected_visual_nodes.is_empty():
+		for node in _graph_controller.get_last_selected_visual_nodes():
+			if is_instance_valid(node) and is_instance_valid(node.get_parent()) and node.get_parent() == _graph_controller:
+				_pending_selected_visual_nodes.append(node)
 	
 	_add_node_menu.popup(Rect2i(get_viewport().get_mouse_position(), Vector2.ZERO))
 
@@ -54,6 +64,18 @@ func _on_node_selected_from_menu(type_name: String) -> void:
 func _create_new_node(type_name: String) -> void:
 	var editable_graph = _data_manager.make_active_graph_editable()
 	if not is_instance_valid(editable_graph):
+		return
+
+	# Backdrop wraps the nodes selected by right-click (snapshot from show_add_node_menu).
+	if type_name == "Backdrop":
+		var backdrop_cmd = CreateBackdropCommand.new(editable_graph, _pending_selected_visual_nodes, _pending_node_creation_pos)
+		_history.execute_command(backdrop_cmd)
+		_pending_connection_data.clear()
+		_graph_controller.set_is_connecting(false)
+		await get_tree().process_frame
+		var backdrop_id = backdrop_cmd.get_created_backdrop_id()
+		if not backdrop_id.is_empty():
+			_editor.select_and_inspect_node(backdrop_id)
 		return
 
 	var node_script = _node_registry.get_script_for_name(type_name)

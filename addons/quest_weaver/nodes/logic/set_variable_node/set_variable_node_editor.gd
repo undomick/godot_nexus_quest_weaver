@@ -37,16 +37,16 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 func _on_variable_name_confirmed():
 	var new_text = variable_name_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.variable_name != new_text:
-		property_update_requested.emit(edited_node_data.id, "variable_name", new_text)
+		property_update_requested.emit(edited_node_data.id, "variable_name", StringName(new_text), null, {})
 
 func _on_value_to_set_confirmed():
 	var new_text = value_to_set_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.value_to_set_string != new_text:
-		property_update_requested.emit(edited_node_data.id, "value_to_set_string", new_text)
+		property_update_requested.emit(edited_node_data.id, "value_to_set_string", new_text, null, {})
 
 func _on_operator_changed(index: int):
 	if is_instance_valid(edited_node_data) and edited_node_data.operator != index:
-		property_update_requested.emit(edited_node_data.id, "operator", index)
+		property_update_requested.emit(edited_node_data.id, "operator", index, null, {})
 	
 	_update_ui_for_operator()
 
@@ -60,6 +60,6 @@ func _update_ui_for_operator():
 
 func _on_terminal_toggled(pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.is_terminal != pressed:
-		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed)
+		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed, null, {})
 		edited_node_data.is_terminal = pressed
 		edited_node_data._update_ports_from_data()

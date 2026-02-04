@@ -32,4 +32,4 @@ func _on_value_confirmed():
 		wait_duration_edit.text = str(new_value)
 
 	if is_instance_valid(edited_node_data) and not is_equal_approx(_duration_undo_value, new_value):
-		property_update_requested.emit(edited_node_data.id, "wait_duration", new_value)
+		property_update_requested.emit(edited_node_data.id, "wait_duration", new_value, null, {})

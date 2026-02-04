@@ -1,35 +1,40 @@
-[gd_scene load_steps=2 format=3 uid="uid://degesuwqobesv"]
+[gd_scene format=3 uid="uid://degesuwqobesv"]
 
 [ext_resource type="Script" uid="uid://dnhovrg8illwg" path="res://addons/quest_weaver/nodes/logic/objective_node/objective_node_editor.gd" id="1_3prtb"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_swthi"]
 
-[node name="ObjectiveNodeEditor" type="VBoxContainer"]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="ObjectiveNodeEditor" type="PanelContainer" unique_id=265089528]
+offset_right = 131.0
+offset_bottom = 108.0
 size_flags_horizontal = 3
+theme = ExtResource("1_swthi")
 script = ExtResource("1_3prtb")
 
-[node name="ActionPicker" type="OptionButton" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1139667183]
+layout_mode = 2
+
+[node name="ActionPicker" type="OptionButton" parent="MainLayout" unique_id=1578672303]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 30)
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1330953930]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer" unique_id=572251709]
 layout_mode = 2
 text = "Target: "
 
-[node name="TargetIdEdit" type="LineEdit" parent="HBoxContainer"]
+[node name="TargetIdEdit" type="LineEdit" parent="MainLayout/HBoxContainer" unique_id=1148393605]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Paste Objective ID here..."
 
-[node name="HSeparator4" type="HSeparator" parent="."]
+[node name="HSeparator4" type="HSeparator" parent="MainLayout" unique_id=1363832973]
 layout_mode = 2
 
-[node name="TerminalCheckBox" type="CheckBox" parent="."]
+[node name="TerminalCheckBox" type="CheckBox" parent="MainLayout" unique_id=2105666490]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Disables Output-Port(s). Helps to avoid warnings in the validator."

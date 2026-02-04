@@ -3,7 +3,7 @@
 class_name JumpNodeResource
 extends GraphNodeResource
 
-@export var target_anchor_name: String = ""
+@export var target_anchor_name: StringName = &""
 
 func _init() -> void:
 	category = "Flow"
@@ -34,4 +34,4 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.target_anchor_name = data.get("target_anchor_name", "")
+	self.target_anchor_name = StringName(data.get("target_anchor_name", &""))

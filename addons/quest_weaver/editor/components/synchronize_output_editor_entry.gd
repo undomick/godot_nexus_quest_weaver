@@ -5,12 +5,13 @@ extends VBoxContainer
 
 signal remove_requested
 signal name_changed(new_name: String)
-signal property_changed(property_name: String, new_value: Variant)
+# FIX: Added target_resource
+signal property_changed(property_name: String, new_value: Variant, target_resource: Resource)
 signal type_changed(new_script: Script)
 
 @onready var remove_button: Button = %RemoveButton
 @onready var port_name_edit: LineEdit = %PortNameEdit
-@onready var condition_editor: VBoxContainer = %ConditionEditor
+@onready var condition_editor: PanelContainer = %ConditionEditor
 
 var output_port: SynchronizeOutputPort
 var _port_name_undo_value: String = ""
@@ -22,7 +23,13 @@ func _ready() -> void:
 	port_name_edit.text_submitted.connect(func(_text): _on_port_name_confirmed())
 	port_name_edit.focus_exited.connect(_on_port_name_confirmed)
 	
-	condition_editor.property_changed.connect(property_changed.emit)
+	# Relay signals
+	condition_editor.property_changed.connect(
+		func(n, v, r=null): # optional param for backwards compat if needed, but SyncCondEditor is simpler
+			# SyncCondEditor uses a specific editor that we might need to update too? 
+			# Ah, check_type_picker etc.
+			pass
+	)
 	condition_editor.rebuild_requested.connect(func(): type_changed.emit(null))
 
 func display_data(p_output_port: SynchronizeOutputPort) -> void:
@@ -32,11 +39,15 @@ func display_data(p_output_port: SynchronizeOutputPort) -> void:
 	for child in condition_editor.get_children():
 		child.queue_free()
 
+	# Note: SyncConditionEditor is specialized and static.
 	var specialized_editor = QWConstants.SyncConditionEditorScene.instantiate()
 	condition_editor.add_child(specialized_editor)
 	
 	specialized_editor.edit_condition(p_output_port.condition)
-	specialized_editor.property_changed.connect(property_changed.emit)
+	# FIX: SyncCondEditor is simple, but we should make it consistent.
+	specialized_editor.property_changed.connect(
+		func(n, v): property_changed.emit(n, v, p_output_port.condition)
+	)
 
 func _on_port_name_confirmed() -> void:
 	var new_name = port_name_edit.text

@@ -8,7 +8,7 @@ enum QuestType { MAIN, SIDE }
 @export var quest_type: QuestType = QuestType.SIDE
 
 ## Unique identifier for this quest.
-@export var quest_id: String = ""
+@export var quest_id: StringName = &""
 
 ## The title displayed to the player.
 @export var quest_title: String = ""
@@ -18,6 +18,10 @@ enum QuestType { MAIN, SIDE }
 
 ## (Optional) An initial log entry added when the quest starts.
 @export_multiline var log_on_start: String = ""
+
+# CHANGED: Now an Array of Dictionaries. 
+# Format: { "id": StringName, "amount": int, "linked_objective_id": StringName, "description": String }
+@export var rewards: Array[Dictionary] = []
 
 func _init() -> void:
 	category = "Logic"
@@ -30,13 +34,37 @@ func get_editor_summary() -> String:
 	
 	var type_text = "Main" if quest_type == QuestType.MAIN else "Side"
 	
-	return "\nID: %s\n%s Quest:\n%s" % [quest_id, type_text, quest_title]
+	var reward_text = ""
+	if not rewards.is_empty():
+		reward_text = "\n(%d Rewards)" % rewards.size()
+	
+	return "\nID: %s\n%s Quest:\n%s%s" % [quest_id, type_text, quest_title, reward_text]
 
 func get_description() -> String:
-	return "Defines the core properties of this quest (ID, Title, Description). Required once per graph."
+	return "Defines the core properties of this quest (ID, Title, Description, Rewards)."
 
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/context.svg")
+
+# --- EDITOR COMMANDS ---
+
+func add_new_reward() -> void:
+	# No Class instantiation! Just a dictionary.
+	var new_reward = {
+		"id": &"",
+		"amount": 1,
+		"linked_objective_id": &"",
+		"description": ""
+	}
+	rewards.append(new_reward)
+	emit_changed()
+
+func remove_reward_at(index: int) -> void:
+	if index >= 0 and index < rewards.size():
+		rewards.remove_at(index)
+		emit_changed()
+
+# --- SERIALIZATION ---
 
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
@@ -45,15 +73,44 @@ func to_dictionary() -> Dictionary:
 	data["quest_title"] = self.quest_title
 	data["quest_description"] = self.quest_description
 	data["log_on_start"] = self.log_on_start
+	data["rewards"] = self.rewards.duplicate(true)
+	
 	return data
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
 	self.quest_type = _defensive_load(data, "quest_type", QuestType.keys(), QuestType.SIDE)
-	self.quest_id = data.get("quest_id", "")
+	self.quest_id = StringName(data.get("quest_id", &""))
 	self.quest_title = data.get("quest_title", "")
 	self.quest_description = data.get("quest_description", "")
 	self.log_on_start = data.get("log_on_start", "")
+	
+	self.rewards.clear()
+	
+	# Load dictionaries and ensure types (String -> StringName conversion for IDs)
+	var raw_rewards = data.get("rewards", [])
+	if raw_rewards is Array:
+		for r in raw_rewards:
+			if r is Dictionary:
+				# Sanitize / Cast types upon loading
+				var clean_reward = {
+					"id": StringName(r.get("id", &"gold")),
+					"amount": int(r.get("amount", 100)),
+					"linked_objective_id": StringName(r.get("linked_objective_id", &"")),
+					"description": str(r.get("description", ""))
+				}
+				self.rewards.append(clean_reward)
+			
+	# Migration Fallback (Old logic)
+	elif data.has("rewards_summary"):
+		var old_dict = data.get("rewards_summary", {})
+		for k in old_dict:
+			self.rewards.append({
+				"id": StringName(k),
+				"amount": int(old_dict[k]),
+				"linked_objective_id": &"",
+				"description": ""
+			})
 
 ## PRIVATE METHOD: Checks if an integer value is valid for the enum type.
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
@@ -62,12 +119,36 @@ func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: i
 		return val
 	return default_val
 
-func _validate(_context: Dictionary) -> Array[ValidationResult]:
+func _validate(context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
+	var item_registry = context.get("item_registry")
 	
+	# 1. Check ID
 	if quest_id.is_empty():
 		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Quest Context: Quest ID is not set.", id))
-	if quest_title.is_empty():
-		results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Quest Context: Quest Title is not set.", id))
-		
+	
+	# 2. Check Rewards
+	if not rewards.is_empty() and is_instance_valid(item_registry):
+		# Helper to check existence based on Registry type
+		var check_item_exists = func(item_id: String) -> bool:
+			if item_registry.has_method("find"):
+				return item_registry.find(item_id) != null
+			elif "item_definitions" in item_registry:
+				# Fallback for simple array based registries
+				for def in item_registry.item_definitions:
+					if def.id == item_id: return true
+			return false
+
+		for i in range(rewards.size()):
+			var reward = rewards[i]
+			if reward is Dictionary:
+				var r_id = str(reward.get("id", ""))
+				if r_id.is_empty():
+					results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Reward #%d: Item ID is missing." % (i + 1), id))
+				elif not check_item_exists.call(r_id):
+					results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Reward #%d: Item '%s' not found in Registry." % [i + 1, r_id], id))
+
 	return results
+
+func determine_default_size() -> QWNodeSizes.Size:
+	return QWNodeSizes.Size.LARGE

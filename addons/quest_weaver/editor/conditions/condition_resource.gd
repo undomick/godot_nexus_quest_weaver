@@ -3,10 +3,11 @@
 class_name ConditionResource
 extends Resource
 
-enum QuestState { INACTIVE, ACTIVE, COMPLETED, FAILED }
+# Note: Local QuestState enum removed. We now use QWEnums.QuestState.
+
 enum ConditionType { 
 	BOOL, CHANCE, CHECK_ITEM, CHECK_QUEST_STATUS, CHECK_VARIABLE, CHECK_SYNCHRONIZER,
-	CHECK_OBJECTIVE_STATUS, COMPOUND
+	CHECK_OBJECTIVE_REQUIREMENT, CHECK_OBJECTIVE_STATUS, COMPOUND
 }
 @export var type: ConditionType = ConditionType.BOOL
 
@@ -17,15 +18,16 @@ enum ConditionType {
 @export_range(0.0, 100.0, 0.1, "suffix:%") var chance_percentage: float = 50.0
 
 # --- CheckItemCondition ---
-@export var item_id: String = ""
+@export var item_id: StringName = &""
 @export var amount: int = 1
 
 # --- CheckQuestStatusCondition ---
-@export var quest_id: String = ""
+@export var quest_id: StringName = &""
+# Updated to use Global Enum
 @export var expected_status: QWEnums.QuestState = QWEnums.QuestState.COMPLETED
 
 # --- CheckVariableCondition ---
-@export var variable_name: String = ""
+@export var variable_name: StringName = &""
 @export var expected_value_string: String = ""
 enum Operator { EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_OR_EQUAL, LESS_OR_EQUAL }
 @export var operator: Operator = Operator.EQUALS
@@ -36,7 +38,7 @@ enum CheckType { RECEIVED_N_INPUTS, RECEIVED_SPECIFIC_INPUT }
 @export var sync_value: int = 1
 
 # --- CheckObjectiveStatusCondition ---
-@export var objective_id: String = ""
+@export var objective_id: StringName = &""
 @export var expected_objective_status: ObjectiveResource.Status = ObjectiveResource.Status.COMPLETED
 
 # --- CompoundCondition ---
@@ -44,6 +46,9 @@ enum LogicOperator { AND, OR }
 @export var logic_operator: LogicOperator = LogicOperator.AND
 @export var sub_conditions: Array[ConditionResource] = []
 
+@export var include_inventory_holdings: bool = false
+## If true: passes when player has any progress (potential > 0) for at least one requirement. Use with GiveTakeItem allow_partial_deposit.
+@export var has_any_progress: bool = false
 
 func check(context: Variant, instance: QuestInstance = null) -> bool:
 	var controller = _get_controller_safely(context)
@@ -60,28 +65,22 @@ func check(context: Variant, instance: QuestInstance = null) -> bool:
 			var adapter = controller._inventory_adapter
 			if not is_instance_valid(adapter) or item_id.is_empty():
 				return false
-			# Resolve potential variables in item_id or amount using instance?
-			# For v1.0 basic, we stick to static IDs, but here is where placeholders would be resolved.
 			return adapter.check_item(item_id, amount)
 			
 		ConditionType.CHECK_QUEST_STATUS:
 			var current_status = controller.get_quest_state(quest_id)
-			#print("[DEBUG] Condition CHECK_QUEST_STATUS: ID='%s' Expected=%d Actual=%d" % [quest_id, expected_status, current_status])
 			return current_status == expected_status
 			
 		ConditionType.CHECK_VARIABLE:
-			# Priority: 1. QuestInstance Variable (Local), 2. GameState (Global)
 			var actual_value = null
 			
 			if instance and instance.variables.has(variable_name):
 				actual_value = instance.get_variable(variable_name)
 			else:
-				# Fallback to Global State
 				if context is RefCounted and context.get("game_state"):
 					if is_instance_valid(context.game_state):
 						actual_value = context.game_state.get_variable(variable_name)
 			
-			# NEW: Use centralized parsing and logic
 			var expected_value = QWConditionLogic.parse_string_to_variant(expected_value_string)
 			return QWConditionLogic.compare(actual_value, expected_value, operator)
 			
@@ -90,8 +89,38 @@ func check(context: Variant, instance: QuestInstance = null) -> bool:
 			if objective_id.is_empty(): return false
 			return controller.get_objective_status(objective_id) == expected_objective_status
 			
+		ConditionType.CHECK_OBJECTIVE_REQUIREMENT:
+			if not is_instance_valid(controller): return false
+			if objective_id == &"": return false
+			if not instance: return false 
+
+			var objective_def = controller.get_objective_resource(objective_id) 
+			if not objective_def: return false
+			
+			if has_any_progress:
+				# Pass when player has any progress (potential > 0) for at least one requirement
+				for item_id in objective_def.requirements:
+					var current_progress = instance.get_objective_progress_by_key(objective_id, item_id)
+					var potential = current_progress
+					if include_inventory_holdings and controller._inventory_adapter:
+						potential += controller._inventory_adapter.count_item(str(item_id))
+					if potential > 0:
+						return true
+				return false
+			
+			var all_met = true
+			for item_id in objective_def.requirements:
+				var target_amount = objective_def.requirements[item_id]
+				var current_progress = instance.get_objective_progress_by_key(objective_id, item_id)
+				var potential = current_progress
+				if include_inventory_holdings and controller._inventory_adapter:
+					potential += controller._inventory_adapter.count_item(str(item_id))
+				if potential < target_amount:
+					all_met = false
+					break
+			return all_met
+			
 		ConditionType.CHECK_SYNCHRONIZER:
-			# Context here is the specialized Dictionary passed by SyncManager
 			if context is Dictionary and context.has("sync_inputs_received_array"):
 				var received_array: Array = context["sync_inputs_received_array"]
 				match check_type:
@@ -116,12 +145,12 @@ func check(context: Variant, instance: QuestInstance = null) -> bool:
 	return false
 
 func _get_controller_safely(context: Variant) -> Node:
-	if context is RefCounted and context.get("quest_controller"): # ExecutionContext
+	if context is RefCounted and context.get("quest_controller"): 
 		return context.quest_controller
 		
 	var main_loop = Engine.get_main_loop()
 	if main_loop and main_loop.root:
-		return main_loop.root.get_node_or_null("QuestWeaverServices") # Returns services node, need controller from it
+		return main_loop.root.get_node_or_null("QuestWeaverServices")
 	
 	return null
 
@@ -141,6 +170,8 @@ func to_dictionary() -> Dictionary:
 		"check_type": self.check_type, "sync_value": self.sync_value,
 		"logic_operator": self.logic_operator, "objective_id": self.objective_id,
 		"expected_objective_status": self.expected_objective_status, 
+		"include_inventory_holdings": self.include_inventory_holdings,
+		"has_any_progress": self.has_any_progress,
 		"sub_conditions": sub_conditions_data,
 	}
 
@@ -148,18 +179,21 @@ func from_dictionary(data: Dictionary):
 	self.type = _defensive_load(data, "type", ConditionType.keys(), ConditionType.BOOL)
 	self.is_true = data.get("is_true", true)
 	self.chance_percentage = data.get("chance_percentage", 50.0)
-	self.item_id = data.get("item_id", "")
+	self.item_id = StringName(data.get("item_id", &""))
 	self.amount = data.get("amount", 1)
-	self.quest_id = data.get("quest_id", "")
+	self.quest_id = StringName(data.get("quest_id", &""))
+	# Updated defensive load for global keys
 	self.expected_status = _defensive_load(data, "expected_status", QWEnums.QuestState.keys(), QWEnums.QuestState.COMPLETED)
-	self.variable_name = data.get("variable_name", "")
+	self.variable_name = StringName(data.get("variable_name", &""))
 	self.expected_value_string = data.get("expected_value_string", "")
 	self.operator = _defensive_load(data, "operator", Operator.keys(), Operator.EQUALS)
 	self.check_type = _defensive_load(data, "check_type", CheckType.keys(), CheckType.RECEIVED_N_INPUTS)
 	self.sync_value = data.get("sync_value", 1)
-	self.objective_id = data.get("objective_id", "")
+	self.objective_id = StringName(data.get("objective_id", &""))
 	self.expected_objective_status = _defensive_load(data, "expected_objective_status", ObjectiveResource.Status.keys(), ObjectiveResource.Status.COMPLETED)
 	self.logic_operator = _defensive_load(data, "logic_operator", LogicOperator.keys(), LogicOperator.AND)
+	self.include_inventory_holdings = data.get("include_inventory_holdings", false)
+	self.has_any_progress = data.get("has_any_progress", false)
 	
 	self.sub_conditions.clear()
 	var sub_conditions_data = data.get("sub_conditions", [])

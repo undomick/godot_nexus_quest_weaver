@@ -4,7 +4,7 @@ class_name SetVariableNodeResource
 extends GraphNodeResource
 
 ## The name of the variable in the GameState to modify.
-@export var variable_name: String = ""
+@export var variable_name: StringName = &""
 
 ## The value to set, stored as a string for editor compatibility.
 @export var value_to_set_string: String = ""
@@ -72,7 +72,7 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.variable_name = data.get("variable_name", "")
+	self.variable_name = StringName(data.get("variable_name", &""))
 	self.value_to_set_string = data.get("value_to_set_string", "")
 	self.operator = _defensive_load(data, "operator", Operator.keys(), Operator.SET)
 	_update_ports_from_data()

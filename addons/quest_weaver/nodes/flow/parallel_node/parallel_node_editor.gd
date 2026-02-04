@@ -30,28 +30,25 @@ func _rebuild_outputs_list():
 		
 		entry.remove_requested.connect(_on_remove_output_pressed.bind(i))
 		entry.name_changed.connect(_on_output_name_changed.bind(i))
-		entry.property_changed.connect(_on_output_condition_property_changed.bind(i))
+		
+		entry.property_changed.connect(_make_parallel_condition_property_handler(i))
+		
 		entry.rebuild_requested.connect(_rebuild_outputs_list)
 		
 		outputs_container.add_child(entry)
 		entry.set_output_info(output_info)
 
+func _make_parallel_condition_property_handler(output_index: int):
+	return func(prop: String, val: Variant, _target: Resource):
+		property_update_requested.emit(edited_node_data.id, prop, val, null, {"output_index": output_index})
+
 func _on_add_output_pressed() -> void:
 	complex_action_requested.emit(edited_node_data.id, "add_parallel_output", {})
 
 func _on_remove_output_pressed(index: int) -> void:
-	#connections_from_port_removal_requested.emit(index)
-
 	var payload = {"index": index}
 	complex_action_requested.emit(edited_node_data.id, "remove_parallel_output", payload)
 
 func _on_output_name_changed(new_name: String, index: int) -> void:
 	var payload = {"index": index, "new_name": new_name}
 	complex_action_requested.emit(edited_node_data.id, "update_parallel_port_name", payload)
-
-func _on_output_condition_property_changed(property_name: String, new_value: Variant, index: int) -> void:
-	var parallel_node = edited_node_data as ParallelNodeResource
-	if is_instance_valid(parallel_node) and index < parallel_node.outputs.size():
-		var target_condition_resource = parallel_node.outputs[index].condition
-		if is_instance_valid(target_condition_resource):
-			property_update_requested.emit(edited_node_data.id, property_name, new_value, target_condition_resource)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bwcyi5bcf6qxb"]
+[gd_scene format=3 uid="uid://bwcyi5bcf6qxb"]
 
 [ext_resource type="Script" uid="uid://bdhslfg4nmubv" path="res://addons/quest_weaver/editor/quest_weaver_editor.gd" id="1_fkj2q"]
 [ext_resource type="Script" uid="uid://uflu1xxr00rf" path="res://addons/quest_weaver/core/qw_graph_data.gd" id="2_wklog"]
@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://jmguya1cwte8" path="res://addons/quest_weaver/editor/properties_panel.tscn" id="5_dumqh"]
 [ext_resource type="PackedScene" uid="uid://cbxmdchmhqt23" path="res://addons/quest_weaver/editor/node_selection_menu.tscn" id="7_qsw60"]
 
-[node name="QuestWeaverEditor" type="Control"]
+[node name="QuestWeaverEditor" type="Control" unique_id=250042294]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,11 +19,11 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("1_fkj2q")
 
-[node name="DataManager" type="Node" parent="."]
+[node name="DataManager" type="Node" parent="." unique_id=606012560]
 unique_name_in_owner = true
 script = ExtResource("2_wklog")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=224877494]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -35,28 +35,28 @@ theme_override_constants/margin_top = 3
 theme_override_constants/margin_right = 3
 theme_override_constants/margin_bottom = 3
 
-[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer"]
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer" unique_id=955106435]
 layout_mode = 2
 
-[node name="SidePanel" parent="MarginContainer/HSplitContainer" instance=ExtResource("3_avfb5")]
+[node name="SidePanel" parent="MarginContainer/HSplitContainer" unique_id=971435025 instance=ExtResource("3_avfb5")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/HSplitContainer"]
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/HSplitContainer" unique_id=999226177]
 custom_minimum_size = Vector2(700, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 8.0
 
-[node name="GraphEdit" type="GraphEdit" parent="MarginContainer/HSplitContainer/HSplitContainer"]
+[node name="GraphEdit" type="GraphEdit" parent="MarginContainer/HSplitContainer/HSplitContainer" unique_id=1350670237]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 8.0
 theme = ExtResource("4_wklog")
-scroll_offset = Vector2(-312, 0)
+scroll_offset = Vector2(-50, 0)
 grid_pattern = 1
 snapping_distance = 10
 right_disconnects = true
@@ -64,7 +64,7 @@ connection_lines_curvature = 0.4
 script = ExtResource("4_363a4")
 metadata/_override_delete_request = true
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HSplitContainer/HSplitContainer/GraphEdit"]
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HSplitContainer/HSplitContainer/GraphEdit" unique_id=1304744892]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -75,19 +75,20 @@ grow_horizontal = 0
 mouse_filter = 2
 theme_override_constants/margin_right = 16
 
-[node name="VersionLabel" type="Label" parent="MarginContainer/HSplitContainer/HSplitContainer/GraphEdit/MarginContainer"]
+[node name="VersionLabel" type="Label" parent="MarginContainer/HSplitContainer/HSplitContainer/GraphEdit/MarginContainer" unique_id=342655740]
 unique_name_in_owner = true
 self_modulate = Color(1, 1, 1, 0.313726)
 layout_mode = 2
 text = "v0.0.1"
 
-[node name="PropertiesPanel" parent="MarginContainer/HSplitContainer/HSplitContainer" instance=ExtResource("5_dumqh")]
+[node name="PropertiesPanel" parent="MarginContainer/HSplitContainer/HSplitContainer" unique_id=1158112980 instance=ExtResource("5_dumqh")]
 unique_name_in_owner = true
 z_index = 1
+custom_minimum_size = Vector2(350, 0)
 layout_mode = 2
 size_flags_stretch_ratio = 2.0
 
-[node name="Menues" type="Control" parent="."]
+[node name="Menues" type="Control" parent="." unique_id=205468420]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -97,6 +98,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="AddNodeMenu" parent="Menues" instance=ExtResource("7_qsw60")]
+[node name="AddNodeMenu" parent="Menues" unique_id=1925935232 instance=ExtResource("7_qsw60")]
 unique_name_in_owner = true
 visible = false

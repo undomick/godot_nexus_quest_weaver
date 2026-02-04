@@ -1,61 +1,46 @@
-[gd_scene load_steps=3 format=3 uid="uid://41qktips0nb3"]
+[gd_scene format=3 uid="uid://41qktips0nb3"]
 
 [ext_resource type="Script" uid="uid://csvs5o3wnr0pr" path="res://addons/quest_weaver/nodes/action/give_take_item_node/give_take_item_node_editor.gd" id="1_cgtjc"]
-[ext_resource type="PackedScene" uid="uid://bulr50esg11es" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.tscn" id="2_xuvid"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_wuxx2"]
 
-[node name="GiveTakeItemNodeEditor" type="VBoxContainer"]
-custom_minimum_size = Vector2(200, 150)
-offset_right = 40.0
-offset_bottom = 40.0
-size_flags_horizontal = 3
+[node name="GiveTakeItemNodeEditor" type="PanelContainer" unique_id=122613938]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 150.0
+grow_horizontal = 2
+theme = ExtResource("1_wuxx2")
 script = ExtResource("1_cgtjc")
 
-[node name="ActionContainer" type="HBoxContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1231206862]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ActionContainer" type="HBoxContainer" parent="MainLayout" unique_id=470206870]
+unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ActionLabel" type="Label" parent="ActionContainer"]
+[node name="ActionLabel" type="Label" parent="MainLayout/ActionContainer" unique_id=305765478]
 layout_mode = 2
 text = "Action: "
 
-[node name="ActionPicker" type="OptionButton" parent="ActionContainer"]
+[node name="ActionPicker" type="OptionButton" parent="MainLayout/ActionContainer" unique_id=18338543]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Determines the operation:
+- Give: Adds items to the player's inventory (Always succeeds).
+- Take: Removes items (Fails and triggers 'Failure' port if not enough items exist)."
 
-[node name="AmountContainer" type="HBoxContainer" parent="."]
+[node name="HSeparator4" type="HSeparator" parent="MainLayout" unique_id=907729986]
 layout_mode = 2
 
-[node name="AmountLabel" type="Label" parent="AmountContainer"]
-layout_mode = 2
-text = "Amount: "
-
-[node name="AmountSpinBox" type="SpinBox" parent="AmountContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="ItemContainer" type="HBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="ItemContainer"]
-layout_mode = 2
-
-[node name="ItemLabel" type="Label" parent="ItemContainer/VBoxContainer"]
-layout_mode = 2
-text = "Item ID: "
-
-[node name="Spacer" type="Control" parent="ItemContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="ItemIDEdit" parent="ItemContainer" instance=ExtResource("2_xuvid")]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="HSeparator4" type="HSeparator" parent="."]
-layout_mode = 2
-
-[node name="TerminalCheckBox" type="CheckBox" parent="."]
+[node name="TerminalCheckBox" type="CheckBox" parent="MainLayout" unique_id=1730327428]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Disables Output-Port(s). Helps to avoid warnings in the validator."
 text = "End of Flow"
+
+[node name="ItemContainer" type="VBoxContainer" parent="MainLayout" unique_id=904725453]
+unique_name_in_owner = true
+layout_mode = 2

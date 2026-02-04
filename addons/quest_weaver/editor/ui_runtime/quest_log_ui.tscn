@@ -1,19 +1,19 @@
-[gd_scene load_steps=3 format=3 uid="uid://cfjujdo2dk1xe"]
+[gd_scene format=3 uid="uid://cfjujdo2dk1xe"]
 
 [ext_resource type="Script" uid="uid://bd1vhqo5n3nef" path="res://addons/quest_weaver/editor/ui_runtime/quest_log_ui.gd" id="1_45syc"]
 [ext_resource type="PackedScene" uid="uid://bh6k7alrx0bi7" path="res://addons/quest_weaver/editor/ui_runtime/quest_category_header.tscn" id="2_bss5o"]
 
-[node name="QuestLogUI" type="CanvasLayer"]
+[node name="QuestLogUI" type="CanvasLayer" unique_id=518100021]
 script = ExtResource("1_45syc")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=1610926592]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+[node name="MarginContainer" type="MarginContainer" parent="Panel" unique_id=2020292857]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,23 +25,23 @@ theme_override_constants/margin_top = 24
 theme_override_constants/margin_right = 24
 theme_override_constants/margin_bottom = 24
 
-[node name="Panel" type="Panel" parent="Panel/MarginContainer"]
+[node name="Panel" type="Panel" parent="Panel/MarginContainer" unique_id=218062997]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer" unique_id=350616168]
 layout_mode = 2
 
-[node name="HSplitContainer" type="HSplitContainer" parent="Panel/MarginContainer/VBoxContainer"]
+[node name="HSplitContainer" type="HSplitContainer" parent="Panel/MarginContainer/VBoxContainer" unique_id=832505296]
 layout_mode = 2
 size_flags_vertical = 3
 dragging_enabled = false
 drag_area_highlight_in_editor = true
 
-[node name="Node0" type="Control" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer"]
+[node name="Node0" type="Control" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer" unique_id=1822455917]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="MarginContainer" type="MarginContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0"]
+[node name="MarginContainer" type="MarginContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0" unique_id=120279403]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -53,33 +53,33 @@ theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0/MarginContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0/MarginContainer" unique_id=418826539]
 layout_mode = 2
 
-[node name="QuestListContainer" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0/MarginContainer/ScrollContainer"]
+[node name="QuestListContainer" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0/MarginContainer/ScrollContainer" unique_id=1976281573]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ActiveQuestsHeader" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0/MarginContainer/ScrollContainer/QuestListContainer" instance=ExtResource("2_bss5o")]
+[node name="ActiveQuestsHeader" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0/MarginContainer/ScrollContainer/QuestListContainer" unique_id=666605583 instance=ExtResource("2_bss5o")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="CompletedQuestsHeader" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0/MarginContainer/ScrollContainer/QuestListContainer" instance=ExtResource("2_bss5o")]
+[node name="CompletedQuestsHeader" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0/MarginContainer/ScrollContainer/QuestListContainer" unique_id=82316138 instance=ExtResource("2_bss5o")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="FailedQuestsHeader" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0/MarginContainer/ScrollContainer/QuestListContainer" instance=ExtResource("2_bss5o")]
+[node name="FailedQuestsHeader" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node0/MarginContainer/ScrollContainer/QuestListContainer" unique_id=2037295615 instance=ExtResource("2_bss5o")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Node1" type="Control" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer"]
+[node name="Node1" type="Control" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer" unique_id=1471129503]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="QuestDetailContainer" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1"]
+[node name="QuestDetailContainer" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1" unique_id=144792326]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -88,34 +88,34 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="DetailTitleLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer"]
+[node name="DetailTitleLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer" unique_id=156625679]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Quest Title"
 
-[node name="HSeparator" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer"]
+[node name="HSeparator" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer" unique_id=1726154301]
 layout_mode = 2
 
-[node name="DetailDescriptionLabel" type="RichTextLabel" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer"]
+[node name="DetailDescriptionLabel" type="RichTextLabel" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer" unique_id=85803310]
 unique_name_in_owner = true
 layout_mode = 2
 fit_content = true
 
-[node name="Label" type="Label" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer"]
+[node name="Label" type="Label" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer" unique_id=1018544104]
 layout_mode = 2
 text = "Objective(s):"
 
-[node name="DetailObjectivesList" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer"]
+[node name="DetailObjectivesList" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer" unique_id=1365340329]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
 
-[node name="DetailLogList" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer"]
+[node name="DetailLogList" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/HSplitContainer/Node1/QuestDetailContainer" unique_id=131624015]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
 
-[node name="CloseButton" type="Button" parent="Panel/MarginContainer/VBoxContainer"]
+[node name="CloseButton" type="Button" parent="Panel/MarginContainer/VBoxContainer" unique_id=1762844111]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(256, 0)
 layout_mode = 2

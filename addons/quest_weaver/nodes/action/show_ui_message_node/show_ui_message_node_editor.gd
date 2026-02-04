@@ -67,7 +67,7 @@ func _connect_spinbox_signals(spinbox: SpinBox, property_name: String) -> void:
 				final_value = int(new_value)
 			
 			if edited_node_data.get(property_name) != final_value:
-				property_update_requested.emit(edited_node_data.id, property_name, final_value)
+				property_update_requested.emit(edited_node_data.id, property_name, final_value, null, {})
 	)
 
 func set_node_data(node_data: GraphNodeResource) -> void:
@@ -103,49 +103,49 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 func _on_title_override_confirmed() -> void:
 	var new_text = title_override_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.title_override != new_text:
-		property_update_requested.emit(edited_node_data.id, "title_override", new_text)
+		property_update_requested.emit(edited_node_data.id, "title_override", new_text, null, {})
 
 func _on_message_override_confirmed() -> void:
 	var new_text = message_override_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.message_override != new_text:
-		property_update_requested.emit(edited_node_data.id, "message_override", new_text)
+		property_update_requested.emit(edited_node_data.id, "message_override", StringName(new_text), null, {})
 
 func _on_wait_toggled(is_pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.wait_for_completion != is_pressed:
-		property_update_requested.emit(edited_node_data.id, "wait_for_completion", is_pressed)
+		property_update_requested.emit(edited_node_data.id, "wait_for_completion", is_pressed, null, {})
 
 func _on_message_type_selected(index: int):
 	if index >= 0 and index < _registry_keys.size():
 		var selected_key = StringName(_registry_keys[index])
 		if is_instance_valid(edited_node_data) and edited_node_data.message_type != selected_key:
-			property_update_requested.emit(edited_node_data.id, "message_type", selected_key)
+			property_update_requested.emit(edited_node_data.id, "message_type", selected_key, null, {})
 
 func _on_anim_in_selected(index: int) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.animation_in != index:
-		property_update_requested.emit(edited_node_data.id, "animation_in", index)
+		property_update_requested.emit(edited_node_data.id, "animation_in", index, null, {})
 	_update_ui_visibility()
 
 func _on_ease_in_selected(index: int) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.ease_in != index:
-		property_update_requested.emit(edited_node_data.id, "ease_in", index)
+		property_update_requested.emit(edited_node_data.id, "ease_in", index, null, {})
 
 func _on_per_char_in_toggled(is_pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.per_character_in != is_pressed:
-		property_update_requested.emit(edited_node_data.id, "per_character_in", is_pressed)
+		property_update_requested.emit(edited_node_data.id, "per_character_in", is_pressed, null, {})
 	_update_ui_visibility()
 
 func _on_anim_out_selected(index: int) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.animation_out != index:
-		property_update_requested.emit(edited_node_data.id, "animation_out", index)
+		property_update_requested.emit(edited_node_data.id, "animation_out", index, null, {})
 	_update_ui_visibility()
 
 func _on_ease_out_selected(index: int) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.ease_out != index:
-		property_update_requested.emit(edited_node_data.id, "ease_out", index)
+		property_update_requested.emit(edited_node_data.id, "ease_out", index, null, {})
 
 func _on_per_char_out_toggled(is_pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.per_character_out != is_pressed:
-		property_update_requested.emit(edited_node_data.id, "per_character_out", is_pressed)
+		property_update_requested.emit(edited_node_data.id, "per_character_out", is_pressed, null, {})
 	_update_ui_visibility()
 
 # --- UI Helper functions ---
@@ -180,7 +180,7 @@ func _populate_ease_pickers():
 
 func _on_terminal_toggled(pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.is_terminal != pressed:
-		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed)
+		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed, null, {})
 		edited_node_data.is_terminal = pressed
 		edited_node_data._update_ports_from_data()
 

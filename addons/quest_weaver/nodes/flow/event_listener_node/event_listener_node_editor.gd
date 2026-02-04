@@ -13,6 +13,8 @@ const AdvancedConditionEditorScene = preload("res://addons/quest_weaver/editor/c
 @onready var add_simple_condition_button: Button = %AddSimpleConditionButton
 @onready var advanced_condition_container: VBoxContainer = %ConditionContainer
 
+var _is_setting_up := false
+
 func _ready() -> void:
 	event_name_edit.text_submitted.connect(func(_text): _on_event_name_confirmed())
 	event_name_edit.focus_exited.connect(_on_event_name_confirmed)
@@ -21,23 +23,23 @@ func _ready() -> void:
 	keep_listening_checkbox.toggled.connect(_on_keep_listening_toggled)
 
 func set_node_data(node_data: GraphNodeResource) -> void:
+	_is_setting_up = true
 	super.set_node_data(node_data)
-	if not node_data is EventListenerNodeResource: return
-	
-	var signals_blocked = keep_listening_checkbox.is_blocking_signals()
-	keep_listening_checkbox.set_block_signals(true)
+	if not node_data is EventListenerNodeResource: 
+		_is_setting_up = false
+		return
 	
 	event_name_edit.text = node_data.event_name
 	simple_mode_checkbox.button_pressed = node_data.use_simple_conditions
 	keep_listening_checkbox.button_pressed = node_data.keep_listening
 	
-	keep_listening_checkbox.set_block_signals(signals_blocked) # Reset
-	
 	_rebuild_ui()
+	_is_setting_up = false
 
 func _on_keep_listening_toggled(pressed: bool) -> void:
+	if _is_setting_up: return
 	if is_instance_valid(edited_node_data):
-		property_update_requested.emit(edited_node_data.id, "keep_listening", pressed)
+		property_update_requested.emit(edited_node_data.id, "keep_listening", pressed, null, {})
 
 func _rebuild_ui():
 	var use_simple = simple_mode_checkbox.button_pressed
@@ -73,40 +75,41 @@ func _rebuild_advanced_condition_editor():
 	if not is_instance_valid(listener_node) or not is_instance_valid(listener_node.payload_condition):
 		return
 	
-	# Create a new instance of the ConditionEditor
 	var editor_instance = AdvancedConditionEditorScene.instantiate()
 	advanced_condition_container.add_child(editor_instance)
 	
 	editor_instance.edit_condition(listener_node.payload_condition)
 	
 	editor_instance.property_changed.connect(
-		func(prop_name, new_value):
-			property_update_requested.emit(edited_node_data.id, prop_name, new_value, listener_node.payload_condition)
+		func(prop_name, new_value, _target_res):
+			property_update_requested.emit(edited_node_data.id, prop_name, new_value, null, {"payload_condition": true})
 	)
 	
 	editor_instance.rebuild_requested.connect(_rebuild_advanced_condition_editor)
 
 func _on_event_name_confirmed():
+	if _is_setting_up: return
 	var new_text = event_name_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.event_name != new_text:
-		property_update_requested.emit(edited_node_data.id, "event_name", new_text)
+		property_update_requested.emit(edited_node_data.id, "event_name", StringName(new_text), null, {})
 
 func _on_simple_mode_toggled(is_pressed: bool):
+	if _is_setting_up: return
 	if is_instance_valid(edited_node_data) and edited_node_data.use_simple_conditions != is_pressed:
-		property_update_requested.emit(edited_node_data.id, "use_simple_conditions", is_pressed)
+		property_update_requested.emit(edited_node_data.id, "use_simple_conditions", is_pressed, null, {})
 	_rebuild_ui()
 
 func _on_add_simple_condition_pressed():
-	var new_condition = {"key": "", "op": 0, "value": ""}
-	var listener_node = edited_node_data as EventListenerNodeResource
-	listener_node.simple_conditions.append(new_condition)
-	_rebuild_simple_conditions_list()
+	if _is_setting_up: return
+	if not is_instance_valid(edited_node_data): return
+	complex_action_requested.emit(edited_node_data.id, "add_simple_condition", {})
 
 func _on_simple_condition_changed(new_data: Dictionary, index: int):
-	var listener_node = edited_node_data as EventListenerNodeResource
-	listener_node.simple_conditions[index] = new_data
+	if _is_setting_up: return
+	if not is_instance_valid(edited_node_data): return
+	complex_action_requested.emit(edited_node_data.id, "update_simple_condition", {"index": index, "new_data": new_data})
 
 func _on_simple_condition_removed(index: int):
-	var listener_node = edited_node_data as EventListenerNodeResource
-	listener_node.simple_conditions.remove_at(index)
-	_rebuild_simple_conditions_list()
+	if _is_setting_up: return
+	if not is_instance_valid(edited_node_data): return
+	complex_action_requested.emit(edited_node_data.id, "remove_simple_condition", {"index": index})

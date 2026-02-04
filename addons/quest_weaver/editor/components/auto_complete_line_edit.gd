@@ -27,10 +27,15 @@ var text: String:
 func _ready() -> void:
 	result_list.focus_mode = Control.FOCUS_NONE
 	
+	# Make popup independent of parent layout
+	popup_container.set_as_top_level(true)
+	popup_container.hide()
+	
 	filter_edit.text_changed.connect(_on_internal_text_changed)
 	filter_edit.text_submitted.connect(_on_internal_text_submitted)
 	filter_edit.focus_entered.connect(_refilter_and_show_popup)
 	filter_edit.focus_exited.connect(_on_focus_exited)
+	filter_edit.item_rect_changed.connect(_update_popup_position)
 	
 	result_list.item_activated.connect(_on_item_confirmed)
 	result_list.item_clicked.connect(func(index, _at_pos, mouse_btn): \
@@ -39,7 +44,6 @@ func _ready() -> void:
 	# Connect mouse events to track hover state.
 	popup_container.mouse_entered.connect(func(): _mouse_is_over_popup = true)
 	popup_container.mouse_exited.connect(func(): _mouse_is_over_popup = false)
-
 
 func set_items(items_array: Array[String]) -> void:
 	_all_items = items_array
@@ -106,6 +110,34 @@ func _refilter_and_show_popup() -> void:
 	if result_list.get_item_count() > 0:
 		var popup_height: float = min(result_list.get_item_count() * 28 + 10, 250)
 		popup_container.size = Vector2(filter_edit.size.x, popup_height)
+		
+		# Update position before showing
 		popup_container.show()
+		_update_popup_position()
 	else:
 		popup_container.hide()
+
+func _update_popup_position() -> void:
+	if not popup_container.visible or not is_instance_valid(filter_edit):
+		return
+		
+	var global_pos = filter_edit.get_global_position()
+	var size = filter_edit.get_size()
+	
+	# Place exactly below the line edit
+	popup_container.position = Vector2(global_pos.x, global_pos.y + size.y)
+	# Match width
+	popup_container.size.x = size.x
+
+# ==============================================================================
+# FOCUS PROXYING
+# ==============================================================================
+
+func grab_focus(_hide_focus:bool=false) -> void:
+	if is_instance_valid(filter_edit):
+		filter_edit.grab_focus()
+
+func has_focus(_ignore_hidden_focus:bool=false) -> bool:
+	if is_instance_valid(filter_edit):
+		return filter_edit.has_focus()
+	return false

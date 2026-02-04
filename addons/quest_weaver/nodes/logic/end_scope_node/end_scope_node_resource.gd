@@ -4,14 +4,18 @@ class_name EndScopeNodeResource
 extends GraphNodeResource
 
 ## Must match the ID of a StartScopeNode within the same graph.
-@export var scope_id: String = "my_scope_1"
+@export var scope_id: StringName = &"my_scope_1"
 
 func _init():
 	category = "Logic"
 	input_ports = ["In"]
-	# The "Scope Completed" output triggers only when this node is reached.
-	# It signals the successful completion of a scope iteration.
-	output_ports = ["Scope Completed"]
+	_update_ports_from_data()
+
+func _update_ports_from_data() -> void:
+	if is_terminal:
+		output_ports = []
+	else:
+		output_ports = [&"Scope Completed"]
 
 func get_editor_summary() -> String:
 	var id_text = scope_id if not scope_id.is_empty() else "???"
@@ -30,7 +34,8 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.scope_id = data.get("scope_id", "my_scope_1")
+	self.scope_id = StringName(data.get("scope_id", &"my_scope_1"))
+	_update_ports_from_data()
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL

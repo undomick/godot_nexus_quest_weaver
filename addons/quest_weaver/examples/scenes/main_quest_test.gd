@@ -3,7 +3,12 @@ extends Node
 
 # This scene demonstrates how to interact with the QuestWeaver system from your game.
 # It uses a safe access pattern to avoid errors if the plugin is not yet enabled.
-# The correct way is to use the global signals provided by QuestWeaverGlobal once the addon is enabled.
+#
+# SIGNAL EXAMPLES (emit these from your game code):
+#   quest_event_fired:     QuestWeaverGlobal.quest_event_fired.emit("my_event", {"key": "value"})
+#   enemy_was_killed:      QuestWeaverGlobal.enemy_was_killed.emit("rat")
+#   interacted_with_object: QuestWeaverGlobal.interacted_with_object.emit(my_npc_node)  # For INTERACT objectives
+#   entered_location:      QuestWeaverGlobal.entered_location.emit("tavern")            # For ENTER_LOCATION objectives
 
 # Adventure related stuff
 @onready var quest_log_ui: QuestLogUI = %QuestLogUI

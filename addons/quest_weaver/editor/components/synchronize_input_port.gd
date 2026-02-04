@@ -6,7 +6,7 @@ extends Resource
 ## Defines a single input port of a SynchronizeNode.
 
 ## The name displayed on the port in the GraphEdit.
-@export var port_name: String = "In"
+@export var port_name: StringName = &"In"
 
 
 func to_dictionary() -> Dictionary:
@@ -17,4 +17,4 @@ func to_dictionary() -> Dictionary:
 	return data
 
 func from_dictionary(data: Dictionary) -> void:
-	port_name = data.get("port_name", "In")
+	port_name = StringName(data.get("port_name", &"In"))

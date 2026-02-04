@@ -5,6 +5,7 @@ extends RefCounted
 ## Manages global event listeners.
 ## Stores mapping: EventName -> List of NodeIDs.
 
+# Map: StringName -> Array[StringName]
 var _event_listeners: Dictionary = {} 
 var _controller_weak: WeakRef
 
@@ -15,29 +16,32 @@ func _get_controller() -> QuestController:
 	return _controller_weak.get_ref() as QuestController
 
 func register_listener(listener_node: EventListenerNodeResource):
-	var evt = listener_node.event_name
+	var evt: StringName = listener_node.event_name
 	if not _event_listeners.has(evt):
-		_event_listeners[evt] = []
+		var list: Array[StringName] = []
+		_event_listeners[evt] = list
+	
 	if not listener_node.id in _event_listeners[evt]:
 		_event_listeners[evt].append(listener_node.id)
 
 func unregister_listener(listener_node: EventListenerNodeResource):
-	var evt = listener_node.event_name
+	var evt: StringName = listener_node.event_name
 	if _event_listeners.has(evt):
 		_event_listeners[evt].erase(listener_node.id)
 		if _event_listeners[evt].is_empty():
 			_event_listeners.erase(evt)
 
-func on_global_event(event_name: String, payload: Dictionary):
+func on_global_event(event_name: StringName, payload: Dictionary):
 	var controller = _get_controller()
 	if not controller: return
-
+	
 	if not _event_listeners.has(event_name): return
 	
-	# Iterate copy to allow modifications during loop
-	var listeners = _event_listeners[event_name].duplicate()
+	# Typed Array for performance
+	var listeners: Array[StringName] = []
+	listeners.assign(_event_listeners[event_name].duplicate())
 	
-	for node_id in listeners:
+	for node_id: StringName in listeners:
 		# 1. Resolve Instance
 		var quest_id = controller.get_quest_id_for_node(node_id)
 		var instance: QuestInstance = controller._active_instances.get(quest_id)

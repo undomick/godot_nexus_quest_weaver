@@ -4,13 +4,16 @@ class_name EventNodeResource
 extends GraphNodeResource
 
 class PayloadEntry extends Resource:
-	@export var key: String = "my_key"
+	@export var key: StringName = &"my_key"
 	@export var value_string: String = ""
 	enum Type { STRING, INT, FLOAT, BOOL }
 	@export var value_type: Type = Type.STRING
 
+	func to_dictionary() -> Dictionary:
+		return {"key": key, "value_string": value_string, "value_type": value_type}
+
 ## The name of the global event to fire.
-@export var event_name: String = "my_quest_event"
+@export var event_name: StringName = &"my_quest_event"
 
 ## A List of PayloadEntries
 @export var payload_entries: Array[PayloadEntry] = []
@@ -74,7 +77,7 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.event_name = data.get("event_name", "my_quest_event")
+	self.event_name = StringName(data.get("event_name", &"my_quest_event"))
 	self.payload_entries.clear()
 	var entries_data = data.get("payload_entries", [])
 	for entry_dict in entries_data:

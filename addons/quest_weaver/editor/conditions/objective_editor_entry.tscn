@@ -1,70 +1,107 @@
-[gd_scene load_steps=3 format=3 uid="uid://d2m2w3fynwtoc"]
+[gd_scene format=3 uid="uid://d2m2w3fynwtoc"]
 
 [ext_resource type="Script" uid="uid://6jq8gqybwj45" path="res://addons/quest_weaver/editor/conditions/objective_editor_entry.gd" id="1_tmgpj"]
+[ext_resource type="PackedScene" uid="uid://bj08khvmbelj4" path="res://addons/quest_weaver/editor/components/sort_editor.tscn" id="3_ywyag"]
 
-[sub_resource type="DPITexture" id="DPITexture_d6lba"]
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_ywyag"]
+content_margin_left = 0.0
+content_margin_top = 4.0
+content_margin_right = 0.0
+content_margin_bottom = 4.0
+color = Color(0.5, 0.5, 0.5, 1)
+grow_begin = 0.0
+grow_end = 0.0
+
+[sub_resource type="DPITexture" id="DPITexture_hctl3"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#ff5d5d\" d=\"M2 1v8.586l1.293-1.293a1 1 0 0 1 1.414 0L7 10.587l2.293-2.293a1 1 0 0 1 1.414 0L13 10.586l1-1V6H9V1H2zm8 0v4h4zm-6 9.414-2 2V15h12v-2.586l-.293.293a1 1 0 0 1-1.414 0L10 10.414l-2.293 2.293a1 1 0 0 1-1.414 0L4 10.414z\"/></svg>
 "
 
-[node name="ObjectiveEditorEntry" type="VBoxContainer"]
-custom_minimum_size = Vector2(100, 50)
-offset_right = 275.0
-offset_bottom = 100.0
-size_flags_horizontal = 3
+[node name="ObjectiveEditorEntry" type="PanelContainer" unique_id=2044004622]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 144.0
+grow_horizontal = 2
 script = ExtResource("1_tmgpj")
 
-[node name="HSplitContainer" type="HSplitContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=559523964]
+layout_mode = 2
+theme_override_constants/separation = -1
+
+[node name="SortEditor" parent="HBoxContainer" unique_id=1156258208 instance=ExtResource("3_ywyag")]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 1
+
+[node name="VSeparator" type="VSeparator" parent="HBoxContainer" unique_id=502050166]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_ywyag")
+
+[node name="ContentContainer" type="VBoxContainer" parent="HBoxContainer" unique_id=781548439]
+custom_minimum_size = Vector2(100, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSplitContainer" type="HSplitContainer" parent="HBoxContainer/ContentContainer" unique_id=1664972188]
 custom_minimum_size = Vector2(100, 50)
 layout_mode = 2
 
-[node name="DeleteButton" type="Button" parent="HSplitContainer"]
+[node name="DeleteButton" type="Button" parent="HBoxContainer/ContentContainer/HSplitContainer" unique_id=281386299]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 text = "X"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HSplitContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ContentContainer/HSplitContainer" unique_id=436173434]
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxContainer" type="HBoxContainer" parent="HSplitContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer" unique_id=1972600677]
 layout_mode = 2
 
-[node name="IdLineEdit" type="LineEdit" parent="HSplitContainer/VBoxContainer/HBoxContainer"]
+[node name="IdLineEdit" type="LineEdit" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/HBoxContainer" unique_id=691082640]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-editable = false
+tooltip_text = "Unique internal ID. Used by 'Set Objective Node' or scripts to reference this specific objective."
+placeholder_text = "Objective ID"
 
-[node name="CopyIdButton" type="Button" parent="HSplitContainer/VBoxContainer/HBoxContainer"]
+[node name="CopyIdButton" type="Button" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/HBoxContainer" unique_id=1818151671]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
-tooltip_text = "Copy Objective ID to clipboard"
-icon = SubResource("DPITexture_d6lba")
+tooltip_text = "Copy ID to clipboard."
+icon = SubResource("DPITexture_hctl3")
 flat = true
 
-[node name="DescriptionEdit" type="LineEdit" parent="HSplitContainer/VBoxContainer"]
+[node name="DescriptionEdit" type="LineEdit" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer" unique_id=1544918694]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 30)
 layout_mode = 2
+tooltip_text = "Text shown in the Quest Log.
+Supports variables like '{amount}' or '{target}' if set in the Quest Instance."
+placeholder_text = "Displayed Objective Title"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HSplitContainer/VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer" unique_id=561441817]
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="HSplitContainer/VBoxContainer/VBoxContainer"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/VBoxContainer" unique_id=1132996206]
 custom_minimum_size = Vector2(50, 30)
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HSplitContainer/VBoxContainer/VBoxContainer/HBoxContainer2"]
+[node name="Label" type="Label" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/VBoxContainer/HBoxContainer2" unique_id=36270216]
 layout_mode = 2
 text = "Trigger:"
 
-[node name="TriggerTypePicker" type="OptionButton" parent="HSplitContainer/VBoxContainer/VBoxContainer/HBoxContainer2"]
+[node name="TriggerTypePicker" type="OptionButton" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/VBoxContainer/HBoxContainer2" unique_id=2054109839]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
+tooltip_text = "Determines how this objective is updated.
+- Manual: Via Script/Nodes
+- Item Collect: Inventory Adapter
+- Kill/Interact/Location: Global Events"
 selected = 0
 item_count = 5
 popup/item_0/text = "MANUAL"
@@ -78,11 +115,40 @@ popup/item_3/id = 3
 popup/item_4/text = "KILL"
 popup/item_4/id = 4
 
-[node name="TrackProgressCheckbox" type="CheckBox" parent="HSplitContainer/VBoxContainer/VBoxContainer/HBoxContainer2"]
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/VBoxContainer" unique_id=2141302018]
+layout_mode = 2
+
+[node name="CounterCheckBox" type="CheckBox" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/VBoxContainer/HBoxContainer" unique_id=805287326]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Tracks this objective in the quest log."
+text = "Counter"
+
+[node name="TrackProgressCheckbox" type="CheckBox" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/VBoxContainer/HBoxContainer" unique_id=260169773]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "If checked: Counts only items collected AFTER this task started (Delta).
+If unchecked: Checks if the player has the total amount in inventory (Absolute)."
 text = "Restricted"
 
-[node name="TriggerParamsContainer" type="VBoxContainer" parent="HSplitContainer/VBoxContainer/VBoxContainer"]
+[node name="CompleteOnDeliveryCheckbox" type="CheckBox" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/VBoxContainer/HBoxContainer" unique_id=260169774]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Objective is not completed when enough items are collected. Waits until GiveTakeItem reports enough items deposited."
+text = "Complete on Delivery"
+
+[node name="OptionalCheckBox" type="CheckBox" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/VBoxContainer/HBoxContainer" unique_id=1907580972]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "UI Hint: Marks this objective as optional in the quest log."
+text = "Optional"
+
+[node name="HiddenCheckBox" type="CheckBox" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/VBoxContainer/HBoxContainer" unique_id=1803541899]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "UI Hint: Hides this objective from the quest log (e.g. for internal triggers)."
+text = "Hidden"
+
+[node name="TriggerParamsContainer" type="VBoxContainer" parent="HBoxContainer/ContentContainer/HSplitContainer/VBoxContainer/VBoxContainer" unique_id=1980336680]
 unique_name_in_owner = true
 layout_mode = 2

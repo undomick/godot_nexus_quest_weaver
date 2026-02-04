@@ -3,12 +3,12 @@
 class_name GraphNodeResource
 extends Resource
 
-@export var id: String
-@export var category: String = "Default"
+@export var id: StringName
+@export var category: StringName = &"Default"
 @export var graph_position: Vector2
-@export var input_ports: Array[String] = ["In"]
-@export var output_ports: Array[String] = ["Out"]
-@export var is_terminal: bool = false # disables output
+@export var input_ports: Array[StringName] = [&"In"]
+@export var output_ports: Array[StringName] = [&"Out"]
+@export var is_terminal: bool = false  # disables output
 
 ## Provides a brief, human-readable summary for display in the graph editor.
 func get_editor_summary() -> String:
@@ -37,12 +37,17 @@ func to_dictionary() -> Dictionary:
 	}
 
 func from_dictionary(data: Dictionary):
-	self.id = data.get("id")
-	self.category = data.get("category")
-	self.graph_position = data.get("graph_position")
-	self.input_ports = data.get("input_ports")
-	self.output_ports = data.get("output_ports")
+	self.id = StringName(data.get("id", &""))
+	self.category = StringName(data.get("category", &"Default"))
+	self.graph_position = data.get("graph_position", Vector2.ZERO)
 	self.is_terminal = data.get("is_terminal", false)
+	
+	# Array Conversion
+	self.input_ports.clear()
+	for p in data.get("input_ports", []): self.input_ports.append(StringName(p))
+		
+	self.output_ports.clear()
+	for p in data.get("output_ports", []): self.output_ports.append(StringName(p))
 
 ## Virtual method for validation.
 ## 'context' contains references to 'item_registry' and 'quest_registry'.

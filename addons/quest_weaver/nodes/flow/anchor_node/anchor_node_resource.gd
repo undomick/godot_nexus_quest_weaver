@@ -3,7 +3,7 @@
 class_name AnchorNodeResource
 extends GraphNodeResource
 
-@export var anchor_name: String = "MyAnchor"
+@export var anchor_name: StringName = &"MyAnchor"
 
 func _init() -> void:
 	category = "Flow"
@@ -34,4 +34,4 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.anchor_name = data.get("anchor_name", "MyAnchor")
+	self.anchor_name = StringName(data.get("anchor_name", &"MyAnchor"))

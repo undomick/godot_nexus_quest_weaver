@@ -10,8 +10,12 @@ extends NodePropertyEditorBase
 func _ready() -> void:
 	target_quest_id_edit.text_submitted.connect(_on_id_confirmed)
 	target_quest_id_edit.focus_exited.connect(func(): _on_id_confirmed(target_quest_id_edit.text))
+	target_quest_id_edit.get_node("%FilterEdit").focus_entered.connect(_on_quest_id_focus_entered)
 	terminal_checkbox.toggled.connect(_on_terminal_toggled)
 	action_picker.item_selected.connect(_on_action_changed)
+
+func _on_quest_id_focus_entered() -> void:
+	QWEditorUtils.refresh_quest_id_completer_from_active_graph(target_quest_id_edit)
 
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
@@ -29,14 +33,14 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 
 func _on_id_confirmed(new_text: String):
 	if is_instance_valid(edited_node_data) and edited_node_data.target_quest_id != new_text:
-		property_update_requested.emit(edited_node_data.id, "target_quest_id", new_text)
+		property_update_requested.emit(edited_node_data.id, "target_quest_id", StringName(new_text), null, {})
 
 func _on_action_changed(index: int) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.action != index:
-		property_update_requested.emit(edited_node_data.id, "action", index)
+		property_update_requested.emit(edited_node_data.id, "action", index, null, {})
 
 func _on_terminal_toggled(pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.is_terminal != pressed:
-		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed)
+		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed, null, {})
 		edited_node_data.is_terminal = pressed
 		edited_node_data._update_ports_from_data()

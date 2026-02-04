@@ -6,7 +6,7 @@ extends GraphNodeResource
 ## Resets the progress of all nodes within a defined Scope
 ## (starting with a 'Start Scope Node') and optionally restarts it.
 
-@export var target_scope_id: String = ""
+@export var target_scope_id: StringName = &""
 @export var restart_scope_on_completion: bool = true
 
 
@@ -42,7 +42,7 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.target_scope_id = data.get("target_scope_id", "")
+	self.target_scope_id = StringName(data.get("target_scope_id", &""))
 	self.restart_scope_on_completion = data.get("restart_scope_on_completion", true)
 
 func determine_default_size() -> QWNodeSizes.Size:

@@ -5,14 +5,19 @@ extends RefCounted
 ## A lightweight wrapper object that acts as a "Remote Control" for a specific quest.
 ## Instantiated via QuestWeaverGlobal.quest("id").
 
-var _id: String
+var _id: StringName
 var _controller_weak: WeakRef
 var _use_file_logic: bool = false
 
-func _init(p_quest_id: String, p_controller: QuestController, p_use_file_logic: bool = false) -> void:
+func _init(p_quest_id: StringName, p_controller: QuestController, p_use_file_logic: bool = false) -> void:
 	self._id = p_quest_id
 	self._controller_weak = weakref(p_controller)
 	self._use_file_logic = p_use_file_logic
+
+func _get(property: StringName) -> Variant:
+	if property == &"rewards":
+		return get_rewards()
+	return null
 
 # ==============================================================================
 # STATE ACTIONS
@@ -68,25 +73,32 @@ func restart() -> void:
 
 func get_state() -> int:
 	var c = _get_controller()
-	return c.get_quest_state(_id) if c else 0
+	return c.get_quest_state(_id) if c else QWEnums.QuestState.UNAVAILABLE
+
+func make_available() -> void:
+	var c = _get_controller()
+	if c: c.set_quest_available(_id)
+
+func is_unavailable() -> bool:
+	return get_state() == QWEnums.QuestState.UNAVAILABLE
+
+func is_available() -> bool:
+	return get_state() == QWEnums.QuestState.AVAILABLE
 
 func is_active() -> bool:
-	return get_state() == 1 # QWEnums.QuestState.ACTIVE
+	return get_state() == QWEnums.QuestState.ACTIVE
 
 func is_completed() -> bool:
-	return get_state() == 2 # QWEnums.QuestState.COMPLETED
+	return get_state() == QWEnums.QuestState.COMPLETED
 
 func is_failed() -> bool:
-	return get_state() == 3 # QWEnums.QuestState.FAILED
-
-func is_inactive() -> bool:
-	return get_state() == 0 # QWEnums.QuestState.INACTIVE
+	return get_state() == QWEnums.QuestState.FAILED
 
 # ==============================================================================
 # DATA ACCESS
 # ==============================================================================
 
-func get_variable(key: String, default: Variant = null) -> Variant:
+func get_variable(key: StringName, default: Variant = null) -> Variant:
 	var c = _get_controller()
 	if c: return c.get_quest_variable(_id, key, default)
 	return default
@@ -95,7 +107,6 @@ func get_variable(key: String, default: Variant = null) -> Variant:
 func get_title() -> String:
 	var c = _get_controller()
 	if not c: return ""
-	# Assuming get_quest_data returns a dictionary with 'title'
 	var data = c.get_quest_data(_id)
 	return data.get("title", "")
 
@@ -105,6 +116,26 @@ func get_description() -> String:
 	if not c: return ""
 	var data = c.get_quest_data(_id)
 	return data.get("description", "")
+
+## Expose rewards to the Expression system
+func get_rewards() -> Dictionary:
+	var c = _get_controller()
+	if c:
+		return c.get_quest_rewards(_id)
+	return {}
+
+## Returns active objectives for this quest (for UI display).
+func get_active_objectives() -> Array:
+	var c = _get_controller()
+	if c:
+		return c.get_active_objectives_for_quest(_id)
+	return []
+
+## Sets a runtime description override for this quest.
+func set_description(description: String) -> void:
+	var c = _get_controller()
+	if c:
+		c.set_quest_description_by_quest_id(_id, description)
 
 # ==============================================================================
 # INTERNAL

@@ -7,6 +7,8 @@ static var _cached_item_ids: Array[String] = []
 static var _cached_quest_ids: Array[String] = []
 static var _item_registry_loaded := false
 static var _quest_registry_loaded := false
+## Callable that returns the current active graph (set by editor). Used for refresh on first focus.
+static var _get_active_graph_callback: Callable = Callable()
 
 ## Clears the internal cache, forcing a reload from disk on the next call.
 static func clear_cache() -> void:
@@ -22,10 +24,37 @@ static func populate_item_completer(completer: AutoCompleteLineEdit):
 	completer.set_items(_cached_item_ids)
 
 ## Populates an AutoCompleteLineEdit with all quest IDs from the registry.
+## Call refresh_quest_id_cache_for_graph when opening a graph so unsaved quest IDs appear.
 static func populate_quest_id_completer(completer: AutoCompleteLineEdit):
 	if not _quest_registry_loaded:
 		_load_quest_registry_data()
 	completer.set_items(_cached_quest_ids)
+
+## Sets the callback used to resolve the active graph (e.g. from QuestWeaverEditor).
+static func set_active_graph_callback(cb: Callable) -> void:
+	_get_active_graph_callback = cb
+
+## Refreshes quest ID cache from the active graph then repopulates the completer.
+## Call on first focus in quest-ID fields so autocomplete works for clean/unsaved quests.
+static func refresh_quest_id_completer_from_active_graph(completer: AutoCompleteLineEdit) -> void:
+	if _get_active_graph_callback.is_valid():
+		var graph = _get_active_graph_callback.call()
+		refresh_quest_id_cache_for_graph(graph)
+	populate_quest_id_completer(completer)
+
+## Merges quest IDs from the graph's QuestContextNodes into the cache.
+## Enables autocomplete for current/unsaved quests. Call on active_graph_changed.
+static func refresh_quest_id_cache_for_graph(graph: QuestGraphResource) -> void:
+	if not is_instance_valid(graph): return
+	if not _quest_registry_loaded:
+		_load_quest_registry_data()
+	for node_data in graph.nodes.values():
+		var qid_val = node_data.get("quest_id")
+		if qid_val != null and str(qid_val) != "":
+			var qid = str(qid_val)
+			if not _cached_quest_ids.has(qid):
+				_cached_quest_ids.append(qid)
+				_cached_quest_ids.sort()
 
 # Internal function to load item data and fill the cache.
 static func _load_item_registry_data() -> void:
@@ -67,6 +96,8 @@ static func _load_quest_registry_data() -> void:
 		if registry.quest_path_map.is_empty():
 			_cached_quest_ids.append("(No Quests found. Save a graph with an ID)")
 		else:
-			_cached_quest_ids = registry.get_all_ids()
+			var raw_ids = registry.get_all_ids()
+			for id in raw_ids:
+				_cached_quest_ids.append(str(id))
 	else:
 		_cached_quest_ids.append("!Error: Could not load Quest Registry!")

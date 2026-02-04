@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://bdhqom1xwrg0m"]
+
+[ext_resource type="Script" uid="uid://cg5o21qldocid" path="res://addons/quest_weaver/editor/components/reward_entry.gd" id="1_c2inq"]
+[ext_resource type="PackedScene" uid="uid://bulr50esg11es" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.tscn" id="2_w3paf"]
+
+[node name="RewardEntry" type="VBoxContainer" unique_id=1368514297]
+offset_right = 408.0
+offset_bottom = 40.0
+script = ExtResource("1_c2inq")
+
+[node name="TopRow" type="HBoxContainer" parent="." unique_id=1649309517]
+layout_mode = 2
+
+[node name="IndexLabel" type="Label" parent="TopRow" unique_id=1145781122]
+unique_name_in_owner = true
+modulate = Color(0.5, 0.5, 0.5, 1)
+layout_mode = 2
+text = "[0]"
+
+[node name="AutoComplete" parent="TopRow" unique_id=1554170656 instance=ExtResource("2_w3paf")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="AmountSpinBox" type="SpinBox" parent="TopRow" unique_id=440533789]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 999999.0
+value = 1.0
+rounded = true
+
+[node name="OptionalCheckbox" type="CheckBox" parent="TopRow" unique_id=155933121]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Only give this reward if a specific objective is completed."
+text = "Optional"
+
+[node name="DeleteButton" type="Button" parent="TopRow" unique_id=1640350804]
+unique_name_in_owner = true
+layout_mode = 2
+text = "X"
+
+[node name="ObjectiveContainer" type="HBoxContainer" parent="." unique_id=687368950]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ObjectiveContainer" unique_id=425777522]
+layout_mode = 2
+text = "Linked Objective: "
+
+[node name="ObjectiveEdit" type="LineEdit" parent="ObjectiveContainer" unique_id=1307575895]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "ID of an Objective that must be completed to receive this reward."

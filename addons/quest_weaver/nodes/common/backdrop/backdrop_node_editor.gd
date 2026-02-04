@@ -2,6 +2,9 @@
 @tool
 extends NodePropertyEditorBase
 
+# --- Signals (preview = live update during drag, no undo) ---
+signal property_preview_requested(node_id: StringName, property_name: String, value: Variant)
+
 # --- UI References ---
 @onready var color_picker: ColorPickerButton = %ColorPicker
 @onready var title_edit: LineEdit = %TitleEdit
@@ -48,18 +51,20 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 func _on_title_confirmed() -> void:
 	var current_text = title_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.title != current_text:
-		property_update_requested.emit(edited_node_data.id, "title", current_text)
+		property_update_requested.emit(edited_node_data.id, "title", current_text, null, {})
 
 # Called when the user closes the color picker popup.
 func _on_color_confirmed() -> void:
 	var new_color = color_picker.color
 	if is_instance_valid(edited_node_data) and edited_node_data.color != new_color:
-		property_update_requested.emit(edited_node_data.id, "color", new_color)
+		property_update_requested.emit(edited_node_data.id, "color", new_color, null, {})
 
 # Called continuously while the slider is being dragged.
-# This only provides live visual feedback for the user and does not create an undo action.
+# Update the label and emit preview so the graph backdrop title size updates live.
 func _on_font_size_slider_value_changed(new_value: float) -> void:
 	font_size_label.text = str(int(new_value))
+	if is_instance_valid(edited_node_data):
+		property_preview_requested.emit(edited_node_data.id, "title_font_size", int(new_value))
 
 # Called once when the user starts dragging the slider.
 # We store the initial value here for the final undo/redo action.
@@ -81,4 +86,4 @@ func _on_font_size_drag_ended(value_was_changed: bool) -> void:
 	font_size_label.text = str(_font_size_undo_value)
 	
 	if is_instance_valid(edited_node_data) and _font_size_undo_value != final_size:
-		property_update_requested.emit(edited_node_data.id, "title_font_size", final_size)
+		property_update_requested.emit(edited_node_data.id, "title_font_size", final_size, null, {})

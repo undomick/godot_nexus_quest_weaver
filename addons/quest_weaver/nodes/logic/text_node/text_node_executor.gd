@@ -8,7 +8,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		context.quest_controller.complete_node(node)
 		return
 
-	# Resolve Placeholders (Variables)
+	# Resolve Placeholders (Context is null here, so only Global/Instance vars work)
 	var final_text = instance.resolve_text(text_node.text_content)
 
 	match text_node.target_property:

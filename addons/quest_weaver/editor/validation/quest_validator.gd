@@ -17,6 +17,18 @@ func validate_graph(graph: QuestGraphResource) -> Array[ValidationResult]:
 	results.append_array(_check_for_orphan_nodes(graph))
 	results.append_array(_check_for_cycles(graph))
 	
+	# PRE-PASS: Collect valid targets (Anchors and Scopes)
+	var valid_anchors: Dictionary = {}
+	var valid_scopes: Dictionary = {}
+	
+	for node_id in graph.nodes:
+		var node = graph.nodes[node_id]
+		if node is AnchorNodeResource and not node.anchor_name.is_empty():
+			valid_anchors[node.anchor_name] = true
+		elif node is StartScopeNodeResource and not node.scope_id.is_empty():
+			valid_scopes[node.scope_id] = true
+
+	# MAIN PASS
 	for node_id in graph.nodes:
 		var node: GraphNodeResource = graph.nodes[node_id]
 		
@@ -25,9 +37,28 @@ func validate_graph(graph: QuestGraphResource) -> Array[ValidationResult]:
 		results.append_array(_validate_node_connections(node, graph))
 		results.append_array(_validate_node_properties(node))
 		
+		# --- NODE SPECIFIC LOGIC ---
+		
 		if node is BranchNodeResource:
 			for condition in node.conditions:
 				results.append_array(_validate_condition(condition, node_id))
+		
+		# Validate Conditions in EventListeners too
+		elif node is EventListenerNodeResource:
+			if not node.use_simple_conditions and is_instance_valid(node.payload_condition):
+				results.append_array(_validate_condition(node.payload_condition, node_id))
+		
+		# Check Jump Targets
+		elif node is JumpNodeResource:
+			if not node.target_anchor_name.is_empty():
+				if not valid_anchors.has(node.target_anchor_name):
+					results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Jump Target '%s' does not exist in this graph." % node.target_anchor_name, node_id))
+		
+		# Check Reset Targets
+		elif node is ResetProgressNodeResource:
+			if not node.target_scope_id.is_empty():
+				if not valid_scopes.has(node.target_scope_id):
+					results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Target Scope '%s' not found (StartScopeNode missing?)." % node.target_scope_id, node_id))
 	
 	return results
 
@@ -55,30 +86,41 @@ func _validate_node_properties(node: GraphNodeResource) -> Array[ValidationResul
 func _validate_condition(condition: ConditionResource, node_id: String) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 
-	if not condition is ConditionResource:
-		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "A Condition has lost its specific script...", node_id))
+	if not is_instance_valid(condition):
+		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "A Condition is invalid/null.", node_id))
 		return results
 
 	match condition.type:
 		ConditionResource.ConditionType.CHECK_ITEM:
 			var item_id = condition.item_id
-			if item_id.is_empty():
+			if item_id == &"":
 				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Check Item Condition: No Item ID specified.", node_id))
 			
 			elif is_instance_valid(_item_registry):
 				if _item_registry.has_method("find"):
-					if not _item_registry.find(item_id):
+					# CAST: Ensure we pass a String to the registry, even if item_id is StringName
+					if not _item_registry.find(str(item_id)):
 						results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Item ID '%s' not found in registry." % item_id, node_id))
 
 		ConditionResource.ConditionType.CHECK_QUEST_STATUS:
 			var target_id = condition.quest_id
-			if target_id.is_empty():
+			if target_id == &"":
 				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Check Quest Status: No target Quest ID specified.", node_id))
 			
+			# Check against 'quest_path_map' directly
 			elif is_instance_valid(_quest_registry) and not _quest_registry.quest_path_map.has(target_id):
 				results.append(ValidationResult.new(
 					ValidationResult.Severity.WARNING, "Check Quest Status: Target Quest ID '%s' not found in Quest Registry." % target_id, node_id))
 		
+		ConditionResource.ConditionType.CHECK_OBJECTIVE_STATUS:
+			if condition.objective_id == &"":
+				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Check Objective Status: No Objective ID specified.", node_id))
+
+		# Validation for the requirement check
+		ConditionResource.ConditionType.CHECK_OBJECTIVE_REQUIREMENT:
+			if condition.objective_id == &"":
+				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Check Requirement Met: No Objective ID specified.", node_id))
+
 		ConditionResource.ConditionType.COMPOUND:
 			if condition.sub_conditions.is_empty():
 				results.append(ValidationResult.new(ValidationResult.Severity.INFO, "Compound Condition is empty.", node_id))

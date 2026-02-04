@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="QuestWeaverDebugSettings" load_steps=2 format=3 uid="uid://bock4xqp0m2xj"]
+[gd_resource type="Resource" script_class="QuestWeaverDebugSettings" format=3 uid="uid://bock4xqp0m2xj"]
 
 [ext_resource type="Script" uid="uid://dch25eb2daada" path="res://addons/quest_weaver/core/debug_settings.gd" id="1_hnwp2"]
 

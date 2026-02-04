@@ -1,36 +1,45 @@
-[gd_scene load_steps=2 format=3 uid="uid://c6otrjyfvfpba"]
+[gd_scene format=3 uid="uid://c6otrjyfvfpba"]
 
 [ext_resource type="Script" uid="uid://dxchlpky3dtrr" path="res://addons/quest_weaver/nodes/action/task_node/task_node_editor.gd" id="1_1bls6"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="2_k8xpj"]
 
-[node name="TaskNodeEditor" type="VBoxContainer"]
+[node name="TaskNodeEditor" type="PanelContainer" unique_id=523550190]
 custom_minimum_size = Vector2(100, 100)
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 413.0
+grow_horizontal = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme = ExtResource("2_k8xpj")
 script = ExtResource("1_1bls6")
 
-[node name="AddObjectiveButton" type="Button" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1546864445]
+layout_mode = 2
+
+[node name="AddObjectiveButton" type="Button" parent="MainLayout" unique_id=1640352944]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 30)
 layout_mode = 2
 text = "Add Objective"
 
-[node name="Label" type="Label" parent="."]
-layout_mode = 2
-text = "Objectives"
-
-[node name="ObjectivesList" type="VBoxContainer" parent="."]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 100)
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="HSeparator4" type="HSeparator" parent="."]
+[node name="HSeparator4" type="HSeparator" parent="MainLayout" unique_id=1732528116]
 layout_mode = 2
 
-[node name="TerminalCheckBox" type="CheckBox" parent="."]
+[node name="TerminalCheckBox" type="CheckBox" parent="MainLayout" unique_id=2051545800]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Disables Output-Port(s). Helps to avoid warnings in the validator."
 text = "End of Flow"
+
+[node name="TabContainer" type="TabContainer" parent="MainLayout" unique_id=1721692179]
+layout_mode = 2
+theme = ExtResource("2_k8xpj")
+current_tab = 0
+
+[node name="ObjectivesList" type="VBoxContainer" parent="MainLayout/TabContainer" unique_id=569140210]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_vertical = 3
+metadata/_tab_index = 0

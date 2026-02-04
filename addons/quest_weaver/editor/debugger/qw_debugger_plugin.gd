@@ -26,14 +26,17 @@ func _capture(message: String, data: Array, _session_id: int) -> bool:
 	match command:
 		"session_started":
 			session_started.emit()
+			
 		"node_activated":
-			if not data.is_empty() and data[0] is String:
-				node_activated_in_game.emit(data[0])
+			if not data.is_empty() and (data[0] is String or data[0] is StringName):
+				node_activated_in_game.emit(str(data[0]))
+				
 		"node_completed":
-			if not data.is_empty() and data[0] is String:
-				node_completed_in_game.emit(data[0])
+			if not data.is_empty() and (data[0] is String or data[0] is StringName):
+				node_completed_in_game.emit(str(data[0]))
+				
 		"node_failed":
-			if not data.is_empty() and data[0] is String:
-				node_failed_in_game.emit(data[0])
+			if not data.is_empty() and (data[0] is String or data[0] is StringName):
+				node_failed_in_game.emit(str(data[0]))
 	
 	return true

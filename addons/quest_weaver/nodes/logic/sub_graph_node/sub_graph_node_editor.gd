@@ -52,13 +52,13 @@ func _on_path_confirmed(new_path: String = ""):
 	path_edit.text = new_path
 	
 	if is_instance_valid(edited_node_data) and edited_node_data.quest_graph_path != new_path:
-		property_update_requested.emit(edited_node_data.id, "quest_graph_path", new_path)
+		property_update_requested.emit(edited_node_data.id, "quest_graph_path", new_path, null, {})
 
 	_update_dive_in_button_state()
 
 func _on_wait_toggled(button_state: bool):
 	if is_instance_valid(edited_node_data) and edited_node_data.wait_for_completion != button_state:
-		property_update_requested.emit(edited_node_data.id, "wait_for_completion", button_state)
+		property_update_requested.emit(edited_node_data.id, "wait_for_completion", button_state, null, {})
 
 func _on_dive_in_pressed():
 	if not dive_in_button.disabled:
@@ -70,6 +70,6 @@ func _update_dive_in_button_state():
 
 func _on_terminal_toggled(pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.is_terminal != pressed:
-		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed)
+		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed, null, {})
 		edited_node_data.is_terminal = pressed
 		edited_node_data._update_ports_from_data()

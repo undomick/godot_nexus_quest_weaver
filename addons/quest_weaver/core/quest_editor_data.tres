@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="QuestEditorData" load_steps=2 format=3 uid="uid://dysspp0gwx0fx"]
+[gd_resource type="Resource" script_class="QuestEditorData" format=3 uid="uid://dysspp0gwx0fx"]
 
 [ext_resource type="Script" uid="uid://cwipgpyf0yin0" path="res://addons/quest_weaver/core/quest_editor_data.gd" id="1_darr6"]
 
 [resource]
 script = ExtResource("1_darr6")
-open_files = Array[String](["res://addons/quest_weaver/examples/quests/main/start_first_task.quest", "res://addons/quest_weaver/examples/quests/Credits/end_screen.quest", "res://addons/quest_weaver/examples/quests/main/questline.quest", "res://addons/quest_weaver/examples/quests/side/side_a_little_favor.quest"])
+open_files = Array[String](["res://addons/quest_weaver/examples/quests/main/questline.quest", "res://addons/quest_weaver/examples/quests/main/start_first_task.quest", "res://addons/quest_weaver/examples/quests/side/side_a_little_favor.quest", "res://addons/quest_weaver/examples/quests/Credits/end_screen.quest"])
 last_focused_file = "res://addons/quest_weaver/examples/quests/main/start_first_task.quest"
 metadata/_custom_type_script = "uid://cwipgpyf0yin0"

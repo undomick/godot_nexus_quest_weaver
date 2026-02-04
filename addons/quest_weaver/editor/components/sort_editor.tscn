@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://bj08khvmbelj4"]
+
+[ext_resource type="Script" uid="uid://bup7s1pm5o6r8" path="res://addons/quest_weaver/editor/components/sort_editor.gd" id="1_dj67e"]
+[ext_resource type="Texture2D" uid="uid://d04c3smxbfrqu" path="res://addons/quest_weaver/assets/icons/sort_arrow.svg" id="1_mwfi3"]
+[ext_resource type="Texture2D" uid="uid://b78y1enofubkh" path="res://addons/quest_weaver/assets/icons/sort_arrow_down.svg" id="2_dj67e"]
+
+[node name="SortEditor" type="VBoxContainer" unique_id=1156258208]
+offset_right = 24.0
+offset_bottom = 79.0
+script = ExtResource("1_dj67e")
+
+[node name="Up" type="Button" parent="." unique_id=55682720]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 0.78431374)
+icon = ExtResource("1_mwfi3")
+flat = true
+icon_alignment = 1
+
+[node name="Index" type="Label" parent="." unique_id=523438471]
+unique_name_in_owner = true
+layout_mode = 2
+text = "1"
+horizontal_alignment = 1
+
+[node name="Down" type="Button" parent="." unique_id=18803825]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 0.78431374)
+icon = ExtResource("2_dj67e")
+flat = true
+icon_alignment = 1

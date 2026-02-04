@@ -21,6 +21,18 @@ var quest_controller: QuestController:
 			return _controller_weak.get_ref() as QuestController
 		return null
 
+## Inventory adapter for item-related nodes. Use this instead of accessing controller internals.
+var inventory_adapter: QuestInventoryAdapterBase:
+	get:
+		var c = quest_controller
+		return c.get_inventory_adapter() if c else null
+
+## Kill adapter for KILL objectives. Use this instead of accessing controller internals.
+var kill_adapter: QuestKillAdapterBase:
+	get:
+		var c = quest_controller
+		return c.get_kill_adapter() if c else null
+
 var item_objective_listeners: Dictionary = {}
 var kill_objective_listeners: Dictionary = {}
 var interact_objective_listeners: Dictionary = {}

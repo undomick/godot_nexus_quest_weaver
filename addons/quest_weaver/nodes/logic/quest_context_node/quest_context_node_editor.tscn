@@ -1,16 +1,21 @@
-[gd_scene load_steps=3 format=3 uid="uid://y14cyyhylnpr"]
+[gd_scene format=3 uid="uid://y14cyyhylnpr"]
 
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_mi5ky"]
 [ext_resource type="Script" uid="uid://bho1ip4op3u5t" path="res://addons/quest_weaver/nodes/logic/quest_context_node/quest_context_node_editor.gd" id="1_wjy1a"]
 [ext_resource type="Script" uid="uid://c6oph8cilr6lc" path="res://addons/quest_weaver/editor/components/tab_focus_text_edit.gd" id="2_4lwel"]
 
-[node name="QuestContextNodeEditor" type="VBoxContainer"]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="QuestContextNodeEditor" type="PanelContainer" unique_id=1730911200]
+offset_right = 200.0
+offset_bottom = 309.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme = ExtResource("1_mi5ky")
 script = ExtResource("1_wjy1a")
 
-[node name="QuestIdEdit" type="LineEdit" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=403662052]
+layout_mode = 2
+
+[node name="QuestIdEdit" type="LineEdit" parent="MainLayout" unique_id=1613445929]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 30)
 layout_mode = 2
@@ -19,21 +24,21 @@ focus_neighbor_top = NodePath("../VSplitContainer/LogOnStartEdit")
 focus_neighbor_bottom = NodePath("../HBoxContainer/QuestTypePicker")
 placeholder_text = "Quest ID"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1666662342]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer" unique_id=1817050099]
 layout_mode = 2
 text = "Quest Type: "
 
-[node name="QuestTypePicker" type="OptionButton" parent="HBoxContainer"]
+[node name="QuestTypePicker" type="OptionButton" parent="MainLayout/HBoxContainer" unique_id=622862259]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_neighbor_top = NodePath("../../QuestIdEdit")
 focus_neighbor_bottom = NodePath("../../TitleEdit")
 
-[node name="TitleEdit" type="LineEdit" parent="."]
+[node name="TitleEdit" type="LineEdit" parent="MainLayout" unique_id=633418108]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 30)
 layout_mode = 2
@@ -42,12 +47,34 @@ focus_neighbor_top = NodePath("../HBoxContainer/QuestTypePicker")
 focus_neighbor_bottom = NodePath("../VSplitContainer/DescriptionEdit")
 placeholder_text = "Quest Title"
 
-[node name="VSplitContainer" type="VSplitContainer" parent="."]
+[node name="PanelContainer" type="PanelContainer" parent="MainLayout" unique_id=1493459716]
+layout_mode = 2
+
+[node name="RewardsList" type="VBoxContainer" parent="MainLayout/PanelContainer" unique_id=1880000853]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AddRewardButton" type="Button" parent="MainLayout/PanelContainer/RewardsList" unique_id=755412782]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+ Add Reward Info"
+
+[node name="RewardLabel" type="Label" parent="MainLayout/PanelContainer/RewardsList" unique_id=685238986]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Rewards (Metadata):"
+
+[node name="RewardsContainer" type="VBoxContainer" parent="MainLayout/PanelContainer/RewardsList" unique_id=1072648032]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VSplitContainer" type="VSplitContainer" parent="MainLayout" unique_id=192787632]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="DescriptionEdit" type="TextEdit" parent="VSplitContainer"]
+[node name="DescriptionEdit" type="TextEdit" parent="MainLayout/VSplitContainer" unique_id=1451018040]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
@@ -59,7 +86,7 @@ placeholder_text = "Quest Description"
 wrap_mode = 1
 script = ExtResource("2_4lwel")
 
-[node name="LogOnStartEdit" type="TextEdit" parent="VSplitContainer"]
+[node name="LogOnStartEdit" type="TextEdit" parent="MainLayout/VSplitContainer" unique_id=1593380225]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 100)
 layout_mode = 2

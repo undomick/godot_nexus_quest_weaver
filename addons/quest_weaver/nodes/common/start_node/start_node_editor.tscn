@@ -1,18 +1,23 @@
-[gd_scene load_steps=2 format=3 uid="uid://dontcrkx6fv44"]
+[gd_scene format=3 uid="uid://dontcrkx6fv44"]
 
-[ext_resource type="Script" path="res://addons/quest_weaver/nodes/common/start_node/start_node_editor.gd" id="1_script"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_o4k48"]
+[ext_resource type="Script" uid="uid://bwbhct1yn1b6t" path="res://addons/quest_weaver/nodes/common/start_node/start_node_editor.gd" id="1_script"]
 
-[node name="StartNodeEditor" type="VBoxContainer"]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="StartNodeEditor" type="PanelContainer" unique_id=1553788321]
+offset_right = 153.0
+offset_bottom = 58.0
 size_flags_horizontal = 3
+theme = ExtResource("1_o4k48")
 script = ExtResource("1_script")
 
-[node name="Label" type="Label" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=1544555885]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout" unique_id=312333015]
 layout_mode = 2
 text = "Side Panel Category"
 
-[node name="CategoryEdit" type="LineEdit" parent="."]
+[node name="CategoryEdit" type="LineEdit" parent="MainLayout" unique_id=1711180404]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Uncategorized"

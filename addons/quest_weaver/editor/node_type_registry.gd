@@ -93,7 +93,7 @@ const DEFINITIONS = [
 	},
 	{
 		"resource": preload("res://addons/quest_weaver/nodes/flow/synchronize_node/synchronize_node_resource.gd"),
-		"executor": null,
+		"executor": preload("res://addons/quest_weaver/nodes/flow/synchronize_node/synchronize_node_executor.gd"),
 		"editor": preload("res://addons/quest_weaver/nodes/flow/synchronize_node/synchronize_node_editor.tscn")
 	},
 	{

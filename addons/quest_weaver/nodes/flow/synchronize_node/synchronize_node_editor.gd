@@ -3,106 +3,170 @@
 class_name SynchronizeNodeEditor
 extends NodePropertyEditorBase
 
-const InputEntryScene = preload("res://addons/quest_weaver/editor/components/synchronize_input_editor_entry.tscn")
-const OutputEntryScene = preload("res://addons/quest_weaver/editor/components/synchronize_output_editor_entry.tscn")
-
 signal ports_need_refresh
 
-@onready var completion_mode_picker: OptionButton = %CompletionModePicker
-@onready var required_inputs_label: Label = %RequiredInputsLabel
-@onready var required_inputs_spinbox: SpinBox = %RequiredInputsSpinBox
-@onready var inputs_container: VBoxContainer = %InputsContainer
 @onready var add_input_button: Button = %AddInputButton
-@onready var outputs_container: VBoxContainer = %OutputsContainer
 @onready var add_output_button: Button = %AddOutputButton
+@onready var logic_option_button: OptionButton = %LogicOptionButton
+@onready var matrix_container: GridContainer = %MatrixContainer2
 
 var _is_setting_up := false
-var _required_inputs_undo_value: int = 0
 
 func _ready():
-	completion_mode_picker.clear()
-	
-	for mode_name in SynchronizeNodeResource.CompletionMode.keys():
-		completion_mode_picker.add_item(mode_name)
-	
-	completion_mode_picker.item_selected.connect(_on_completion_mode_changed)
-	
-	# Connect focus signals for SpinBox to bundle UndoRedo actions
-	required_inputs_spinbox.focus_entered.connect(_on_required_inputs_edit_started)
-	required_inputs_spinbox.focus_exited.connect(_on_required_inputs_edit_finished)
-	
 	add_input_button.pressed.connect(_on_add_input_pressed)
 	add_output_button.pressed.connect(_on_add_output_pressed)
+	
+	if not logic_option_button.item_selected.is_connected(_on_logic_mode_changed):
+		logic_option_button.item_selected.connect(_on_logic_mode_changed)
 
 func set_node_data(node_data: GraphNodeResource):
-	super.set_node_data(node_data)
-	if not node_data is SynchronizeNodeResource: return
-	
 	_is_setting_up = true
-	completion_mode_picker.select(node_data.completion_mode)
-	_update_required_inputs_visibility()
+	super.set_node_data(node_data)
+	if not node_data is SynchronizeNodeResource: 
+		_is_setting_up = false
+		return
 	
-	required_inputs_spinbox.max_value = node_data.inputs.size()
-	required_inputs_spinbox.value = node_data.required_input_count
+	# Set Values
+	if is_instance_valid(logic_option_button):
+		logic_option_button.select(node_data.logic_mode)
 	
-	call_deferred("_finish_setup")
-	
-	_rebuild_inputs_list()
-	_rebuild_outputs_list()
-
-func _finish_setup():
+	_rebuild_ui()
 	_is_setting_up = false
 
-func _update_required_inputs_visibility():
-	var show = (completion_mode_picker.selected == SynchronizeNodeResource.CompletionMode.WAIT_FOR_N_INPUTS)
-	required_inputs_label.visible = show
-	required_inputs_spinbox.visible = show
-
-func _rebuild_inputs_list():
-	for child in inputs_container.get_children(): child.queue_free()
-	
-	var sync_node: SynchronizeNodeResource = edited_node_data
-	if not is_instance_valid(sync_node): return
-
-	for i in range(sync_node.inputs.size()):
-		var input_port = sync_node.inputs[i]
-		var entry = InputEntryScene.instantiate()
-		entry.name_changed.connect(_on_input_name_changed.bind(i))
-		entry.remove_requested.connect(_on_remove_input_pressed.bind(i))
-		inputs_container.add_child(entry)
-		entry.set_input_port(input_port)
-
-func _rebuild_outputs_list():
-	for child in outputs_container.get_children(): child.queue_free()
-
-	var sync_node: SynchronizeNodeResource = edited_node_data
-	if not is_instance_valid(sync_node): return
-
-	for i in range(sync_node.outputs.size()):
-		var output_port = sync_node.outputs[i]
-		var entry = OutputEntryScene.instantiate()
-		entry.name_changed.connect(_on_output_name_changed.bind(i))
-		entry.property_changed.connect(_on_output_condition_property_changed.bind(i))
-		entry.type_changed.connect(_on_output_condition_type_changed.bind(i))
-		entry.remove_requested.connect(_on_remove_output_pressed.bind(i))
-		outputs_container.add_child(entry)
-		entry.display_data(output_port)
-
-func _on_completion_mode_changed(index: int):
+func _on_logic_mode_changed(index: int) -> void:
 	if _is_setting_up: return
-	if is_instance_valid(edited_node_data) and edited_node_data.completion_mode != index:
-		property_update_requested.emit(edited_node_data.id, "completion_mode", index)
-	_update_required_inputs_visibility()
-
-func _on_required_inputs_edit_started() -> void:
 	if is_instance_valid(edited_node_data):
-		_required_inputs_undo_value = edited_node_data.required_input_count
+		property_update_requested.emit(edited_node_data.id, "logic_mode", index, null, {})
 
-func _on_required_inputs_edit_finished() -> void:
-	if _is_setting_up: return
-	var new_value = int(required_inputs_spinbox.value)
-	if is_instance_valid(edited_node_data) and _required_inputs_undo_value != new_value:
-		property_update_requested.emit(edited_node_data.id, "required_input_count", new_value)
+func _rebuild_ui():
+	if not is_instance_valid(edited_node_data): return
+	var sync_node: SynchronizeNodeResource = edited_node_data
+	
+	# Ensure container exists
+	if not is_instance_valid(matrix_container): return
+		
+	for child in matrix_container.get_children(): child.queue_free()
+	
+	# Transposed Layout:
+	# Columns = Corner(1) + N Outputs + InputDelete(1)
+	var col_count = sync_node.outputs.size() + 2 
+	matrix_container.columns = max(1, col_count)
+	
+	# ============================================================
+	# ROW 1: HEADER (Output Names)
+	# ============================================================
+	
+	# 1. Corner Top-Left
+	var corner_tl = Label.new()
+	corner_tl.text = "In \\ Out" # Inputs are Rows, Outputs are Cols
+	corner_tl.modulate = Color(1, 1, 1, 0.5)
+	corner_tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	matrix_container.add_child(corner_tl)
+	
+	# 2. Output Names (Horizontal Header)
+	for out_idx in range(sync_node.outputs.size()):
+		var out_port = sync_node.outputs[out_idx]
+		var name_edit = LineEdit.new()
+		name_edit.text = out_port.port_name
+		name_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_edit.tooltip_text = "Rename Output Port"
+		name_edit.custom_minimum_size.x = 60
+		name_edit.expand_to_text_length = true
+		
+		name_edit.text_submitted.connect(func(t): _on_output_name_changed(t, out_idx))
+		name_edit.focus_exited.connect(func(): _on_output_name_changed(name_edit.text, out_idx))
+		
+		matrix_container.add_child(name_edit)
+		
+	# 3. Corner Top-Right (Empty)
+	var corner_tr = Control.new()
+	matrix_container.add_child(corner_tr)
+	
+	# ============================================================
+	# ROW 2..N: BODY (Input Rows)
+	# ============================================================
+	for in_idx in range(sync_node.inputs.size()):
+		var input_port = sync_node.inputs[in_idx]
+		
+		# 1. Input Name (Left Column)
+		var name_edit = LineEdit.new()
+		name_edit.text = input_port.port_name
+		name_edit.custom_minimum_size.x = 80
+		name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_edit.text_submitted.connect(func(t): _on_input_name_changed(t, in_idx))
+		name_edit.focus_exited.connect(func(): _on_input_name_changed(name_edit.text, in_idx))
+		matrix_container.add_child(name_edit)
+		
+		# 2. Matrix Cells (Iterate Outputs for this Input)
+		for out_idx in range(sync_node.outputs.size()):
+			var out_port = sync_node.outputs[out_idx]
+			
+			var current_state = SynchronizeNodeResource.InputState.IGNORE
+			if in_idx < out_port.patterns.size():
+				current_state = out_port.patterns[in_idx]
+			
+			var btn = Button.new()
+			btn.custom_minimum_size = Vector2(32, 32)
+			btn.flat = false
+			_update_pattern_button_visual(btn, current_state)
+			
+			btn.pressed.connect(_on_pattern_cycle.bind(out_idx, in_idx, current_state))
+			matrix_container.add_child(btn)
+			
+		# 3. Remove Input Button (Right Column)
+		var del_btn = Button.new()
+		del_btn.text = "X"
+		del_btn.tooltip_text = "Delete Input"
+		del_btn.pressed.connect(_on_remove_input_pressed.bind(in_idx))
+		matrix_container.add_child(del_btn)
+
+	# ============================================================
+	# ROW N+1: FOOTER (Output Deletion)
+	# ============================================================
+	
+	# 1. Corner Bottom-Left
+	var corner_bl = Control.new()
+	matrix_container.add_child(corner_bl)
+	
+	# 2. Output Delete Buttons (Bottom Row)
+	for out_idx in range(sync_node.outputs.size()):
+		var del_btn = Button.new()
+		del_btn.text = "X"
+		del_btn.tooltip_text = "Delete Output Column"
+		# Styling removed to match side buttons
+		del_btn.pressed.connect(_on_remove_output_pressed.bind(out_idx))
+		matrix_container.add_child(del_btn)
+		
+	# 3. Corner Bottom-Right
+	var corner_br = Control.new()
+	matrix_container.add_child(corner_br)
+
+func _update_pattern_button_visual(btn: Button, state: int):
+	match state:
+		SynchronizeNodeResource.InputState.IGNORE:
+			btn.text = "-"
+			btn.modulate = Color(1, 1, 1, 0.3)
+			btn.tooltip_text = "Ignore this input"
+		SynchronizeNodeResource.InputState.REQUIRED:
+			btn.text = "✓"
+			btn.modulate = Color.GREEN
+			btn.tooltip_text = "Input REQUIRED"
+		SynchronizeNodeResource.InputState.FORBIDDEN:
+			btn.text = "X"
+			btn.modulate = Color.RED
+			btn.tooltip_text = "Input FORBIDDEN"
+
+func _on_pattern_cycle(out_idx: int, in_idx: int, current_state: int):
+	var next_state = (current_state + 1) % 3
+	
+	var payload = {
+		"output_index": out_idx,
+		"input_index": in_idx,
+		"state": next_state
+	}
+	complex_action_requested.emit(edited_node_data.id, "update_sync_pattern", payload)
+
+# --- Input Handlers ---
 
 func _on_add_input_pressed():
 	complex_action_requested.emit(edited_node_data.id, "add_sync_input", {})
@@ -112,27 +176,19 @@ func _on_remove_input_pressed(index: int):
 	complex_action_requested.emit(edited_node_data.id, "remove_sync_input", payload)
 
 func _on_input_name_changed(new_name: String, index: int):
+	if _is_setting_up: return
 	var payload = {"index": index, "new_name": new_name}
 	complex_action_requested.emit(edited_node_data.id, "update_sync_input_name", payload)
 
+# --- Output Handlers ---
+
 func _on_add_output_pressed():
 	complex_action_requested.emit(edited_node_data.id, "add_sync_output", {})
-	await get_tree().process_frame
-	_rebuild_outputs_list()
 
 func _on_remove_output_pressed(index: int):
 	complex_action_requested.emit(edited_node_data.id, "remove_sync_output", {"index": index})
-	await get_tree().process_frame
-	_rebuild_outputs_list()
 
 func _on_output_name_changed(new_name: String, index: int):
+	if _is_setting_up: return
 	var payload = {"index": index, "new_name": new_name}
 	complex_action_requested.emit(edited_node_data.id, "update_sync_output_name", payload)
-
-func _on_output_condition_property_changed(property_name: String, new_value: Variant, index: int):
-	var sync_node = edited_node_data as SynchronizeNodeResource
-	var condition_resource = sync_node.outputs[index].condition
-	property_update_requested.emit(edited_node_data.id, property_name, new_value, condition_resource)
-
-func _on_output_condition_type_changed(_new_script: Script, index: int):
-	_rebuild_outputs_list()

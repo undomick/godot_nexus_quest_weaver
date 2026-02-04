@@ -33,14 +33,14 @@ func set_node_data(node_data: GraphNodeResource):
 func _on_id_confirmed():
 	var new_id = target_id_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.target_objective_id != new_id:
-		property_update_requested.emit(edited_node_data.id, "target_objective_id", new_id)
+		property_update_requested.emit(edited_node_data.id, "target_objective_id", StringName(new_id), null, {})
 
 func _on_action_changed(index: int):
 	if is_instance_valid(edited_node_data) and edited_node_data.action != index:
-		property_update_requested.emit(edited_node_data.id, "action", index)
+		property_update_requested.emit(edited_node_data.id, "action", index, null, {})
 
 func _on_terminal_toggled(pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.is_terminal != pressed:
-		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed)
+		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed, null, {})
 		edited_node_data.is_terminal = pressed
 		edited_node_data._update_ports_from_data()

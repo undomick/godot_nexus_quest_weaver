@@ -30,7 +30,7 @@ static func clear_static_references():
 	_graph_node_category = null
 
 # ==============================================================================
-# UI Scenes (.tscn) - Diese müssen wir preloaden, um sie zu instanziieren
+# UI Scenes (.tscn) - Preloaded for instantiation
 # ==============================================================================
 const MainViewScene = preload("../editor/quest_weaver_editor.tscn")
 const ValidatorDockScene = preload("../editor/validation/validator_dock.tscn")
@@ -38,6 +38,8 @@ const AutoCompleteLineEditScene = preload("../editor/components/auto_complete_li
 const QuestFileDialogScene = preload("../editor/dialogs/quest_file_dialog.tscn")
 const QuestConfirmationDialogScene = preload("../editor/dialogs/quest_confirmation_dialog.tscn")
 const ObjectiveEditorEntryScene = preload("../editor/conditions/objective_editor_entry.tscn")
+const ItemStackEntryScene = preload("../editor/components/item_stack_entry.tscn")
+const RewardEntryScene = preload("../editor/components/reward_entry.tscn")
 
 # Editor Scenes for specific components
 const OutputEntryScene = preload("../editor/components/parallel_output_editor_entry.tscn")

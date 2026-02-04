@@ -5,7 +5,7 @@ extends RefCounted
 ## Manages active TimerNode instances. 
 ## Keeps track of physical Timer nodes, but stores state in the QuestInstance.
 
-# Map NodeID -> Timer (The physical node in the scene tree)
+# Map: StringName (NodeID) -> Timer (Physical Node)
 var _active_timer_nodes: Dictionary = {} 
 var _controller_weak: WeakRef
 
@@ -20,8 +20,8 @@ func start_timer(node_def: TimerNodeResource, instance: QuestInstance):
 	var controller = _get_controller()
 	if not controller: return
 
+	# node_def.id is StringName
 	if _active_timer_nodes.has(node_def.id):
-		# Timer already running physically? This might happen on rapid re-entry.
 		remove_timer(node_def.id)
 
 	var timer = Timer.new()
@@ -33,9 +33,9 @@ func start_timer(node_def: TimerNodeResource, instance: QuestInstance):
 	_active_timer_nodes[node_def.id] = timer
 	
 	# Initialize state in Instance if not present (e.g. restoring)
-	var current_ticks = instance.get_node_data(node_def.id, "ticks", -1)
+	var current_ticks = instance.get_node_data(node_def.id, &"ticks", -1)
 	if current_ticks == -1:
-		instance.set_node_data(node_def.id, "ticks", 0)
+		instance.set_node_data(node_def.id, &"ticks", 0)
 	
 	# Trigger "On Start" output immediately
 	controller._trigger_next_nodes_from_port(node_def, 0)
@@ -43,7 +43,7 @@ func start_timer(node_def: TimerNodeResource, instance: QuestInstance):
 	timer.start()
 
 ## Stops and removes the physical timer.
-func remove_timer(node_id: String) -> bool:
+func remove_timer(node_id: StringName) -> bool:
 	if _active_timer_nodes.has(node_id):
 		var timer = _active_timer_nodes[node_id]
 		if is_instance_valid(timer):
@@ -61,7 +61,7 @@ func clear_all_timers():
 	_active_timer_nodes.clear()
 
 ## Called every second.
-func _on_timer_tick(node_id: String):
+func _on_timer_tick(node_id: StringName):
 	var controller = _get_controller()
 	if not controller:
 		remove_timer(node_id)
@@ -76,10 +76,10 @@ func _on_timer_tick(node_id: String):
 		remove_timer(node_id)
 		return
 
-	# 2. Get/Update State
-	var ticks = instance.get_node_data(node_id, "ticks", 0)
+	# 2. Get/Update State using StringName key
+	var ticks = instance.get_node_data(node_id, &"ticks", 0)
 	ticks += 1
-	instance.set_node_data(node_id, "ticks", ticks)
+	instance.set_node_data(node_id, &"ticks", ticks)
 	
 	# 3. Get Definition
 	var node_def = controller._node_definitions.get(node_id)
@@ -96,7 +96,9 @@ func _on_timer_tick(node_id: String):
 
 	if ticks >= node_def.duration:
 		if logger: logger.log("Flow", "  <- TimerNode '%s' finished." % node_id)
+		
 		controller._trigger_next_nodes_from_port(node_def, 2) # Port 2: "On Finish"
+		
 		remove_timer(node_id)
 		
 		# Complete the node in the controller

@@ -8,8 +8,11 @@ var _node_data: SynchronizeNodeResource
 var _port_to_remove: SynchronizeInputPort
 var _original_index: int = -1
 
-# Stores the connection data for the undo operation.
+# Stores connection data for undo
 var _removed_connections_data: Array[Dictionary] = []
+
+# Stores the pattern column data for undo { output_index: state_int }
+var _removed_patterns_column: Dictionary = {}
 
 func _init(p_graph: QuestGraphResource, p_node_data: SynchronizeNodeResource, p_index: int):
 	self._graph = p_graph
@@ -22,7 +25,7 @@ func _init(p_graph: QuestGraphResource, p_node_data: SynchronizeNodeResource, p_
 func execute() -> void:
 	if not is_instance_valid(_port_to_remove): return
 
-	# Step 1: Find, store, and remove connection DATA (checking 'to_node').
+	# 1. Handle Connections (Standard)
 	_removed_connections_data = _graph.connections.filter(
 		func(c): return c.to_node == _node_data.id and c.to_port == _original_index
 	)
@@ -31,26 +34,45 @@ func execute() -> void:
 			func(c): return not (c.to_node == _node_data.id and c.to_port == _original_index)
 		)
 
-	# Step 2: Shift the port indices of any subsequent connections.
 	for conn in _graph.connections:
 		if conn.to_node == _node_data.id and conn.to_port > _original_index:
 			conn.to_port -= 1
 			
-	# Step 3: Remove the port DATA from the node's 'inputs' array.
+	# 2. Remove Port
 	_node_data.inputs.erase(_port_to_remove)
+	
+	# 3. Remove Pattern Column & Store for Undo
+	_removed_patterns_column.clear()
+	for i in range(_node_data.outputs.size()):
+		var out = _node_data.outputs[i]
+		if _original_index < out.patterns.size():
+			# Save state
+			_removed_patterns_column[i] = out.patterns[_original_index]
+			# Remove
+			out.patterns.remove_at(_original_index)
+	
 	_node_data._update_ports_from_data()
 
 func undo() -> void:
 	if not is_instance_valid(_port_to_remove) or _original_index == -1: return
 		
-	# Step 1: Re-insert the port DATA into the node's 'inputs' array.
+	# 1. Restore Port
 	_node_data.inputs.insert(_original_index, _port_to_remove)
 
-	# Step 2: Shift back the port indices of subsequent connections.
+	# 2. Restore Pattern Column
+	for i in range(_node_data.outputs.size()):
+		var out = _node_data.outputs[i]
+		var restored_state = _removed_patterns_column.get(i, 0) # Default IGNORE
+		
+		if _original_index <= out.patterns.size():
+			out.patterns.insert(_original_index, restored_state)
+		else:
+			out.patterns.append(restored_state)
+
+	# 3. Restore Connections
 	for conn in _graph.connections:
 		if conn.to_node == _node_data.id and conn.to_port >= _original_index:
 			conn.to_port += 1
 	
-	# Step 3: Restore the connection DATA to the main graph.
 	_graph.connections.append_array(_removed_connections_data)
 	_node_data._update_ports_from_data()

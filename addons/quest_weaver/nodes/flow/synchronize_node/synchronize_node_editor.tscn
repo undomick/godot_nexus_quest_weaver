@@ -1,82 +1,59 @@
-[gd_scene load_steps=2 format=3 uid="uid://by8gg4bf4bqpj"]
+[gd_scene format=3 uid="uid://by8gg4bf4bqpj"]
 
 [ext_resource type="Script" uid="uid://4c3hohxdk8if" path="res://addons/quest_weaver/nodes/flow/synchronize_node/synchronize_node_editor.gd" id="1_4h06t"]
+[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_25vd5"]
 
-[node name="SynchronizeNodeEditor" type="VBoxContainer"]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="SynchronizeNodeEditor" type="PanelContainer" unique_id=351156364]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 47.0
+grow_horizontal = 2
+theme = ExtResource("1_25vd5")
 script = ExtResource("1_4h06t")
 
-[node name="GridContainer" type="GridContainer" parent="."]
+[node name="MainLayout" type="VBoxContainer" parent="." unique_id=904966887]
 layout_mode = 2
-columns = 2
 
-[node name="Label" type="Label" parent="GridContainer"]
-custom_minimum_size = Vector2(100, 20)
+[node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=672846005]
 layout_mode = 2
-text = "Completion Mode: "
 
-[node name="CompletionModePicker" type="OptionButton" parent="GridContainer"]
+[node name="AddInputButton" type="Button" parent="MainLayout/HBoxContainer" unique_id=259722540]
 unique_name_in_owner = true
-layout_mode = 2
-selected = 0
-item_count = 3
-popup/item_0/text = "WAIT_FOR_ALL"
-popup/item_0/id = 0
-popup/item_1/text = "WAIT_FOR_ANY"
-popup/item_1/id = 1
-popup/item_2/text = "WAIT_FOR_N_INPUTS"
-popup/item_2/id = 2
-
-[node name="RequiredInputsLabel" type="Label" parent="GridContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Required Inputs: "
-
-[node name="RequiredInputsSpinBox" type="SpinBox" parent="GridContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-min_value = 2.0
-max_value = 16.0
-value = 2.0
-
-[node name="HSeparator" type="HSeparator" parent="."]
-layout_mode = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="AddInputButton" type="Button" parent="HBoxContainer"]
-unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Add Input"
 
-[node name="AddOutputButton" type="Button" parent="HBoxContainer"]
+[node name="AddOutputButton" type="Button" parent="MainLayout/HBoxContainer" unique_id=533747482]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Add Output"
 
-[node name="HSeparator3" type="HSeparator" parent="."]
+[node name="HBoxContainer2" type="HBoxContainer" parent="MainLayout" unique_id=508107706]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="MainLayout/HBoxContainer2" unique_id=712472974]
 layout_mode = 2
-text = "Input Ports"
+text = "Logic Mode: "
 
-[node name="InputsContainer" type="VBoxContainer" parent="."]
+[node name="LogicOptionButton" type="OptionButton" parent="MainLayout/HBoxContainer2" unique_id=1019908504]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+selected = 0
+item_count = 2
+popup/item_0/text = "Exclusive (Priority)"
+popup/item_0/id = 0
+popup/item_1/text = "Parallel (Gateway)"
+popup/item_1/id = 1
+
+[node name="HSeparator" type="HSeparator" parent="MainLayout" unique_id=343210934]
+layout_mode = 2
+
+[node name="MatrixContainer2" type="GridContainer" parent="MainLayout" unique_id=1647670416]
 unique_name_in_owner = true
 layout_mode = 2
-
-[node name="HSeparator2" type="HSeparator" parent="."]
-layout_mode = 2
-
-[node name="Label2" type="Label" parent="."]
-layout_mode = 2
-text = "Output Ports"
-
-[node name="OutputsContainer" type="VBoxContainer" parent="."]
-unique_name_in_owner = true
-layout_mode = 2
+columns = 2
