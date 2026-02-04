@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://bb2kqsx10gwrt"]
+﻿[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Theme" uid="uid://mtmkw0xcdqtj" path="res://addons/quest_weaver/assets/themes/quest_weaver_ui_message_theme.tres" id="1_wmxnp"]
-[ext_resource type="Script" uid="uid://brdjpvwqrye0e" path="res://addons/quest_weaver/editor/presentation/base_ui_panel.gd" id="2_tgvbr"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/quest_weaver_ui_message_theme.tres" id="1_wmxnp"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/presentation/base_ui_panel.gd" id="2_tgvbr"]
 
 [node name="AreaUIPanel" type="MarginContainer"]
 anchors_preset = 15

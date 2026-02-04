@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://bwog4kpjqtgi1"]
+﻿[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" uid="uid://ei8hceo2x1md" path="res://addons/quest_weaver/editor/components/synchronize_output_editor_entry.gd" id="1_yekiy"]
-[ext_resource type="PackedScene" uid="uid://d3tc1f1gyjxcd" path="res://addons/quest_weaver/editor/conditions/condition_editor.tscn" id="2_lyubo"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/synchronize_output_editor_entry.gd" id="1_yekiy"]
+[ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/conditions/condition_editor.tscn" id="2_lyubo"]
 
 [node name="SynchronizeOutputEditorEntry" type="VBoxContainer"]
 script = ExtResource("1_yekiy")

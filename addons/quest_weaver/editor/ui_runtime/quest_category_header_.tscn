@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://8nnawwdi2vk2"]
+﻿[gd_scene format=3]
 
 [node name="QuestCategoryHeader" type="VBoxContainer"]
 offset_right = 40.0

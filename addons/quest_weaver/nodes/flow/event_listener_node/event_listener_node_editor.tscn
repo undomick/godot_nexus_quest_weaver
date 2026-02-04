@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://cgrbd1g8idtfj"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://bb3yfir305k48" path="res://addons/quest_weaver/nodes/flow/event_listener_node/event_listener_node_editor.gd" id="1_qp6v3"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_qymus"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/flow/event_listener_node/event_listener_node_editor.gd" id="1_qp6v3"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_qymus"]
 
 [node name="EventListenerNodeEditor" type="PanelContainer" unique_id=1037986026]
 offset_right = 201.0

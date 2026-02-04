@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://c6otrjyfvfpba"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://dxchlpky3dtrr" path="res://addons/quest_weaver/nodes/action/task_node/task_node_editor.gd" id="1_1bls6"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="2_k8xpj"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/action/task_node/task_node_editor.gd" id="1_1bls6"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="2_k8xpj"]
 
 [node name="TaskNodeEditor" type="PanelContainer" unique_id=523550190]
 custom_minimum_size = Vector2(100, 100)

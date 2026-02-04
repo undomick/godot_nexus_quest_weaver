@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://d2m2w3fynwtoc"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://6jq8gqybwj45" path="res://addons/quest_weaver/editor/conditions/objective_editor_entry.gd" id="1_tmgpj"]
-[ext_resource type="PackedScene" uid="uid://bj08khvmbelj4" path="res://addons/quest_weaver/editor/components/sort_editor.tscn" id="3_ywyag"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/conditions/objective_editor_entry.gd" id="1_tmgpj"]
+[ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/components/sort_editor.tscn" id="3_ywyag"]
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_ywyag"]
 content_margin_left = 0.0

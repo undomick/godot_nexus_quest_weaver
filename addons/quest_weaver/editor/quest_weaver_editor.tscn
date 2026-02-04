@@ -1,12 +1,12 @@
-[gd_scene format=3 uid="uid://bwcyi5bcf6qxb"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://bdhslfg4nmubv" path="res://addons/quest_weaver/editor/quest_weaver_editor.gd" id="1_fkj2q"]
-[ext_resource type="Script" uid="uid://uflu1xxr00rf" path="res://addons/quest_weaver/core/qw_graph_data.gd" id="2_wklog"]
-[ext_resource type="PackedScene" uid="uid://can4p1dv5xuot" path="res://addons/quest_weaver/editor/side_panel.tscn" id="3_avfb5"]
-[ext_resource type="Script" uid="uid://dxpamctt8bmp6" path="res://addons/quest_weaver/editor/quest_weaver_graph.gd" id="4_363a4"]
-[ext_resource type="Theme" uid="uid://ccxtg65xjhu81" path="res://addons/quest_weaver/assets/themes/quest_weaver_theme.tres" id="4_wklog"]
-[ext_resource type="PackedScene" uid="uid://jmguya1cwte8" path="res://addons/quest_weaver/editor/properties_panel.tscn" id="5_dumqh"]
-[ext_resource type="PackedScene" uid="uid://cbxmdchmhqt23" path="res://addons/quest_weaver/editor/node_selection_menu.tscn" id="7_qsw60"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/quest_weaver_editor.gd" id="1_fkj2q"]
+[ext_resource type="Script" path="res://addons/quest_weaver/core/qw_graph_data.gd" id="2_wklog"]
+[ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/side_panel.tscn" id="3_avfb5"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/quest_weaver_graph.gd" id="4_363a4"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/quest_weaver_theme.tres" id="4_wklog"]
+[ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/properties_panel.tscn" id="5_dumqh"]
+[ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/node_selection_menu.tscn" id="7_qsw60"]
 
 [node name="QuestWeaverEditor" type="Control" unique_id=250042294]
 layout_mode = 3

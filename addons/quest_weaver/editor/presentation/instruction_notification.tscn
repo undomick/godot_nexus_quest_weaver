@@ -1,7 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://c4s0tdg6s20ab"]
+﻿[gd_scene load_steps=5 format=3]
 
-[ext_resource type="Theme" uid="uid://mtmkw0xcdqtj" path="res://addons/quest_weaver/assets/themes/quest_weaver_ui_message_theme.tres" id="1_di5c4"]
-[ext_resource type="Script" uid="uid://brdjpvwqrye0e" path="res://addons/quest_weaver/editor/presentation/base_ui_panel.gd" id="2_767bq"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/quest_weaver_ui_message_theme.tres" id="1_di5c4"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/presentation/base_ui_panel.gd" id="2_767bq"]
 
 [sub_resource type="Gradient" id="Gradient_di5c4"]
 offsets = PackedFloat32Array(0, 0.712687)

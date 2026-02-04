@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://cfjujdo2dk1xe"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://bd1vhqo5n3nef" path="res://addons/quest_weaver/editor/ui_runtime/quest_log_ui.gd" id="1_45syc"]
-[ext_resource type="PackedScene" uid="uid://bh6k7alrx0bi7" path="res://addons/quest_weaver/editor/ui_runtime/quest_category_header.tscn" id="2_bss5o"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/ui_runtime/quest_log_ui.gd" id="1_45syc"]
+[ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/ui_runtime/quest_category_header.tscn" id="2_bss5o"]
 
 [node name="QuestLogUI" type="CanvasLayer" unique_id=518100021]
 script = ExtResource("1_45syc")

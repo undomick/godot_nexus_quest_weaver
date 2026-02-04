@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://qe1rmal7ogkw"]
+﻿[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://dj7rkuecx6egx" path="res://addons/quest_weaver/editor/components/random_output_editor_entry.gd" id="1_3pw3i"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/random_output_editor_entry.gd" id="1_3pw3i"]
 
 [node name="RandomOutputEditorEntry" type="HBoxContainer"]
 script = ExtResource("1_3pw3i")

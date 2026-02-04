@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://bcxfmkhrqik6d"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_77jnp"]
-[ext_resource type="Script" uid="uid://kamvpwgmm46i" path="res://addons/quest_weaver/nodes/logic/set_variable_node/set_variable_node_editor.gd" id="1_qppw5"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_77jnp"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/logic/set_variable_node/set_variable_node_editor.gd" id="1_qppw5"]
 
 [node name="SetVariableNodeEditor" type="PanelContainer" unique_id=1269122861]
 anchors_preset = 10

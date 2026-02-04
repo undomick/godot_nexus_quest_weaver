@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://rd5k6w347t03"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_75hfx"]
-[ext_resource type="Script" uid="uid://b8jqjax1gewow" path="res://addons/quest_weaver/nodes/flow/parallel_node/parallel_node_editor.gd" id="1_utiop"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_75hfx"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/flow/parallel_node/parallel_node_editor.gd" id="1_utiop"]
 
 [node name="ParallelNodeEditor" type="PanelContainer" unique_id=1454602737]
 offset_right = 136.0

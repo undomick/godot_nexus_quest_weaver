@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://bulr50esg11es"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://buhaxwoyo0ce3" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.gd" id="1_hr1ni"]
-[ext_resource type="Theme" uid="uid://cabjxagvvqos5" path="res://addons/quest_weaver/assets/themes/qw_popup.tres" id="2_k3vfd"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.gd" id="1_hr1ni"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_popup.tres" id="2_k3vfd"]
 
 [node name="AutoCompleteLineEdit" type="VBoxContainer" unique_id=1554170656]
 custom_minimum_size = Vector2(200, 20)

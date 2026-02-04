@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://dgxdobw007uyo"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://dknimcs3o3rfp" path="res://addons/quest_weaver/nodes/flow/timer_node/timer_node_editor.gd" id="1_5yq8v"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_r58ya"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/flow/timer_node/timer_node_editor.gd" id="1_5yq8v"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_r58ya"]
 
 [node name="TimerNodeEditor" type="PanelContainer" unique_id=647709818]
 offset_right = 172.0

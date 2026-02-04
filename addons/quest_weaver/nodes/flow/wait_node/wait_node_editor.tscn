@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://dk7p6fdmp4wma"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_dp8ud"]
-[ext_resource type="Script" uid="uid://cq1t57ktvqp6v" path="res://addons/quest_weaver/nodes/flow/wait_node/wait_node_editor.gd" id="1_v1ae1"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_dp8ud"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/flow/wait_node/wait_node_editor.gd" id="1_v1ae1"]
 
 [node name="WaitNodeEditor" type="PanelContainer" unique_id=1624147186]
 offset_right = 229.0

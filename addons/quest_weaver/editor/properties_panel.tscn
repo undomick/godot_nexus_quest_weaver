@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://jmguya1cwte8"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Theme" uid="uid://c04tbusymu3uc" path="res://addons/quest_weaver/assets/themes/qw_properties_theme.tres" id="1_aqv2o"]
-[ext_resource type="Script" uid="uid://bi6gxv1l3bdbe" path="res://addons/quest_weaver/editor/properties_panel.gd" id="1_yqbrr"]
-[ext_resource type="Theme" uid="uid://ccxtg65xjhu81" path="res://addons/quest_weaver/assets/themes/quest_weaver_theme.tres" id="2_f45u1"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_properties_theme.tres" id="1_aqv2o"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/properties_panel.gd" id="1_yqbrr"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/quest_weaver_theme.tres" id="2_f45u1"]
 
 [node name="PropertiesPanel" type="PanelContainer" unique_id=1491346005]
 custom_minimum_size = Vector2(300, 0)

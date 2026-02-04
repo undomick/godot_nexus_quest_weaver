@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://p6j6uq3hjltr"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_bxmcv"]
-[ext_resource type="Script" uid="uid://djgy7coe6mang" path="res://addons/quest_weaver/nodes/logic/reset_progress_node/reset_progress_node_editor.gd" id="1_mhly0"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_bxmcv"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/logic/reset_progress_node/reset_progress_node_editor.gd" id="1_mhly0"]
 
 [node name="ResetProgressNodeEditor" type="PanelContainer" unique_id=1730355720]
 anchors_preset = 10

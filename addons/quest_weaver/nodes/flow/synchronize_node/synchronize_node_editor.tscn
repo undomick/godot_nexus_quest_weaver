@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://by8gg4bf4bqpj"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://4c3hohxdk8if" path="res://addons/quest_weaver/nodes/flow/synchronize_node/synchronize_node_editor.gd" id="1_4h06t"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_25vd5"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/flow/synchronize_node/synchronize_node_editor.gd" id="1_4h06t"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_25vd5"]
 
 [node name="SynchronizeNodeEditor" type="PanelContainer" unique_id=351156364]
 anchors_preset = 10

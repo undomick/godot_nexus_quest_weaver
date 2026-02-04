@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://41qktips0nb3"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://csvs5o3wnr0pr" path="res://addons/quest_weaver/nodes/action/give_take_item_node/give_take_item_node_editor.gd" id="1_cgtjc"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_wuxx2"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/action/give_take_item_node/give_take_item_node_editor.gd" id="1_cgtjc"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_wuxx2"]
 
 [node name="GiveTakeItemNodeEditor" type="PanelContainer" unique_id=122613938]
 anchors_preset = 10

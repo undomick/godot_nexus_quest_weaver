@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://d3w4esbxl2s34"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_1p0vs"]
-[ext_resource type="Script" uid="uid://bk3xwasqmqb24" path="res://addons/quest_weaver/nodes/logic/sub_graph_node/sub_graph_node_editor.gd" id="1_4kwsi"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_1p0vs"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/logic/sub_graph_node/sub_graph_node_editor.gd" id="1_4kwsi"]
 
 [node name="SubGraphNodeEditor" type="PanelContainer" unique_id=1166570874]
 custom_minimum_size = Vector2(100, 100)

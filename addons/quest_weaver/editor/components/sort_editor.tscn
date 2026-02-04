@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://bj08khvmbelj4"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://bup7s1pm5o6r8" path="res://addons/quest_weaver/editor/components/sort_editor.gd" id="1_dj67e"]
-[ext_resource type="Texture2D" uid="uid://d04c3smxbfrqu" path="res://addons/quest_weaver/assets/icons/sort_arrow.svg" id="1_mwfi3"]
-[ext_resource type="Texture2D" uid="uid://b78y1enofubkh" path="res://addons/quest_weaver/assets/icons/sort_arrow_down.svg" id="2_dj67e"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/sort_editor.gd" id="1_dj67e"]
+[ext_resource type="Texture2D" path="res://addons/quest_weaver/assets/icons/sort_arrow.svg" id="1_mwfi3"]
+[ext_resource type="Texture2D" path="res://addons/quest_weaver/assets/icons/sort_arrow_down.svg" id="2_dj67e"]
 
 [node name="SortEditor" type="VBoxContainer" unique_id=1156258208]
 offset_right = 24.0

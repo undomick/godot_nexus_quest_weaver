@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://brnfrybqtkbft"]
+﻿[gd_scene format=3]
 
-[ext_resource type="PackedScene" uid="uid://d3tc1f1gyjxcd" path="res://addons/quest_weaver/editor/conditions/condition_editor.tscn" id="1_b0xhf"]
-[ext_resource type="Script" uid="uid://do2wp4ayk0bry" path="res://addons/quest_weaver/editor/components/parallel_output_editor_entry.gd" id="1_dwg6e"]
+[ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/conditions/condition_editor.tscn" id="1_b0xhf"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/parallel_output_editor_entry.gd" id="1_dwg6e"]
 
 [node name="ParallelOutputEditorEntry" type="VBoxContainer" unique_id=234650588]
 script = ExtResource("1_dwg6e")

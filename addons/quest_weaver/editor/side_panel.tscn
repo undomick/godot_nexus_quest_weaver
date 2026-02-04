@@ -1,8 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://can4p1dv5xuot"]
+﻿[gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" uid="uid://cwk36v7yrmvwc" path="res://addons/quest_weaver/editor/side_panel.gd" id="1_5q1rv"]
-[ext_resource type="Texture2D" uid="uid://kmhuhpghbji1" path="res://addons/quest_weaver/assets/icons/save_all.svg" id="2_r5pjp"]
-[ext_resource type="Texture2D" uid="uid://1r0xlayw44ce" path="res://addons/quest_weaver/assets/icons/share_love.svg" id="2_rn2th"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/side_panel.gd" id="1_5q1rv"]
+[ext_resource type="Texture2D" path="res://addons/quest_weaver/assets/icons/save_all.svg" id="2_r5pjp"]
+[ext_resource type="Texture2D" path="res://addons/quest_weaver/assets/icons/share_love.svg" id="2_rn2th"]
 
 [sub_resource type="DPITexture" id="DPITexture_r5pjp"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><path fill=\"#ff5d5d\" d=\"M2 1v8.586l1.293-1.293a1 1 0 0 1 1.414 0L7 10.587l2.293-2.293a1 1 0 0 1 1.414 0L13 10.586l1-1V6H9V1H2zm8 0v4h4zm-6 9.414-2 2V15h12v-2.586l-.293.293a1 1 0 0 1-1.414 0L10 10.414l-2.293 2.293a1 1 0 0 1-1.414 0L4 10.414z\"/></svg>

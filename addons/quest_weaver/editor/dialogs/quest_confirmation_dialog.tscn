@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://c7x0yg41bafr2"]
+﻿[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://dqbcvf1fwmsud" path="res://addons/quest_weaver/editor/dialogs/quest_confirmation_dialog.gd" id="1_omuvg"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/dialogs/quest_confirmation_dialog.gd" id="1_omuvg"]
 
 [node name="QuestConfirmationDialog" type="ConfirmationDialog"]
 initial_position = 2

@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://basxtuaadorw2"]
+﻿[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://bw7sovdmt6hbc" path="res://addons/quest_weaver/editor/components/synchronize_input_editor_entry.gd" id="1_akkq7"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/synchronize_input_editor_entry.gd" id="1_akkq7"]
 
 [node name="SynchronizeInputEditorEntry" type="VBoxContainer"]
 script = ExtResource("1_akkq7")

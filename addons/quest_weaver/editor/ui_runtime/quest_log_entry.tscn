@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://dah0q1bc7nhhx"]
+﻿[gd_scene load_steps=4 format=3]
 
-[ext_resource type="Script" uid="uid://d35e0b8e4lmlq" path="res://addons/quest_weaver/editor/ui_runtime/quest_log_entry.gd" id="1_36xmh"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/ui_runtime/quest_log_entry.gd" id="1_36xmh"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0c5qy"]
 bg_color = Color(0.0295066, 0.0295066, 0.0295065, 1)

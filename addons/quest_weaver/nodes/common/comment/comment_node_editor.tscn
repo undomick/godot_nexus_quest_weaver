@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://c5luhmqsbcbkk"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://jegbgcpvwkjd" path="res://addons/quest_weaver/nodes/common/comment/comment_node_editor.gd" id="1_0xfnj"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_dnoo3"]
-[ext_resource type="Script" uid="uid://c6oph8cilr6lc" path="res://addons/quest_weaver/editor/components/tab_focus_text_edit.gd" id="2_fc7io"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/common/comment/comment_node_editor.gd" id="1_0xfnj"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_dnoo3"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/tab_focus_text_edit.gd" id="2_fc7io"]
 
 [node name="CommentNodeEditor" type="PanelContainer" unique_id=1825031712]
 custom_minimum_size = Vector2(100, 100)

@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://cdl4xdsohn5wl"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_45nqs"]
-[ext_resource type="Script" uid="uid://b6ei1inf2x5wg" path="res://addons/quest_weaver/nodes/logic/end_scope_node/end_scope_node_editor.gd" id="1_rgy5y"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_45nqs"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/logic/end_scope_node/end_scope_node_editor.gd" id="1_rgy5y"]
 
 [node name="EndScopeNodeEditor" type="PanelContainer" unique_id=1355441616]
 offset_right = 148.0

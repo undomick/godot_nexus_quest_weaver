@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://cbxmdchmhqt23"]
+﻿[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://cnhmqypta56ir" path="res://addons/quest_weaver/editor/node_selection_menu.gd" id="1_t1y6b"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/node_selection_menu.gd" id="1_t1y6b"]
 
 [node name="NodeSelectionMenu" type="PopupPanel"]
 oversampling_override = 1.0

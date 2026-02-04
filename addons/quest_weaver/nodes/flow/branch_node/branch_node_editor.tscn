@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://daa5kumhadh1k"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://bvij56vq3n4es" path="res://addons/quest_weaver/nodes/flow/branch_node/branch_node_editor.gd" id="1_rmfmm"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_vpa6x"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/flow/branch_node/branch_node_editor.gd" id="1_rmfmm"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_vpa6x"]
 
 [node name="BranchNodeEditor" type="PanelContainer" unique_id=566077508]
 offset_right = 118.0

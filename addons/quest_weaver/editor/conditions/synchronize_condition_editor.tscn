@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://cv7i4ct8c2i3"]
+﻿[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://dti5p4fd2ighh" path="res://addons/quest_weaver/editor/conditions/synchronize_condition_editor.gd" id="1_ugdny"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/conditions/synchronize_condition_editor.gd" id="1_ugdny"]
 
 [node name="SynchronizeConditionEditor" type="VBoxContainer"]
 script = ExtResource("1_ugdny")

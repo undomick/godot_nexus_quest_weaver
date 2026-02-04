@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://bdf5g0rvq7q63"]
+﻿[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://bky37r5qmero4" path="res://addons/quest_weaver/editor/components/simple_condition_entry.gd" id="1_d26pr"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/simple_condition_entry.gd" id="1_d26pr"]
 
 [node name="SimpleConditionEntry" type="HBoxContainer"]
 offset_right = 40.0

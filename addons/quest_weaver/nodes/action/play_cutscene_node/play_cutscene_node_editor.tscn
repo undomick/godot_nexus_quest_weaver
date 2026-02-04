@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://q4bgigjmikn5"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://bvqgini7q04y6" path="res://addons/quest_weaver/nodes/action/play_cutscene_node/play_cutscene_node_editor.gd" id="1_8qsti"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_qoa8a"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/action/play_cutscene_node/play_cutscene_node_editor.gd" id="1_8qsti"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_qoa8a"]
 
 [node name="PlayCutsceneNodeEditor" type="PanelContainer" unique_id=1520297123]
 offset_right = 214.0

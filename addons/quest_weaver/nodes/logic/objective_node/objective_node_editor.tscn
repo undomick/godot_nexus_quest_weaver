@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://degesuwqobesv"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://dnhovrg8illwg" path="res://addons/quest_weaver/nodes/logic/objective_node/objective_node_editor.gd" id="1_3prtb"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_swthi"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/logic/objective_node/objective_node_editor.gd" id="1_3prtb"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_swthi"]
 
 [node name="ObjectiveNodeEditor" type="PanelContainer" unique_id=265089528]
 offset_right = 131.0

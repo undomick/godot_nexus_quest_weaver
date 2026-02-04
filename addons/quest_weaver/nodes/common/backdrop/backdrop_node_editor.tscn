@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://c2h34yf52xl1f"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://bdtk03o6dv5d" path="res://addons/quest_weaver/nodes/common/backdrop/backdrop_node_editor.gd" id="1_n00xk"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_tflrs"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/common/backdrop/backdrop_node_editor.gd" id="1_n00xk"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_tflrs"]
 
 [node name="BackdropNodeEditor" type="PanelContainer" unique_id=380099397]
 offset_right = 112.0

@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://cqumuvwa83uj6"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://cty3igweawyet" path="res://addons/quest_weaver/nodes/action/event_node/event_node_editor.gd" id="1_6a2ip"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_t2pdi"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/action/event_node/event_node_editor.gd" id="1_6a2ip"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_t2pdi"]
 
 [node name="EventNodeEditor" type="PanelContainer" unique_id=1190404209]
 anchors_preset = 10

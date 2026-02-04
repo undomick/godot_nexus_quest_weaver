@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://dx2w1ardcrnu6"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://btfi82amoysd0" path="res://addons/quest_weaver/nodes/logic/start_scope_node/start_scope_node_editor.gd" id="1_al0co"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_p666q"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/logic/start_scope_node/start_scope_node_editor.gd" id="1_al0co"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_p666q"]
 
 [node name="StartScopeNodeEditor" type="PanelContainer" unique_id=478650767]
 anchors_preset = 10

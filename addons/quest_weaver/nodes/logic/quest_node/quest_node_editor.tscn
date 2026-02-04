@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://cpxwe2qsigy4g"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://dcnpf6dgam0e3" path="res://addons/quest_weaver/nodes/logic/quest_node/quest_node_editor.gd" id="1_66u7u"]
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_nhc80"]
-[ext_resource type="PackedScene" uid="uid://bulr50esg11es" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.tscn" id="2_x766l"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/logic/quest_node/quest_node_editor.gd" id="1_66u7u"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_nhc80"]
+[ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.tscn" id="2_x766l"]
 
 [node name="QuestNodeEditor" type="PanelContainer" unique_id=1779776777]
 anchors_preset = 10

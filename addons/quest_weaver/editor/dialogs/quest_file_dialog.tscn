@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://blpjthjvcp6jc"]
+﻿[gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://co7yxqagamhke" path="res://addons/quest_weaver/editor/dialogs/quest_file_dialog.gd" id="1_hrex2"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/dialogs/quest_file_dialog.gd" id="1_hrex2"]
 
 [node name="QuestFileDialog" type="FileDialog"]
 initial_position = 2

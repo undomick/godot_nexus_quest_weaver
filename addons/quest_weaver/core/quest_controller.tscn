@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://dartvfxem2dcs"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://cfqarxnxa5hgv" path="res://addons/quest_weaver/core/quest_controller.gd" id="1_q53pi"]
+[ext_resource type="Script" path="res://addons/quest_weaver/core/quest_controller.gd" id="1_q53pi"]
 
 [node name="QuestController" type="Node" unique_id=223020695]
 script = ExtResource("1_q53pi")

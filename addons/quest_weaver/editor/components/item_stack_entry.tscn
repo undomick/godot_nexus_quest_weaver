@@ -1,7 +1,7 @@
-[gd_scene format=3 uid="uid://dn00x3j117sau"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://355qeney55ms" path="res://addons/quest_weaver/editor/components/item_stack_entry.gd" id="1_clcdj"]
-[ext_resource type="PackedScene" uid="uid://bulr50esg11es" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.tscn" id="2_5tufj"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/item_stack_entry.gd" id="1_clcdj"]
+[ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/components/auto_complete_line_edit.tscn" id="2_5tufj"]
 
 [node name="ItemStackEntry" type="HBoxContainer" unique_id=602274055]
 offset_right = 40.0

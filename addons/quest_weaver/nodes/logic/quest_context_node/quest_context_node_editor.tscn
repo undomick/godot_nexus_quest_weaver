@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://y14cyyhylnpr"]
+﻿[gd_scene format=3]
 
-[ext_resource type="Theme" uid="uid://doya4xepinsd" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_mi5ky"]
-[ext_resource type="Script" uid="uid://bho1ip4op3u5t" path="res://addons/quest_weaver/nodes/logic/quest_context_node/quest_context_node_editor.gd" id="1_wjy1a"]
-[ext_resource type="Script" uid="uid://c6oph8cilr6lc" path="res://addons/quest_weaver/editor/components/tab_focus_text_edit.gd" id="2_4lwel"]
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_mi5ky"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/logic/quest_context_node/quest_context_node_editor.gd" id="1_wjy1a"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/tab_focus_text_edit.gd" id="2_4lwel"]
 
 [node name="QuestContextNodeEditor" type="PanelContainer" unique_id=1730911200]
 offset_right = 200.0
