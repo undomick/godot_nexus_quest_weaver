@@ -1,23 +1,33 @@
 # res://addons/quest_weaver/nodes/flow/random_node/random_node_editor.gd
 @tool
+
 class_name RandomNodeEditor
+
 extends NodePropertyEditorBase
 
 signal ports_need_refresh(node_id: String)
 
+
 const OutputEntryScene = preload("res://addons/quest_weaver/editor/components/random_output_editor_entry.tscn")
 
+# --- Specific handlers for the weight SpinBox ---
+
+var _weight_undo_value: int = 0
+
 @onready var outputs_container: VBoxContainer = %OutputsContainer
+
 @onready var add_output_button: Button = %AddOutputButton
 
 func _ready():
 	add_output_button.pressed.connect(_on_add_output_pressed)
+
 
 func set_node_data(node_data: GraphNodeResource):
 	super.set_node_data(node_data)
 	if not node_data is RandomNodeResource: return
 
 	call_deferred(&"_rebuild_outputs_list")
+
 
 func _rebuild_outputs_list():
 	for child in outputs_container.get_children():
@@ -46,14 +56,17 @@ func _rebuild_outputs_list():
 		outputs_container.add_child(entry_instance)
 		entry_instance.display_data(output_port)
 
+
 func _on_add_output_pressed():
 	complex_action_requested.emit(edited_node_data.id, "add_random_output", {})
 	call_deferred(&"_rebuild_outputs_list")
+
 
 func _on_remove_output_pressed(index: int):
 	var payload = {"index": index}
 	complex_action_requested.emit(edited_node_data.id, "remove_random_output", payload)
 	call_deferred(&"_rebuild_outputs_list")
+
 
 func _on_output_name_confirmed(index: int, name_edit: LineEdit):
 	var new_name = name_edit.text
@@ -62,11 +75,10 @@ func _on_output_name_confirmed(index: int, name_edit: LineEdit):
 		var payload = {"index": index, "new_name": new_name}
 		complex_action_requested.emit(edited_node_data.id, "update_random_output_name", payload)
 
-# --- Specific handlers for the weight SpinBox ---
 
-var _weight_undo_value: int = 0
 func _on_weight_edit_started(output_port: RandomOutputPort):
 	_weight_undo_value = output_port.weight
+
 
 func _on_weight_value_changed_live(new_weight: float, index: int):
 	var random_node: RandomNodeResource = edited_node_data
@@ -79,6 +91,7 @@ func _on_weight_value_changed_live(new_weight: float, index: int):
 		ports_need_refresh.emit(edited_node_data.id)
 
 
+
 func _on_weight_edit_finished(index: int, output_port: RandomOutputPort, spinbox: SpinBox):
 	var final_weight = int(spinbox.value)
 
@@ -88,3 +101,4 @@ func _on_weight_edit_finished(index: int, output_port: RandomOutputPort, spinbox
 	if _weight_undo_value != final_weight:
 		# Use output_index so the action handler resolves the target from the editable graph
 		property_update_requested.emit(edited_node_data.id, "weight", final_weight, null, {"output_index": index})
+

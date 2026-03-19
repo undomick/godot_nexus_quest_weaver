@@ -57,7 +57,7 @@ func initialize_scope_definitions(node_definitions: Dictionary, node_connections
 				var boundary = false
 				if next_def:
 					if (next_def is EndScopeNodeResource and next_def.scope_id == scope_id) or \
-					   (next_def is StartScopeNodeResource and next_def.scope_id == scope_id):
+							(next_def is StartScopeNodeResource and next_def.scope_id == scope_id):
 						boundary = true
 
 				if not visited.has(next_id) and not boundary:

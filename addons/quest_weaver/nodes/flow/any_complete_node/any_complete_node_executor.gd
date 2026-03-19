@@ -1,8 +1,10 @@
-# res://addons/quest_weaver/nodes/flow/any_complete_node/any_complete_node_executor.gd
-## Continues as soon as the first input is received.
 ## When [param keep_listening] is false, ignores subsequent inputs. When true, reacts to each new round of inputs.
 class_name AnyCompleteNodeExecutor
+
 extends NodeExecutor
+
+# res://addons/quest_weaver/nodes/flow/any_complete_node/any_complete_node_executor.gd
+## Continues as soon as the first input is received.
 
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var any_node = node as AnyCompleteNodeResource
@@ -24,3 +26,4 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		instance.set_node_data(any_node.id, &"_any_complete_fired", false)
 	else:
 		controller._mark_node_as_logically_complete(any_node)
+

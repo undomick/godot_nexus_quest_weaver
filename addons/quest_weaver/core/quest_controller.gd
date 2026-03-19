@@ -1,42 +1,54 @@
 # res://addons/quest_weaver/core/quest_controller.gd
 class_name QuestController
+
 extends Node
 
 # --- SIGNALS ---
 signal quest_became_available(quest_id: StringName)
+
 signal quest_started(quest_id: StringName)
+
 signal quest_completed(quest_id: StringName)
+
 signal quest_failed(quest_id: StringName)
+
 signal quest_data_changed(quest_id: StringName)
+
 ## Emitted when active objective markers (waypoints for map/minimap) may have changed.
 ## Connect to refresh your map UI. Use get_active_objective_markers() to get the new list.
 signal quest_markers_changed
+
 ## Emitted when a quest is successfully accepted (started) via start_quest_id.
 signal quest_accepted(quest_id: StringName)
+
 ## Emitted when the player explicitly rejects an AVAILABLE quest via reject_quest_id.
 signal quest_rejected(quest_id: StringName)
 
+
 # --- MANAGER INSTANCES ---
 var _timer_manager: QuestTimerManager
+
 var _sync_manager: QuestSyncManager
+
 var _event_manager: QuestEventManager
+
 var _scope_manager: QuestScopeManager
+
 var _persistence_manager: QuestStatePersistenceManager
+
 var _execution_context: ExecutionContext
+
 var _presentation_manager: PresentationManager
+
 var _inventory_adapter: QuestInventoryAdapterBase = null
+
 var _kill_adapter: QuestKillAdapterBase = null
+
 var _logger: QWLogger
 
-# === STATE MANAGEMENT (v1.5 - Pool Pattern) ===
-
-# Manages five predefined pools (UNAVAILABLE, AVAILABLE, ACTIVE, COMPLETED, FAILED).
 # Provides O(1) instance lookup via internal registry.
 var _pool_registry: QuestPoolRegistry
 
-# === STATIC DEFINITIONS (BLUEPRINTS) ===
-
-# Maps file paths to a list of Node IDs contained within.
 # Key: String (Path) | Value: Array[StringName] (Node IDs)
 var _quest_node_map: Dictionary = {}
 
@@ -63,6 +75,7 @@ var _logical_id_to_file_id: Dictionary = {}
 
 # Startup Queue to handle API calls made before _ready is finished
 var _is_initialized: bool = false
+
 var _startup_queue: Array[Callable] = []
 
 # Flag to prevent double cleanup
@@ -70,11 +83,13 @@ var _is_shutting_down: bool = false
 
 # Cached reference to QuestWeaverGlobal event bus
 var _event_bus_cache: Node = null
+
 ## True when global signals (quest_event_fired, interacted_with_object, etc.) were connected.
 ## When false, interaction/location/kill objectives will not trigger from the event bus.
 var _event_bus_connected: bool = false
 
 var _call_stack: Array[Dictionary] = []
+
 var _node_registry: NodeTypeRegistry
 
 ## Optional acceptance conditions per quest. Key: quest_id (StringName) -> Array[Callable].
@@ -93,6 +108,13 @@ var _node_id_to_quest_path: Dictionary = {}
 # O(1) anchor lookup: graph_path (String) -> { anchor_name (String) -> AnchorNodeResource }. Populated in _load_graph_data.
 var _anchor_name_to_node: Dictionary = {}
 
+# === STATE MANAGEMENT (v1.5 - Pool Pattern) ===
+
+# Manages five predefined pools (UNAVAILABLE, AVAILABLE, ACTIVE, COMPLETED, FAILED).
+
+# === STATIC DEFINITIONS (BLUEPRINTS) ===
+
+# Maps file paths to a list of Node IDs contained within.
 
 # --- INITIALIZATION & LIFECYCLE ---
 
@@ -102,17 +124,20 @@ func _get_services() -> Node:
 		return main_loop.root.get_node_or_null("QuestWeaverServices")
 	return null
 
+
 func _get_logger() -> QWLogger:
 	if is_instance_valid(_logger): return _logger
 	var services = _get_services()
 	if is_instance_valid(services): return services.logger
 	return null
 
+
 func _get_event_bus() -> Node:
 	if is_instance_valid(_event_bus_cache): return _event_bus_cache
 	if is_inside_tree():
 		_event_bus_cache = get_tree().root.get_node_or_null("QuestWeaverGlobal")
 	return _event_bus_cache
+
 
 func _ready() -> void:
 	quest_data_changed.connect(_emit_markers_changed)
@@ -129,6 +154,7 @@ func _ready() -> void:
 	if OS.is_debug_build():
 		_register_performance_monitors()
 
+
 func _register_performance_monitors() -> void:
 	Performance.add_custom_monitor("QuestWeaver/RuntimeTotal", func() -> float: return float(_pool_registry.get_instance_count()))
 	Performance.add_custom_monitor("QuestWeaver/StateActive", func() -> float: return float(_pool_registry.get_pool_for_state(QWEnums.QuestState.ACTIVE).get_instance_count()))
@@ -137,22 +163,27 @@ func _register_performance_monitors() -> void:
 	Performance.add_custom_monitor("QuestWeaver/StateAvailable", func() -> float: return float(_pool_registry.get_pool_for_state(QWEnums.QuestState.AVAILABLE).get_instance_count()))
 	Performance.add_custom_monitor("QuestWeaver/StateUnavailable", func() -> float: return float(_pool_registry.get_pool_for_state(QWEnums.QuestState.UNAVAILABLE).get_instance_count()))
 
+
 func _unregister_performance_monitors() -> void:
 	for id in ["QuestWeaver/RuntimeTotal", "QuestWeaver/StateActive", "QuestWeaver/StateCompleted", "QuestWeaver/StateFailed", "QuestWeaver/StateAvailable", "QuestWeaver/StateUnavailable"]:
 		if Performance.has_custom_monitor(id):
 			Performance.remove_custom_monitor(id)
 
+
 func _emit_markers_changed(_sid: StringName) -> void:
 	quest_markers_changed.emit()
+
 
 ## Returns true if the controller is shutting down. Managers use this to avoid scheduling deferred work during cleanup.
 func is_shutting_down() -> bool:
 	return _is_shutting_down
 
+
 ## Returns true if QuestWeaverGlobal event bus was found and signals were connected.
 ## When false, interaction/location/kill objectives will not receive events.
 func is_event_bus_connected() -> bool:
 	return _event_bus_connected
+
 
 ## Full cleanup when exiting the tree. Clears all managers, maps, and sets references to null.
 ## Use this for scene/node teardown (NOTIFICATION_EXIT_TREE).
@@ -202,6 +233,7 @@ func _on_exit_cleanup() -> void:
 
 	QWConstants.clear_static_references()
 
+
 func _initialize_dependencies_and_start() -> void:
 	_initialize_managers()
 	_register_executors()
@@ -232,6 +264,7 @@ func _initialize_dependencies_and_start() -> void:
 		for command in queue_copy:
 			command.call()
 
+
 func _initialize_managers() -> void:
 	_pool_registry = QuestPoolRegistry.new()
 	_persistence_manager = QuestStatePersistenceManager.new()
@@ -251,10 +284,12 @@ func _initialize_managers() -> void:
 		add_child(_presentation_manager)
 		services.register_presentation_manager(_presentation_manager)
 
+
 func _register_executors() -> void:
 	_node_registry = NodeTypeRegistry.new()
 	if not is_instance_valid(_node_registry):
 		push_error("QuestController: Could not load NodeTypeRegistry!")
+
 
 func _initialize_quest_graphs() -> void:
 	var logger = _logger
@@ -290,6 +325,7 @@ func _initialize_quest_graphs() -> void:
 
 	logger.log("Flow", "Initialization complete.")
 
+
 func _initialize_inventory_adapter() -> void:
 	var logger = _logger
 	var settings = QWConstants.get_settings()
@@ -310,6 +346,7 @@ func _initialize_inventory_adapter() -> void:
 	elif is_instance_valid(logger):
 		logger.warn("Inventory", "No Inventory Adapter configured. Item-related quests will not function.")
 
+
 func _initialize_kill_adapter() -> void:
 	var logger = _logger
 	var settings = QWConstants.get_settings()
@@ -328,6 +365,7 @@ func _initialize_kill_adapter() -> void:
 	elif is_instance_valid(logger):
 		logger.warn("Flow", "No Kill Adapter configured. KILL objectives use event-based tracking.")
 
+
 func _connect_global_signals() -> void:
 	_event_bus_connected = false
 	var event_bus = _get_event_bus()
@@ -345,9 +383,11 @@ func _connect_global_signals() -> void:
 		event_bus.entered_location.connect(_on_entered_location)
 	_event_bus_connected = true
 
+
 # --- PUBLIC API ---
 
 ## Marks a quest as AVAILABLE (e.g. for Quest Board). Auto-loads if registered.
+
 func set_quest_available(query_id: StringName) -> void:
 	if query_id.is_empty(): return
 
@@ -370,6 +410,7 @@ func set_quest_available(query_id: StringName) -> void:
 
 		if _logger: _logger.log("Flow", "Quest '%s' marked as AVAILABLE." % signal_id)
 
+
 func _get_quest_ids_by_status(status: int) -> Array[StringName]:
 	var list: Array[StringName] = []
 	var pool = _pool_registry.get_pool_for_state(status)
@@ -378,31 +419,39 @@ func _get_quest_ids_by_status(status: int) -> Array[StringName]:
 		list.append(q_id)
 	return list
 
+
 ## Getter for Quest Boards (Pool-style API)
 func get_available_quests() -> Array[StringName]:
 	return _get_quest_ids_by_status(QWEnums.QuestState.AVAILABLE)
 
+
 # --- ACCEPT/REJECT API ---
 
 ## Returns all quests currently ACTIVE.
+
 func get_active_quests() -> Array[StringName]:
 	return _get_quest_ids_by_status(QWEnums.QuestState.ACTIVE)
+
 
 ## Returns all quests that are COMPLETED (success).
 func get_completed_quests() -> Array[StringName]:
 	return _get_quest_ids_by_status(QWEnums.QuestState.COMPLETED)
 
+
 ## Returns all quests that are FAILED.
 func get_failed_quests() -> Array[StringName]:
 	return _get_quest_ids_by_status(QWEnums.QuestState.FAILED)
+
 
 ## Returns IDs of all custom pools (from additional_pool_scripts).
 func get_all_custom_pool_ids() -> Array[StringName]:
 	return _pool_registry.get_all_pool_ids()
 
+
 ## Returns quest IDs (signal_id) in a custom pool.
 func get_quests_in_pool(pool_id: StringName) -> Array[StringName]:
 	return _pool_registry.get_quests_in_pool(pool_id)
+
 
 ## Moves a quest instance to a custom pool. Quest must exist and pool_id must be registered.
 func move_quest_to_custom_pool(quest_id: StringName, pool_id: StringName) -> void:
@@ -422,6 +471,7 @@ func move_quest_to_custom_pool(quest_id: StringName, pool_id: StringName) -> voi
 	quest_data_changed.emit(signal_id)
 	_send_instance_update(instance)
 	if _logger: _logger.log("Flow", "Quest '%s' moved to custom pool '%s'." % [signal_id, pool_id])
+
 
 ## Main entry point to activate a quest logic flow.
 ## Sets status to ACTIVE, registers Logical ID, and emits signals.
@@ -458,6 +508,7 @@ func start_quest(context_node: QuestContextNodeResource) -> void:
 		quest_data_changed.emit(signal_id)
 		_send_instance_update(instance)
 
+
 ## Returns true if the quest can be accepted (AVAILABLE, not rejected, all acceptance conditions pass).
 func can_accept_quest(quest_id: StringName) -> bool:
 	if not _is_valid_quest_id(quest_id):
@@ -477,6 +528,7 @@ func can_accept_quest(quest_id: StringName) -> bool:
 		if cond is Callable and cond.is_valid() and not cond.call():
 			return false
 	return true
+
 
 ## Marks an AVAILABLE quest as rejected by the player. Emits quest_rejected. Quest stays AVAILABLE but rejected_by_player is set.
 func reject_quest_id(quest_id: StringName) -> void:
@@ -499,6 +551,7 @@ func reject_quest_id(quest_id: StringName) -> void:
 	_send_instance_update(instance)
 	if _logger: _logger.log("Flow", "Quest '%s' rejected by player." % signal_id)
 
+
 ## Adds a Callable condition for accepting a quest. The Callable must return bool.
 func add_acceptance_condition(quest_id: StringName, condition: Callable) -> void:
 	if not _is_valid_quest_id(quest_id):
@@ -506,6 +559,7 @@ func add_acceptance_condition(quest_id: StringName, condition: Callable) -> void
 	if not _acceptance_conditions.has(quest_id):
 		_acceptance_conditions[quest_id] = []
 	_acceptance_conditions[quest_id].append(condition)
+
 
 ## Clears all acceptance conditions for a quest. Removes entries for both quest_id and file_id,
 ## matching the lookup logic in can_accept_quest.
@@ -516,11 +570,13 @@ func clear_acceptance_conditions(quest_id: StringName) -> void:
 	if not file_id.is_empty() and file_id != quest_id:
 		_acceptance_conditions.erase(file_id)
 
+
 ## Returns true if the player previously rejected this quest while it was AVAILABLE.
 func was_quest_rejected(quest_id: StringName) -> bool:
 	var file_id = _resolve_instance_file_id(quest_id)
 	var instance = _pool_registry.get_instance_by_file_id(file_id)
 	return instance != null and instance.rejected_by_player
+
 
 ## Starts a quest using its Logical ID. Auto-loads if registered. Fails if can_accept_quest returns false.
 func start_quest_id(quest_id: StringName) -> void:
@@ -541,6 +597,7 @@ func start_quest_id(quest_id: StringName) -> void:
 		_activate_node(context_node)
 	else:
 		if _logger: _logger.error("Flow", "Loaded graph for '%s' but ContextNode is missing in map." % quest_id)
+
 
 ## Starts a quest using its File ID (filename).
 func start_quest_file(file_id: StringName) -> void:
@@ -572,6 +629,7 @@ func start_quest_file(file_id: StringName) -> void:
 
 	if _logger: _logger.warn("Flow", "start_quest_file: '%s' not found." % file_id)
 
+
 ## Restarts a quest by Logical ID.
 func restart_quest_id(quest_id: StringName) -> void:
 	if not _is_valid_quest_id(quest_id):
@@ -589,6 +647,7 @@ func restart_quest_id(quest_id: StringName) -> void:
 
 	_restart_quest_internal(file_id)
 
+
 ## Restarts a quest by File ID. Clears active nodes and objective state, then reactivates.
 func restart_quest_file(file_id: StringName) -> void:
 	if not _is_valid_quest_id(file_id):
@@ -598,6 +657,7 @@ func restart_quest_file(file_id: StringName) -> void:
 		_startup_queue.append(func(): restart_quest_file(file_id))
 		return
 	_restart_quest_internal(file_id)
+
 
 ## Starts a quest with parameters.
 func start_quest_with_parameters(quest_id: StringName, params: Dictionary) -> void:
@@ -628,6 +688,7 @@ func start_quest_with_parameters(quest_id: StringName, params: Dictionary) -> vo
 	else:
 		_start_specific_graph_entry(file_id)
 
+
 func complete_quest_id(quest_id: StringName, success: bool = true) -> void:
 	if not _is_valid_quest_id(quest_id):
 		push_warning("[QuestController] complete_quest_id called with empty quest_id.")
@@ -635,12 +696,14 @@ func complete_quest_id(quest_id: StringName, success: bool = true) -> void:
 	var action = QuestNodeResource.QuestAction.COMPLETE if success else QuestNodeResource.QuestAction.FAIL
 	set_quest_status(quest_id, action)
 
+
 func complete_quest_file(file_id: StringName, success: bool = true) -> void:
 	if not _is_valid_quest_id(file_id):
 		push_warning("[QuestController] complete_quest_file called with empty file_id.")
 		return
 	var action = QuestNodeResource.QuestAction.COMPLETE if success else QuestNodeResource.QuestAction.FAIL
 	set_quest_status(file_id, action)
+
 
 ## Returns the rewards summary for a quest: item_id -> total amount.
 ## Sums all rewards with the same item_id. Rewards with linked_objective_id are only
@@ -672,6 +735,7 @@ func get_quest_rewards(query_id: StringName) -> Dictionary:
 		result[r_id] = result.get(r_id, 0) + r_amount
 	return result
 
+
 ## Debug/Cheat Tool: Forces the quest flow to jump to a specific node.
 ## Stops all currently active nodes in this quest before jumping.
 func jump_to_node(node_id: StringName) -> void:
@@ -701,6 +765,7 @@ func jump_to_node(node_id: StringName) -> void:
 	var node_def = _node_definitions.get(node_id)
 	if node_def:
 		_activate_node(node_def)
+
 
 func set_quest_status(query_id: StringName, action: QuestNodeResource.QuestAction) -> void:
 	var logger = _logger
@@ -743,12 +808,14 @@ func set_quest_status(query_id: StringName, action: QuestNodeResource.QuestActio
 			quest_failed.emit(signal_id)
 		_send_instance_update(instance)
 
+
 func get_quest_state(query_id: StringName) -> int:
 	var file_id = _resolve_instance_file_id(query_id)
 	var instance = _pool_registry.get_instance_by_file_id(file_id)
 	if instance:
 		return instance.current_status
 	return QWEnums.QuestState.UNAVAILABLE
+
 
 func get_quest_data(query_id: StringName) -> Dictionary:
 	var result = {}
@@ -785,6 +852,7 @@ func get_quest_data(query_id: StringName) -> Dictionary:
 
 	return result
 
+
 func get_all_managed_quests_data() -> Array[Dictionary]:
 	var list: Array[Dictionary] = []
 	var processed_instance_ids: Dictionary = {} # Deduplication Cache (instance_id -> true)
@@ -803,6 +871,7 @@ func get_all_managed_quests_data() -> Array[Dictionary]:
 		list.append(get_quest_data(primary_id))
 
 	return list
+
 
 func get_active_objectives_for_quest(query_id: StringName) -> Array[ObjectiveResource]:
 	var objectives: Array[ObjectiveResource] = []
@@ -831,6 +900,7 @@ func get_active_objectives_for_quest(query_id: StringName) -> Array[ObjectiveRes
 					objectives.append(ui_obj)
 
 	return objectives
+
 
 ## Returns active objective markers for map/minimap UI integration.
 ## Each marker is a Dictionary: {"type": "location"|"interact", "target": String, "quest_id": String, "objective_id": String, "description": String, "file_id": String}
@@ -879,6 +949,7 @@ func get_active_objective_markers() -> Array:
 
 	return markers
 
+
 func get_objective_status(p_objective_id: StringName) -> int:
 	if p_objective_id.is_empty():
 		return ObjectiveResource.Status.INACTIVE
@@ -893,6 +964,7 @@ func get_objective_status(p_objective_id: StringName) -> int:
 		if status != ObjectiveResource.Status.INACTIVE:
 			return status
 	return ObjectiveResource.Status.INACTIVE
+
 
 func set_manual_objective_status(objective_id: StringName, new_status: int) -> void:
 	var file_id = _objective_id_to_file_id.get(objective_id, &"")
@@ -924,6 +996,7 @@ func set_manual_objective_status(objective_id: StringName, new_status: int) -> v
 			_check_tasks_in_instance(instance)
 			return
 
+
 func set_quest_description(node_id: StringName, description: String) -> void:
 	var file_id = _get_file_id_for_node(node_id)
 	if not file_id.is_empty() and _pool_registry.has_instance(file_id):
@@ -932,6 +1005,7 @@ func set_quest_description(node_id: StringName, description: String) -> void:
 
 		var signal_id = _get_signal_id_for_instance(instance)
 		quest_data_changed.emit(signal_id)
+
 
 ## Convenience: Set description by quest_id, file_id, or node_id.
 func set_quest_description_by_quest_id(quest_id: StringName, description: String) -> void:
@@ -951,6 +1025,7 @@ func set_quest_description_by_quest_id(quest_id: StringName, description: String
 		if not file_id.is_empty():
 			set_quest_description(quest_id, description)
 
+
 func add_quest_log_entry(node_id: StringName, log_text: String) -> void:
 	var file_id = _get_file_id_for_node(node_id)
 	if not file_id.is_empty() and _pool_registry.has_instance(file_id):
@@ -962,6 +1037,7 @@ func add_quest_log_entry(node_id: StringName, log_text: String) -> void:
 
 		var signal_id = _get_signal_id_for_instance(instance)
 		quest_data_changed.emit(signal_id)
+
 
 func force_skip_node(node_id: StringName) -> void:
 	var file_id = _get_file_id_for_node(node_id)
@@ -992,6 +1068,7 @@ func force_skip_node(node_id: StringName) -> void:
 
 	complete_node(node_def)
 
+
 func reset_all_graphs_and_quests() -> void:
 	if _is_shutting_down:
 		return
@@ -1004,6 +1081,7 @@ func reset_all_graphs_and_quests() -> void:
 	if is_instance_valid(_sync_manager): _sync_manager.clear()
 	if is_instance_valid(_event_manager): _event_manager.clear()
 	if is_instance_valid(_scope_manager): _scope_manager.clear()
+
 
 func start_all_loaded_graphs() -> void:
 	_ensure_execution_context_exists()
@@ -1021,6 +1099,7 @@ func start_all_loaded_graphs() -> void:
 			if is_instance_valid(_logger):
 				_logger.log("System", "Auto-starting: " + final_path)
 			_start_specific_graph_entry(final_path)
+
 
 func start_sub_graph(graph_path: String) -> void:
 	if ResourceLoader.exists(graph_path):
@@ -1063,6 +1142,7 @@ func start_sub_graph(graph_path: String) -> void:
 	else:
 		if _logger: _logger.error("Flow", "Sub-graph at '%s' has no entry point." % graph_path)
 
+
 func push_to_call_stack(parent_node_id: StringName) -> void:
 	var parent_graph_path = _get_quest_path_for_node(parent_node_id)
 	if parent_graph_path.is_empty(): return
@@ -1081,6 +1161,7 @@ func push_to_call_stack(parent_node_id: StringName) -> void:
 		"child_graph_path": child_path
 	})
 
+
 func pop_from_call_stack() -> void:
 	if _call_stack.is_empty(): return
 
@@ -1098,6 +1179,7 @@ func pop_from_call_stack() -> void:
 	if parent_def:
 		complete_node(parent_def)
 
+
 func jump_to_anchor(origin_node: GraphNodeResource, anchor_name: String) -> void:
 	var current_graph_path = _get_quest_path_for_node(origin_node.id)
 	if current_graph_path.is_empty(): return
@@ -1113,6 +1195,7 @@ func jump_to_anchor(origin_node: GraphNodeResource, anchor_name: String) -> void
 		if is_instance_valid(_logger):
 			_logger.warn("Flow", "JumpNode '%s' could not find Anchor '%s'." % [origin_node.id, anchor_name])
 
+
 ## Retrieves a runtime variable from a specific quest instance.
 ## Returns the default value if the quest is not active or the variable doesn't exist.
 func get_quest_variable(query_id: StringName, key: StringName, default: Variant = null) -> Variant:
@@ -1123,6 +1206,7 @@ func get_quest_variable(query_id: StringName, key: StringName, default: Variant 
 		return instance.get_variable(key, default)
 
 	return default
+
 
 ## Returns the current numeric progress of an objective (e.g. 3 out of 5 items).
 ## Returns 0 if the objective is inactive or not found.
@@ -1138,6 +1222,7 @@ func get_objective_progress(objective_id: StringName) -> int:
 			return instance.get_objective_progress(objective_id)
 	return 0
 
+
 ## Returns progress for a specific target key of an objective (e.g. amount of "wood" collected).
 ## Returns 0 if the objective is inactive, not found, or the key has no progress.
 func get_objective_progress_by_key(objective_id: StringName, target_key: StringName) -> int:
@@ -1152,21 +1237,26 @@ func get_objective_progress_by_key(objective_id: StringName, target_key: StringN
 			return instance.get_objective_progress_by_key(objective_id, target_key)
 	return 0
 
+
 # --- ADAPTER ACCESS (for Executors via ExecutionContext) ---
 
 func get_inventory_adapter() -> QuestInventoryAdapterBase:
 	return _inventory_adapter
 
+
 func get_kill_adapter() -> QuestKillAdapterBase:
 	return _kill_adapter
+
 
 # --- SAVE / LOAD ---
 
 ## Returns a Dictionary with all quest instance state for persistence.
+
 func get_save_data() -> Dictionary:
 	if not is_instance_valid(_persistence_manager):
 		return {}
 	return _persistence_manager.save_state(self)
+
 
 ## Restores quest instance state from a previously saved dictionary.
 ## Returns true on success, false if data format is invalid.
@@ -1175,9 +1265,11 @@ func load_from_data(data: Dictionary) -> bool:
 		return false
 	return _persistence_manager.load_state(self, data)
 
+
 # --- CORE LOGIC ---
 
 ## Activates a node and runs its executor.
+
 ## [param instance] can be null for QuestContextNodeResource (entry point) - executors must handle null.
 func _activate_node(node_definition: GraphNodeResource, from_input_port: int = 0) -> void:
 	var logger = _logger
@@ -1212,6 +1304,7 @@ func _activate_node(node_definition: GraphNodeResource, from_input_port: int = 0
 	if instance:
 		_send_instance_update(instance)
 
+
 func complete_node(node_definition: GraphNodeResource) -> void:
 	var logger = _logger
 	var file_id = _node_to_file_id_map.get(node_definition.id, &"")
@@ -1237,6 +1330,7 @@ func complete_node(node_definition: GraphNodeResource) -> void:
 
 	_trigger_next_nodes_from_port(node_definition, 0)
 
+
 func _mark_node_as_logically_complete(node_definition: GraphNodeResource) -> void:
 	_send_debug_message("node_completed", [node_definition.id])
 	var file_id = _node_to_file_id_map.get(node_definition.id, &"")
@@ -1245,8 +1339,10 @@ func _mark_node_as_logically_complete(node_definition: GraphNodeResource) -> voi
 		instance.set_node_active(node_definition.id, false)
 		_send_instance_update(instance)
 
+
 func get_quest_id_for_node(node_id: StringName) -> StringName:
 	return _get_file_id_for_node(node_id)
+
 
 ## Returns the QuestInstance that owns the given node_id, or null if not found.
 ## Use this instead of direct _pool_registry access in managers.
@@ -1255,21 +1351,26 @@ func get_instance_for_node(node_id: StringName) -> QuestInstance:
 	if file_id.is_empty(): return null
 	return _pool_registry.get_instance_by_file_id(file_id) as QuestInstance
 
+
 ## Returns the node definition for the given node_id, or null if not found.
 ## Use this instead of direct _node_definitions access in managers.
 func get_node_definition(node_id: StringName) -> GraphNodeResource:
 	return _node_definitions.get(node_id) as GraphNodeResource
 
+
 func _get_file_id_for_node(node_id: StringName) -> StringName:
 	return _node_to_file_id_map.get(node_id, &"")
 
+
 func _get_signal_id_for_instance(instance: QuestInstance) -> StringName:
 	return instance.quest_id if not instance.quest_id.is_empty() else instance.file_id
+
 
 func _is_valid_quest_id(id: StringName) -> bool:
 	if id.is_empty(): return false
 	if " " in str(id): return not String(id).strip_edges().is_empty()
 	return true
+
 
 func _on_objective_in_node_changed(_new_status: int, node: TaskNodeResource, objective: ObjectiveResource) -> void:
 	var file_id = _get_file_id_for_node(node.id)
@@ -1288,6 +1389,7 @@ func _on_objective_in_node_changed(_new_status: int, node: TaskNodeResource, obj
 		if all_complete:
 			complete_node(node)
 
+
 func _check_tasks_in_instance(instance: QuestInstance) -> void:
 	for node_id in instance.active_node_ids:
 		var node_def = _node_definitions.get(node_id)
@@ -1299,6 +1401,7 @@ func _check_tasks_in_instance(instance: QuestInstance) -> void:
 					break
 			if all_complete:
 				complete_node(node_def)
+
 
 # --- INTERNAL HELPERS ---
 
@@ -1319,6 +1422,7 @@ func _load_registry_cache() -> void:
 				_file_basename_to_path[basename] = p
 			if _logger: _logger.log("System", "Loaded Registry. Known Quests: %d" % _registry_map.size())
 
+
 func _ensure_quest_loaded(quest_id: StringName) -> bool:
 	if _id_to_context_node_map.has(quest_id): return true
 
@@ -1332,6 +1436,7 @@ func _ensure_quest_loaded(quest_id: StringName) -> bool:
 				return true
 	return false
 
+
 func _are_all_requirements_met(instance: QuestInstance, obj: ObjectiveResource) -> bool:
 	if obj.requirements.is_empty():
 		return true
@@ -1343,11 +1448,13 @@ func _are_all_requirements_met(instance: QuestInstance, obj: ObjectiveResource) 
 			return false
 	return true
 
+
 ## Helper to find an ObjectiveResource by its ID within loaded definitions.
 func get_objective_resource(obj_id: StringName) -> ObjectiveResource:
 	if _objective_id_to_resource.has(obj_id):
 		return _objective_id_to_resource[obj_id]
 	return null
+
 
 func _restart_quest_internal(file_id: StringName) -> void:
 	if not _pool_registry.has_instance(file_id): return
@@ -1376,6 +1483,7 @@ func _restart_quest_internal(file_id: StringName) -> void:
 	else:
 		_start_specific_graph_entry(file_id)
 
+
 func _resolve_instance_file_id(query_id: StringName) -> StringName:
 	# 1. O(1) cache lookup
 	if _logical_id_to_file_id.has(query_id):
@@ -1392,9 +1500,11 @@ func _resolve_instance_file_id(query_id: StringName) -> StringName:
 			return fid
 	return query_id
 
+
 func _update_logical_id_map(logical_id: StringName, file_id: StringName) -> void:
 	if logical_id.is_empty(): return
 	_logical_id_to_file_id[logical_id] = file_id
+
 
 func _get_or_create_instance(file_id: StringName, optional_logical_id: StringName = &"") -> QuestInstance:
 	var instance = _pool_registry.get_instance_by_file_id(file_id)
@@ -1410,17 +1520,21 @@ func _get_or_create_instance(file_id: StringName, optional_logical_id: StringNam
 					_update_logical_id_map(instance.quest_id, file_id)
 	return instance
 
+
 func _remove_from_logical_id_map(instance: QuestInstance) -> void:
 	_logical_id_to_file_id.erase(instance.file_id)
 	if not instance.quest_id.is_empty():
 		_logical_id_to_file_id.erase(instance.quest_id)
 
+
 func _register_objective_instance(objective_id: StringName, file_id: StringName) -> void:
 	if objective_id.is_empty(): return
 	_objective_id_to_file_id[objective_id] = file_id
 
+
 func _unregister_objective_instance(objective_id: StringName) -> void:
 	_objective_id_to_file_id.erase(objective_id)
+
 
 func _cleanup_node_runtime(node_id: StringName, instance: QuestInstance) -> void:
 	var node_def = _node_definitions.get(node_id)
@@ -1437,6 +1551,7 @@ func _cleanup_node_runtime(node_id: StringName, instance: QuestInstance) -> void
 
 	instance.set_node_active(node_id, false)
 
+
 func _ensure_execution_context_exists() -> void:
 	if not is_instance_valid(_execution_context):
 		var services = _get_services()
@@ -1445,6 +1560,7 @@ func _ensure_execution_context_exists() -> void:
 			game_state_instance = services.get_game_state()
 
 		_execution_context = ExecutionContext.new(self, game_state_instance, _logger, services)
+
 
 func _load_auto_start_graphs() -> void:
 	var settings = QWConstants.get_settings()
@@ -1465,6 +1581,7 @@ func _load_auto_start_graphs() -> void:
 			if is_instance_valid(res):
 				res.resource_path = path
 				_load_graph_data(res)
+
 
 ## Loads graph definitions and maps Context Nodes. Only the first QuestContextNode per graph is used
 ## for logical_id/file_id mapping (one-context-per-quest-file design). Additional ContextNodes in the
@@ -1531,6 +1648,7 @@ func _load_graph_data(graph_resource: QuestGraphResource) -> void:
 			_node_connections[from_id] = []
 		_node_connections[from_id].append(connection)
 
+
 func _start_specific_graph_entry(graph_path: String) -> void:
 	if not _quest_node_map.has(graph_path):
 		if ResourceLoader.exists(graph_path):
@@ -1567,6 +1685,7 @@ func _start_specific_graph_entry(graph_path: String) -> void:
 		if is_instance_valid(_logger):
 			_logger.warn("Flow", "Auto-start graph '%s' has no StartNode." % graph_path)
 
+
 func _trigger_next_nodes_from_port(from_node: GraphNodeResource, from_port_index: int) -> void:
 	var logger = _logger
 	if logger: logger.log("Flow", "    - Triggering next nodes from '%s' port %d..." % [from_node.id, from_port_index])
@@ -1585,10 +1704,12 @@ func _trigger_next_nodes_from_port(from_node: GraphNodeResource, from_port_index
 	if logger and triggered_count == 0 and from_node is GiveTakeItemNodeResource and from_port_index == 0:
 		logger.warn("Flow", "    - No connections from '%s' Success port. Connect the Success output." % from_node.id)
 
+
 ## Called by QuestSyncManager via call_deferred to process pending sync operations for a node.
 func _process_sync_node_batch(node_id: StringName, instance: QuestInstance) -> void:
 	if is_instance_valid(_sync_manager):
 		_sync_manager.process_pending(node_id, instance)
+
 
 func _cleanup_graph_instances(graph_path: String) -> void:
 	var file_id_to_cleanup: StringName = StringName(graph_path.get_file().get_basename())
@@ -1602,7 +1723,7 @@ func _cleanup_graph_instances(graph_path: String) -> void:
 		instance.active_node_ids.clear()
 
 		var keep_in_memory = not instance.quest_id.is_empty() or \
-							 instance.current_status != QWEnums.QuestState.UNAVAILABLE
+				instance.current_status != QWEnums.QuestState.UNAVAILABLE
 
 		if keep_in_memory:
 			if is_instance_valid(_logger):
@@ -1613,8 +1734,10 @@ func _cleanup_graph_instances(graph_path: String) -> void:
 			if is_instance_valid(_logger):
 				_logger.log("System", "Graph finished and Instance '%s' garbage collected." % file_id_to_cleanup)
 
+
 func _get_quest_path_for_node(node_id: StringName) -> String:
 	return _node_id_to_quest_path.get(node_id, "")
+
 
 func _on_interacted_with_object(interacted_node: Node):
 	if not is_instance_valid(_execution_context): return
@@ -1636,6 +1759,7 @@ func _on_interacted_with_object(interacted_node: Node):
 					global_bus.quest_objective_state_changed.emit(sig_id, obj.id, ObjectiveResource.Status.COMPLETED)
 
 				_check_tasks_in_instance(instance)
+
 
 func _on_enemy_was_killed(enemy_id: StringName):
 	if not is_instance_valid(_execution_context): return
@@ -1675,6 +1799,7 @@ func _on_enemy_was_killed(enemy_id: StringName):
 						global_bus.quest_objective_state_changed.emit(signal_id, obj.id, ObjectiveResource.Status.COMPLETED)
 					_check_tasks_in_instance(instance)
 
+
 func _on_entered_location(location_id: String):
 	if not is_instance_valid(_execution_context): return
 
@@ -1696,15 +1821,18 @@ func _on_entered_location(location_id: String):
 
 				_check_tasks_in_instance(instance)
 
+
 func _check_item_collect_objectives() -> void:
 	if not is_instance_valid(_execution_context) or not is_instance_valid(_inventory_adapter): return
 	var count_func = func(key_str: StringName) -> int: return _inventory_adapter.count_item(key_str)
 	_check_objectives_from_adapter(_execution_context.item_objective_listeners, count_func, true)
 
+
 func _check_kill_objectives() -> void:
 	if not is_instance_valid(_execution_context) or not is_instance_valid(_kill_adapter): return
 	var count_func = func(key_str: StringName) -> int: return _kill_adapter.count_kill(key_str)
 	_check_objectives_from_adapter(_execution_context.kill_objective_listeners, count_func, false)
+
 
 ## Shared logic for adapter-based objective checks (item collect, kill). [param skip_complete_on_delivery] skips
 ## completion when obj.complete_on_delivery is true (used for ITEM_COLLECT; GiveTakeItem completes those).
@@ -1746,10 +1874,12 @@ func _check_objectives_from_adapter(listeners_dict: Dictionary, count_func: Call
 					quest_data_changed.emit(sig_id)
 					_check_tasks_in_instance(instance)
 
+
 func _send_debug_message(message: String, data: Array = []) -> void:
 	if not OS.is_debug_build(): return
 	if not EngineDebugger.is_active(): return
 	EngineDebugger.send_message("quest_weaver:%s" % message, data)
+
 
 func _send_instance_update(instance: QuestInstance) -> void:
 	if not EngineDebugger.is_active(): return
@@ -1769,6 +1899,7 @@ func _send_instance_update(instance: QuestInstance) -> void:
 	}
 	_send_debug_message("instance_update", [payload])
 
+
 # --- SHUTDOWN LOGIC ---
 
 func _notification(what: int) -> void:
@@ -1778,6 +1909,7 @@ func _notification(what: int) -> void:
 	elif what == NOTIFICATION_EXIT_TREE:
 		if not _is_shutting_down:
 			_on_exit_cleanup()
+
 
 ## Light shutdown for programmatic teardown (e.g. WM_CLOSE_REQUEST).
 ## Clears runtime state (instances, definitions, exec context) and all static maps for consistency.
@@ -1811,9 +1943,11 @@ func shutdown() -> void:
 	_anchor_name_to_node.clear()
 	QWConstants.clear_static_references()
 
+
 # --- DEBUG API (Developer Tools) ---
 
 ## Prints the full internal state of a quest instance to the console (JSON formatted).
+
 func debug_dump_quest_state(query_id: StringName) -> void:
 	var file_id = _resolve_instance_file_id(query_id)
 	var instance = _pool_registry.get_instance_by_file_id(file_id)
@@ -1822,6 +1956,7 @@ func debug_dump_quest_state(query_id: StringName) -> void:
 		return
 	var data = instance.get_save_data()
 	print(JSON.stringify(data, "\t"))
+
 
 ## Instantly completes all objectives of currently ACTIVE task nodes in a quest.
 func debug_complete_active_tasks(query_id: StringName) -> void:
@@ -1845,6 +1980,7 @@ func debug_complete_active_tasks(query_id: StringName) -> void:
 		quest_data_changed.emit(signal_id)
 		_check_tasks_in_instance(instance)
 
+
 ## Sets a quest variable directly (bypassing normal logic flow).
 func debug_set_variable(query_id: StringName, key: StringName, value: Variant) -> void:
 	var file_id = _resolve_instance_file_id(query_id)
@@ -1852,6 +1988,7 @@ func debug_set_variable(query_id: StringName, key: StringName, value: Variant) -
 	if instance:
 		instance.set_variable(key, value)
 		print("[QW Debug] Set variable '%s' = %s in quest '%s'" % [key, value, query_id])
+
 
 ## Prints all registered quest IDs and their paths (and status if instance is active).
 func debug_list_quests() -> void:
@@ -1868,6 +2005,7 @@ func debug_list_quests() -> void:
 			status_str = QWEnums.QuestState.keys()[instance.current_status] if instance.current_status >= 0 and instance.current_status < QWEnums.QuestState.size() else str(instance.current_status)
 		print("  %s -> %s [%s]" % [quest_id, path, status_str])
 
+
 ## Prints all active quest instances (file_id, quest_id, status, active nodes) to the console.
 func debug_list_active_instances() -> void:
 	print("[QW Debug] --- Active Instances ---")
@@ -1882,3 +2020,4 @@ func debug_list_active_instances() -> void:
 		for k in instance.active_node_ids:
 			active_keys.append(str(k))
 		print("  file_id=%s quest_id=%s status=%s active_nodes=%s" % [file_id, instance.quest_id, status_str, active_keys])
+

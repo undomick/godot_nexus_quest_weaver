@@ -1,16 +1,19 @@
 # res://addons/quest_weaver/editor/presentation/base_ui_panel.gd
 class_name BaseUIPanel
+
 extends MarginContainer
 
 signal presentation_completed
 
 const QWCharAnimationEffect = preload("res://addons/quest_weaver/editor/presentation/qw_char_animation_effect.gd")
 
-@onready var title_label: RichTextLabel = %TitleLabel
-@onready var message_label: RichTextLabel = %MessageLabel
-
 var _active_tween: Tween = null
+
 var _is_aborted: bool = false
+
+@onready var title_label: RichTextLabel = %TitleLabel
+
+@onready var message_label: RichTextLabel = %MessageLabel
 
 ## Stops any running animation and clears effects. Call before queue_free during shutdown.
 func abort_presentation() -> void:
@@ -20,11 +23,13 @@ func abort_presentation() -> void:
 		_active_tween = null
 	_clear_animation_effects()
 
+
 func _exit_tree() -> void:
 	if is_instance_valid(_active_tween):
 		_active_tween.kill()
 		_active_tween = null
 	_clear_animation_effects()
+
 
 func _clear_animation_effects() -> void:
 	for label in [title_label, message_label]:
@@ -37,9 +42,11 @@ func _clear_animation_effects() -> void:
 				effect.owner_label = null
 		label.custom_effects.clear()
 
+
 func present(data: Dictionary) -> void:
 	self.modulate.a = 0.0
 	_presentation_flow(data)
+
 
 func _presentation_flow(data: Dictionary) -> void:
 	title_label.text = tr(data.get("title", ""))
@@ -70,6 +77,7 @@ func _presentation_flow(data: Dictionary) -> void:
 
 	presentation_completed.emit()
 
+
 func _set_initial_state(preset: int) -> void:
 	modulate = Color.WHITE
 	scale = Vector2.ONE
@@ -85,6 +93,7 @@ func _set_initial_state(preset: int) -> void:
 		ShowUIMessageNodeResource.AnimationPreset.SCALE_UP: scale = Vector2(0.8, 0.8)
 		ShowUIMessageNodeResource.AnimationPreset.SCALE_DOWN: scale = Vector2(1.2, 1.2)
 		ShowUIMessageNodeResource.AnimationPreset.SLIDE_ROTATED: position.x = -50; rotation_degrees = -5
+
 
 func _play_animation(data: Dictionary, is_in: bool) -> Tween:
 	var preset_key = "anim_in" if is_in else "anim_out"
@@ -151,6 +160,7 @@ func _play_animation(data: Dictionary, is_in: bool) -> Tween:
 
 	return tween
 
+
 func _animate_text(tween: Tween, label: RichTextLabel, data: Dictionary, is_in: bool, delay: float) -> void:
 	if label.text.is_empty(): return
 
@@ -188,3 +198,4 @@ func _animate_text(tween: Tween, label: RichTextLabel, data: Dictionary, is_in: 
 		var property_tweener = tween.tween_property(label, "modulate:a", target_alpha, duration)
 		if delay > 0.0:
 			property_tweener.set_delay(delay)
+

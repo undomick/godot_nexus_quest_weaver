@@ -1,6 +1,8 @@
 # res://addons/quest_weaver/editor/conditions/condition_resource.gd
 @tool
+
 class_name ConditionResource
+
 extends Resource
 
 # Note: Local QuestState enum removed. We now use QWEnums.QuestState.
@@ -9,48 +11,62 @@ enum ConditionType {
 	BOOL, CHANCE, CHECK_ITEM, CHECK_QUEST_STATUS, CHECK_VARIABLE, CHECK_SYNCHRONIZER,
 	CHECK_OBJECTIVE_REQUIREMENT, CHECK_OBJECTIVE_STATUS, COMPOUND
 }
+
+enum Operator { EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_OR_EQUAL, LESS_OR_EQUAL }
+
+# --- CheckSynchronizerCondition ---
+enum CheckType { RECEIVED_N_INPUTS, RECEIVED_SPECIFIC_INPUT }
+
+# --- CompoundCondition ---
+enum LogicOperator { AND, OR }
+
 @export var type: ConditionType = ConditionType.BOOL
 
 # --- BoolCondition ---
 @export var is_true: bool = true
 
-# --- ChanceCondition ---
-@export_range(0.0, 100.0, 0.1, "suffix:%") var chance_percentage: float = 50.0
-
 # --- CheckItemCondition ---
 @export var item_id: StringName = &""
+
 @export var amount: int = 1
 
 # --- CheckQuestStatusCondition ---
 @export var quest_id: StringName = &""
+
 # Updated to use Global Enum
 @export var expected_status: QWEnums.QuestState = QWEnums.QuestState.COMPLETED
+
 ## When expected_status is CUSTOM, specifies which pool. Empty = any custom pool.
 @export var expected_custom_pool_id: StringName = &""
 
 # --- CheckVariableCondition ---
 @export var variable_name: StringName = &""
+
 @export var expected_value_string: String = ""
-enum Operator { EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_OR_EQUAL, LESS_OR_EQUAL }
+
 @export var operator: Operator = Operator.EQUALS
 
-# --- CheckSynchronizerCondition ---
-enum CheckType { RECEIVED_N_INPUTS, RECEIVED_SPECIFIC_INPUT }
 @export var check_type: CheckType = CheckType.RECEIVED_N_INPUTS
+
 @export var sync_value: int = 1
 
 # --- CheckObjectiveStatusCondition ---
 @export var objective_id: StringName = &""
+
 @export var expected_objective_status: ObjectiveResource.Status = ObjectiveResource.Status.COMPLETED
 
-# --- CompoundCondition ---
-enum LogicOperator { AND, OR }
 @export var logic_operator: LogicOperator = LogicOperator.AND
+
 @export var sub_conditions: Array[ConditionResource] = []
 
 @export var include_inventory_holdings: bool = false
+
 ## If true: passes when player has any progress (potential > 0) for at least one requirement. Use with GiveTakeItem allow_partial_deposit.
 @export var has_any_progress: bool = false
+
+# --- ChanceCondition ---
+@export_range(0.0, 100.0, 0.1, "suffix:%") var chance_percentage: float = 50.0
+
 
 func check(context: Variant, instance: QuestInstance = null) -> bool:
 	var controller = _get_controller_safely(context)
@@ -154,6 +170,7 @@ func check(context: Variant, instance: QuestInstance = null) -> bool:
 			push_error("ConditionResource: Unhandled ConditionType %s" % type)
 			return false
 
+
 func _get_controller_safely(context: Variant) -> Node:
 	if context is RefCounted and context.get("quest_controller"):
 		return context.quest_controller
@@ -165,6 +182,7 @@ func _get_controller_safely(context: Variant) -> Node:
 			return services.quest_controller
 
 	return null
+
 
 func to_dictionary() -> Dictionary:
 	var sub_conditions_data = []
@@ -187,6 +205,7 @@ func to_dictionary() -> Dictionary:
 		"has_any_progress": self.has_any_progress,
 		"sub_conditions": sub_conditions_data,
 	}
+
 
 func from_dictionary(data: Dictionary) -> void:
 	self.type = _defensive_load(data, "type", ConditionType.keys(), ConditionType.BOOL)
@@ -219,8 +238,10 @@ func from_dictionary(data: Dictionary) -> void:
 				new_sub_cond.from_dictionary(sub_cond_dict)
 				self.sub_conditions.append(new_sub_cond)
 
+
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
 	var val = data.get(prop, default_val)
 	if val is int and val >= 0 and val < keys.size():
 		return val
 	return default_val
+

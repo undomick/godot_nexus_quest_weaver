@@ -1,36 +1,51 @@
 # res://addons/quest_weaver/editor/properties_panel.gd
 @tool
+
 extends PanelContainer
 
 signal property_update_requested(node_id: StringName, property_name: String, new_value: Variant, sub_resource: Resource, extra: Dictionary)
+
 signal property_preview_requested(node_id: StringName, property_name: String, value: Variant)
+
 signal complex_action_requested(node_id: StringName, action: String, payload: Dictionary)
+
 signal dive_in_requested(graph_path: String)
+
 signal node_ports_changed(node_id: StringName)
 
-# --- UI References ---
-@onready var node_type_label: Label = %NodeTypeLabel
-@onready var editor_host: VBoxContainer = %PropertyFieldsContainer
-@onready var no_selection_label: Label = %NoSelectionLabel
 
 # --- Dependencies & State ---
 var node_registry: NodeTypeRegistry
+
 var data_manager: QWGraphData
+
 var editor_plugin
+
 var current_editor_instance: Node
+
 var _inspected_node_data: GraphNodeResource
+
 var _editor_scene_cache: Dictionary = {} # editor_path -> PackedScene
+
 var _last_refreshed_graph_path: String = ""
 
+# --- UI References ---
+@onready var node_type_label: Label = %NodeTypeLabel
+
+@onready var editor_host: VBoxContainer = %PropertyFieldsContainer
+
+@onready var no_selection_label: Label = %NoSelectionLabel
 
 func _ready() -> void:
 	# Removed window specific signals (close_requested etc.)
 	_update_visibility()
 
+
 func initialize(p_node_registry: NodeTypeRegistry, p_data_manager: QWGraphData, p_editor_plugin) -> void:
 	self.node_registry = p_node_registry
 	self.data_manager = p_data_manager
 	self.editor_plugin = p_editor_plugin
+
 
 func inspect_node(node_data: GraphNodeResource) -> void:
 	if not is_instance_valid(node_data):
@@ -94,6 +109,7 @@ func inspect_node(node_data: GraphNodeResource) -> void:
 		var id_label = Label.new()
 		id_label.text = node_data.id
 
+
 func clear_inspection() -> void:
 	_inspected_node_data = null
 	# Use free() not queue_free(): during editor shutdown deferred calls may not run; immediate release avoids ConditionResource leak
@@ -106,6 +122,7 @@ func clear_inspection() -> void:
 			child.free()
 	_update_visibility()
 
+
 func refresh_inspected_node() -> void:
 	if not is_instance_valid(_inspected_node_data): return
 	var current_graph = data_manager.get_active_graph()
@@ -114,9 +131,11 @@ func refresh_inspected_node() -> void:
 	if is_instance_valid(fresh_node_data):
 		inspect_node(fresh_node_data)
 
+
 func get_inspected_node_id() -> StringName:
 	if is_instance_valid(_inspected_node_data): return _inspected_node_data.id
 	return &""
+
 
 # --- Helper ---
 func _update_visibility() -> void:
@@ -130,3 +149,4 @@ func _update_visibility() -> void:
 
 	if is_instance_valid(no_selection_label):
 		no_selection_label.visible = not has_target
+

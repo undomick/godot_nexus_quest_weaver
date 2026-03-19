@@ -37,7 +37,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 
 		# Snapshot logic for Item Collect (Track Progress Since Activation)
 		if objective.trigger_type == ObjectiveResource.TriggerType.ITEM_COLLECT and \
-		   objective.track_progress_since_activation and is_instance_valid(inventory_adapter):
+				objective.track_progress_since_activation and is_instance_valid(inventory_adapter):
 			for item_id in objective.requirements:
 				var current_amount = inventory_adapter.count_item(item_id)
 				var snapshot_key = StringName("start_amount_%s_%s" % [objective.id, item_id])

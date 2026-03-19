@@ -1,7 +1,12 @@
 # res://addons/quest_weaver/nodes/logic/set_variable_node/set_variable_node_resource.gd
 @tool
+
 class_name SetVariableNodeResource
+
 extends GraphNodeResource
+
+## Optional: An operator to modify values instead of just overwriting them.
+enum Operator { SET, ADD, SUBTRACT, MULTIPLY, DIVIDE, TOGGLE }
 
 ## The name of the variable in the GameState to modify.
 @export var variable_name: StringName = &""
@@ -9,21 +14,20 @@ extends GraphNodeResource
 ## The value to set, stored as a string for editor compatibility.
 @export var value_to_set_string: String = ""
 
-## Optional: An operator to modify values instead of just overwriting them.
-enum Operator { SET, ADD, SUBTRACT, MULTIPLY, DIVIDE, TOGGLE }
 @export var operator: Operator = Operator.SET
-
 
 func _init():
 	category = "Logic"
 	input_ports = ["In"]
 	_update_ports_from_data()
 
+
 func _update_ports_from_data() -> void:
 	if is_terminal:
 		output_ports = []
 	else:
 		output_ports = ["Out"]
+
 
 func get_editor_summary() -> String:
 	var op_text: String
@@ -44,11 +48,14 @@ func get_editor_summary() -> String:
 	var value_text = value_to_set_string if not value_to_set_string.is_empty() else "???"
 	return "%s %s %s" % [var_name_text, op_text, value_text]
 
+
 func get_description() -> String:
 	return "Sets or modifies a global variable in the GameState (Supports math and toggle operations)."
 
+
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/setvar.svg")
+
 
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
@@ -56,6 +63,7 @@ func to_dictionary() -> Dictionary:
 	data["value_to_set_string"] = self.value_to_set_string
 	data["operator"] = self.operator
 	return data
+
 
 func from_dictionary(data: Dictionary):
 	if not data is Dictionary:
@@ -66,6 +74,7 @@ func from_dictionary(data: Dictionary):
 	self.operator = _defensive_load(data, "operator", Operator.keys(), Operator.SET)
 	_update_ports_from_data()
 
+
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	if variable_name.is_empty():
@@ -74,6 +83,7 @@ func _validate(_context: Dictionary) -> Array[ValidationResult]:
 		results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Set Variable: Value is empty (except for TOGGLE operator).", id))
 	return results
 
+
 ## PRIVATE METHOD: Checks if an integer value is valid for the enum type.
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
 	var val = data.get(prop, default_val)
@@ -81,5 +91,7 @@ func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: i
 		return val
 	return default_val
 
+
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL
+

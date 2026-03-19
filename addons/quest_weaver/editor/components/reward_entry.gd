@@ -1,22 +1,33 @@
 # res://addons/quest_weaver/editor/components/reward_entry.gd
 @tool
+
 class_name RewardEditorEntry
+
 extends VBoxContainer
 
 signal remove_requested
+
 signal data_changed
 
-@onready var index_label: Label = %IndexLabel
-@onready var auto_complete: Control = %AutoComplete
-@onready var amount_spinbox: SpinBox = %AmountSpinBox
-@onready var optional_checkbox: CheckBox = %OptionalCheckbox
-@onready var objective_container: HBoxContainer = %ObjectiveContainer
-@onready var objective_edit: LineEdit = %ObjectiveEdit
-@onready var delete_button: Button = %DeleteButton
-
 var _reward_data: Dictionary
+
 var _is_setup: bool = false
+
 var _is_temp_display := false
+
+@onready var index_label: Label = %IndexLabel
+
+@onready var auto_complete: Control = %AutoComplete
+
+@onready var amount_spinbox: SpinBox = %AmountSpinBox
+
+@onready var optional_checkbox: CheckBox = %OptionalCheckbox
+
+@onready var objective_container: HBoxContainer = %ObjectiveContainer
+
+@onready var objective_edit: LineEdit = %ObjectiveEdit
+
+@onready var delete_button: Button = %DeleteButton
 
 func _ready() -> void:
 	if is_instance_valid(auto_complete):
@@ -34,6 +45,7 @@ func _ready() -> void:
 	objective_edit.focus_exited.connect(_on_objective_changed)
 	optional_checkbox.toggled.connect(_on_optional_toggled)
 	delete_button.pressed.connect(func(): remove_requested.emit())
+
 
 func setup(data: Dictionary, index: int, is_temp: bool = false) -> void:
 	_is_setup = true
@@ -69,6 +81,7 @@ func setup(data: Dictionary, index: int, is_temp: bool = false) -> void:
 
 	_is_setup = false
 
+
 func _on_id_submitted(new_text: String) -> void:
 	if _is_setup: return
 
@@ -79,10 +92,12 @@ func _on_id_submitted(new_text: String) -> void:
 	_is_temp_display = false
 	data_changed.emit()
 
+
 func _on_amount_changed(new_val: float) -> void:
 	if _is_setup: return
 	_reward_data["amount"] = int(new_val)
 	data_changed.emit()
+
 
 func _on_optional_toggled(toggled_on: bool) -> void:
 	if not is_instance_valid(objective_edit): return
@@ -97,9 +112,11 @@ func _on_optional_toggled(toggled_on: bool) -> void:
 			_reward_data["linked_objective_id"] = &""
 			data_changed.emit()
 
+
 func _on_objective_changed() -> void:
 	if _is_setup: return
 	var new_text = objective_edit.text
 	if _reward_data.get("linked_objective_id", "") != new_text:
 		_reward_data["linked_objective_id"] = StringName(new_text)
 		data_changed.emit()
+

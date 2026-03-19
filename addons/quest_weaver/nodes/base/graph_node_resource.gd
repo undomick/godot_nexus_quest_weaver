@@ -1,28 +1,44 @@
 @tool
+
 class_name GraphNodeResource
+
 extends Resource
 
+## Static cache for scripts loaded in from_dictionary(). Key: script_path -> Script.
+static var _script_cache: Dictionary = {}
+
 @export var id: StringName
+
 @export var category: StringName = &"Default"
+
 @export var graph_position: Vector2
+
 @export var input_ports: Array[StringName] = [&"In"]
+
 @export var output_ports: Array[StringName] = [&"Out"]
+
 @export var is_terminal: bool = false  # disables output
 
 ## Provides a brief, human-readable summary for display in the graph editor.
 func get_editor_summary() -> String:
 	return ""
 
+
+
 ## Returns a short description of what this node does.
 ## Used for tooltips in the Add Node menu.
 func get_description() -> String:
 	return "No description available."
+
+
 
 ## Returns an icon for the menu and graph header.
 ## By default, it tries to load an SVG with the same name as the script
 ## from an 'icons' subfolder (Convention over Configuration).
 func get_icon() -> Texture2D:
 	return null
+
+
 
 func to_dictionary() -> Dictionary:
 	return {
@@ -34,6 +50,8 @@ func to_dictionary() -> Dictionary:
 		"output_ports": output_ports,
 		"is_terminal": is_terminal
 	}
+
+
 
 func from_dictionary(data: Dictionary):
 	self.id = StringName(data.get("id", &""))
@@ -53,11 +71,15 @@ func from_dictionary(data: Dictionary):
 		for p in outp:
 			self.output_ports.append(StringName(p))
 
+
+
 ## Virtual method for validation.
 ## 'context' contains references to 'item_registry' and 'quest_registry'.
 ## Override this in specific node resources to add custom checks.
 func _validate(context: Dictionary) -> Array[ValidationResult]:
 	return [] # By default, a node is considered valid.
+
+
 
 ## Returns the name displayed in the "Add Node" menu.
 ## By default, it tries to format the class name (e.g. "TimerNodeResource" -> "Timer Node").
@@ -69,13 +91,14 @@ func get_display_name() -> String:
 	# Capitalize snake_case to Title Case (e.g. "timer" -> "Timer")
 	return clean_name.capitalize() + " Node"
 
+
+
 ## Determines the default visual size of the node in the graph.
 ## Override this in child classes to change the appearance (e.g., SMALL, LARGE).
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.MEDIUM
 
-## Static cache for scripts loaded in from_dictionary(). Key: script_path -> Script.
-static var _script_cache: Dictionary = {}
+
 
 ## Loads a script by path with caching. Use in from_dictionary() to avoid repeated load() calls.
 static func get_script_cached(path: String) -> Script:
@@ -88,6 +111,8 @@ static func get_script_cached(path: String) -> Script:
 			_script_cache[path] = s
 	return s
 
+
+
 ## Creates a ConditionResource from script_path without loading the script when it's condition_resource.gd.
 ## Avoids load() for ConditionResource to reduce GDScriptCache refs (Godot #77513).
 static func new_condition_from_path(script_path: String) -> Resource:
@@ -98,9 +123,13 @@ static func new_condition_from_path(script_path: String) -> Resource:
 	var script := get_script_cached(script_path)
 	return script.new() if script else null
 
+
+
 ## Clears the script cache. Call when editor cache is invalidated.
 static func clear_script_cache() -> void:
 	_script_cache.clear()
+
+
 
 ## Safely loads a Vector2 from a dictionary. Handles Vector2, Dictionary with x/y keys, or defaults.
 func _safe_vector2(data: Dictionary, prop: String, default_val: Vector2) -> Vector2:
@@ -111,6 +140,8 @@ func _safe_vector2(data: Dictionary, prop: String, default_val: Vector2) -> Vect
 		return Vector2(float(val.get("x", 0)), float(val.get("y", 0)))
 	return default_val
 
+
+
 ## Safely loads a bool from a dictionary. Handles bool, string "true"/"false", or defaults.
 func _safe_bool(data: Dictionary, prop: String, default_val: bool) -> bool:
 	var val = data.get(prop, default_val)
@@ -119,6 +150,8 @@ func _safe_bool(data: Dictionary, prop: String, default_val: bool) -> bool:
 	if val is String:
 		return val.to_lower() == "true"
 	return default_val
+
+
 
 ## Static helper for defensive enum deserialization. Use when loading enum values from dict.
 ## Returns the enum index if valid (int in range), otherwise default_val.

@@ -1,12 +1,15 @@
 @tool
+
 class_name ObjectiveResource
+
 extends Resource
 
 enum Status { INACTIVE, ACTIVE, COMPLETED, FAILED }
-@export var id: StringName
-@export_multiline var description: String
 
 enum TriggerType { MANUAL, ITEM_COLLECT, LOCATION_ENTER, INTERACT, KILL }
+
+@export var id: StringName
+
 @export var trigger_type: TriggerType = TriggerType.MANUAL
 
 # NEW: Stores targets and amounts. Format: { StringName(ID): int(Amount) }
@@ -22,20 +25,28 @@ enum TriggerType { MANUAL, ITEM_COLLECT, LOCATION_ENTER, INTERACT, KILL }
 
 # UI Hints
 @export var show_counter: bool = true
+
 @export var is_optional: bool = false
+
 @export var is_hidden: bool = false
 
 ## If true: Objective is not completed when enough items are collected. Waits until GiveTakeItem reports enough items deposited.
 @export var complete_on_delivery: bool = false
 
+@export_multiline var description: String
+
 # Runtime Properties
 var status: int = 0
+
 var owner_task_node_id: StringName = &""
+
 var current_progress: Variant = 0
 
 func _init():
 	requirements = {}
 	trigger_params = {}
+
+
 
 func to_dictionary() -> Dictionary:
 	return {
@@ -51,6 +62,8 @@ func to_dictionary() -> Dictionary:
 		"is_hidden": self.is_hidden,
 		"complete_on_delivery": self.complete_on_delivery
 	}
+
+
 
 func from_dictionary(data: Dictionary) -> void:
 	self.id = StringName(data.get("id", &""))
@@ -88,8 +101,12 @@ func from_dictionary(data: Dictionary) -> void:
 	self.current_progress = 0
 	self.owner_task_node_id = &""
 
+
+
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
 	var val = data.get(prop, default_val)
 	if val is int and val >= 0 and val < keys.size():
 		return val
 	return default_val
+
+

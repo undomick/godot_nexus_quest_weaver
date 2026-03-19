@@ -1,20 +1,30 @@
 # res://addons/quest_weaver/editor/components/item_stack_entry.gd
 @tool
+
 class_name ItemStackEntry
+
 extends HBoxContainer
 
 signal key_changed(old_key: StringName, new_key: StringName)
+
 signal value_changed(key: StringName, new_amount: int)
+
 signal remove_requested(key: StringName)
 
-@onready var index_label: Label = %IndexLabel
-@onready var auto_complete: Control = %AutoComplete
-@onready var amount_spinbox: SpinBox = %AmountSpinBox
-@onready var delete_button: Button = %DeleteButton
 
 var _current_key: StringName = &""
+
 var _is_setup := false
+
 var _is_temp_display := false
+
+@onready var index_label: Label = %IndexLabel
+
+@onready var auto_complete: Control = %AutoComplete
+
+@onready var amount_spinbox: SpinBox = %AmountSpinBox
+
+@onready var delete_button: Button = %DeleteButton
 
 func _ready() -> void:
 	if is_instance_valid(auto_complete):
@@ -28,6 +38,7 @@ func _ready() -> void:
 
 	amount_spinbox.value_changed.connect(_on_amount_changed)
 	delete_button.pressed.connect(func(): remove_requested.emit(_current_key))
+
 
 func setup(index: int, item_id: StringName, amount: int, is_temp: bool = false) -> void:
 	_is_setup = true
@@ -53,6 +64,7 @@ func setup(index: int, item_id: StringName, amount: int, is_temp: bool = false) 
 
 	_is_setup = false
 
+
 func _on_id_submitted(new_text: String) -> void:
 	if _is_setup: return
 
@@ -65,6 +77,8 @@ func _on_id_submitted(new_text: String) -> void:
 		_current_key = new_key
 		_is_temp_display = false
 
+
 func _on_amount_changed(new_val: float) -> void:
 	if _is_setup: return
 	value_changed.emit(_current_key, int(new_val))
+

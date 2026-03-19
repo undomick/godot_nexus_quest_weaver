@@ -1,14 +1,17 @@
 # res://addons/quest_weaver/nodes/flow/timer_node/timer_node_editor.gd
 @tool
+
 extends NodePropertyEditorBase
 
-@onready var duration_edit: LineEdit = %DurationEdit
 var _duration_undo_value: int = 0
+
+@onready var duration_edit: LineEdit = %DurationEdit
 
 func _ready() -> void:
 	duration_edit.focus_entered.connect(_on_duration_edit_started)
 	duration_edit.text_submitted.connect(func(_new_text): _on_value_confirmed())
 	duration_edit.focus_exited.connect(_on_value_confirmed)
+
 
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
@@ -16,9 +19,11 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 
 	duration_edit.text = str(node_data.duration)
 
+
 func _on_duration_edit_started() -> void:
 	if is_instance_valid(edited_node_data):
 		_duration_undo_value = edited_node_data.duration
+
 
 func _on_value_confirmed():
 	var input_text = duration_edit.text
@@ -40,3 +45,4 @@ func _on_value_confirmed():
 		}
 
 		property_update_requested.emit(edited_node_data.id, "duration", new_value, null, {})
+

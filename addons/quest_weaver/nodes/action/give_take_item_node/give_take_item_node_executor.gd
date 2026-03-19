@@ -1,8 +1,10 @@
-# res://addons/quest_weaver/nodes/action/give_take_item_node/give_take_item_node_executor.gd
-## Uses QuestController internals (_trigger_next_nodes_from_port, _mark_node_as_logically_complete,
 ## _check_tasks_in_instance) by design. Item flow requires tight integration; these APIs are not exposed publicly.
 class_name GiveTakeItemNodeExecutor
+
 extends NodeExecutor
+
+# res://addons/quest_weaver/nodes/action/give_take_item_node/give_take_item_node_executor.gd
+## Uses QuestController internals (_trigger_next_nodes_from_port, _mark_node_as_logically_complete,
 
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var item_node = node as GiveTakeItemNodeResource
@@ -125,11 +127,13 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		controller._mark_node_as_logically_complete(item_node)
 		return
 
+
 # ==============================================================================
 # HELPER: TAKE LOGIC (Atomic & Partial)
 # ==============================================================================
 
 # Returns: 0 = full success, 1 = partial (some taken), 2 = failure (nothing taken)
+
 func _process_take_logic(adapter: QuestInventoryAdapterBase, requirements: Dictionary, partial: bool, instance: QuestInstance, update_obj_id: StringName, logger: QWLogger, controller: QuestController) -> int:
 	# 1. ATOMIC CHECK (If NOT partial)
 	if not partial:
@@ -199,6 +203,7 @@ func _process_take_logic(adapter: QuestInventoryAdapterBase, requirements: Dicti
 		return 1  # PARTIAL
 	return 0  # SUCCESS
 
+
 func _complete_objective_if_requested(controller: QuestController, instance: QuestInstance, objective_id: StringName) -> void:
 	if objective_id == &"": return
 	instance.set_objective_status(objective_id, ObjectiveResource.Status.COMPLETED)
@@ -209,6 +214,7 @@ func _complete_objective_if_requested(controller: QuestController, instance: Que
 		global_bus.quest_objective_state_changed.emit(signal_id, objective_id, ObjectiveResource.Status.COMPLETED)
 	controller._check_tasks_in_instance(instance)
 
+
 ## Maps result (0=success, 1=partial, 2=failure) to output port index.
 ## Uses output_ports.size() as source of truth - more robust than allow_partial_deposit
 ## in case of deserialization/editor sync issues.
@@ -218,3 +224,4 @@ func _take_result_to_port(result: int, item_node: GiveTakeItemNodeResource) -> i
 		return result  # 0=Success, 1=Partial, 2=Failure
 	# Two ports: map partial to success
 	return 0 if result <= 1 else 1
+

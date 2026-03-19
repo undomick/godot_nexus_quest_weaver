@@ -1,19 +1,14 @@
 # res://addons/quest_weaver/editor/components/auto_complete_line_edit.gd
 @tool
+
 class_name AutoCompleteLineEdit
+
 extends VBoxContainer
 
 signal text_changed(new_text: String)
+
 signal text_submitted(final_text: String)
 
-@onready var filter_edit: LineEdit = %FilterEdit
-@onready var popup_container: PanelContainer = %PopupContainer
-@onready var result_list: ItemList = %ResultList
-
-var _all_items: Array[String] = []
-# Tracks if the mouse is currently hovering over the popup list.
-# Essential to distinguish between "clicking a list item" and "clicking outside".
-var _mouse_is_over_popup := false
 
 var text: String:
 	get:
@@ -23,6 +18,19 @@ var text: String:
 			filter_edit.text = value
 		else:
 			call_deferred(&"set", "text", value)
+
+
+var _all_items: Array[String] = []
+
+# Tracks if the mouse is currently hovering over the popup list.
+# Essential to distinguish between "clicking a list item" and "clicking outside".
+var _mouse_is_over_popup := false
+
+@onready var filter_edit: LineEdit = %FilterEdit
+
+@onready var popup_container: PanelContainer = %PopupContainer
+
+@onready var result_list: ItemList = %ResultList
 
 func _ready() -> void:
 	result_list.focus_mode = Control.FOCUS_NONE
@@ -45,17 +53,21 @@ func _ready() -> void:
 	popup_container.mouse_entered.connect(func(): _mouse_is_over_popup = true)
 	popup_container.mouse_exited.connect(func(): _mouse_is_over_popup = false)
 
+
 func set_items(items_array: Array[String]) -> void:
 	_all_items = items_array
 	_all_items.sort()
+
 
 func _on_internal_text_changed(new_text: String) -> void:
 	text_changed.emit(new_text)
 	_refilter_and_show_popup()
 
+
 func _on_internal_text_submitted(final_text: String) -> void:
 	popup_container.hide()
 	text_submitted.emit(final_text)
+
 
 # ==============================================================================
 # ============================== CORE LOGIC ====================================
@@ -73,9 +85,11 @@ func _on_focus_exited() -> void:
 	popup_container.hide()
 	_emit_text_submitted()
 
+
 func _emit_text_submitted() -> void:
 	if is_instance_valid(filter_edit):
 		text_submitted.emit(filter_edit.text)
+
 
 func _on_item_confirmed(index: int) -> void:
 	# Since interaction is complete, reset the flag.
@@ -88,6 +102,7 @@ func _on_item_confirmed(index: int) -> void:
 	# Emit final value.
 	text_submitted.emit(selected_text)
 
+
 func _is_fuzzy_match(item_name: String, query: String) -> bool:
 	if query.is_empty():
 		return true
@@ -98,6 +113,7 @@ func _is_fuzzy_match(item_name: String, query: String) -> bool:
 			query_idx += 1
 
 	return query_idx == query.length()
+
 
 func _refilter_and_show_popup() -> void:
 	var query: String = filter_edit.text
@@ -117,6 +133,7 @@ func _refilter_and_show_popup() -> void:
 	else:
 		popup_container.hide()
 
+
 func _update_popup_position() -> void:
 	if not popup_container.visible or not is_instance_valid(filter_edit):
 		return
@@ -129,6 +146,7 @@ func _update_popup_position() -> void:
 	# Match width
 	popup_container.size.x = size.x
 
+
 # ==============================================================================
 # FOCUS PROXYING
 # ==============================================================================
@@ -137,7 +155,9 @@ func grab_focus(_hide_focus:bool=false) -> void:
 	if is_instance_valid(filter_edit):
 		filter_edit.grab_focus()
 
+
 func has_focus(_ignore_hidden_focus:bool=false) -> bool:
 	if is_instance_valid(filter_edit):
 		return filter_edit.has_focus()
 	return false
+

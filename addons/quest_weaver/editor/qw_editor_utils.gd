@@ -1,6 +1,8 @@
 # res://addons/quest_weaver/editor/qw_editor_utils.gd
 @tool
+
 class_name QWEditorUtils
+
 extends RefCounted
 
 static var _cached_item_ids: Array[String] = []
@@ -27,6 +29,7 @@ static func get_custom_pool_ids_from_settings() -> Array[StringName]:
 				result.append(StringName(resolved.get_file().get_basename()))
 	return result
 
+
 static func _resolve_path_or_uid(path_or_uid: String) -> String:
 	if path_or_uid.begins_with("uid://"):
 		var id = ResourceUID.text_to_id(path_or_uid)
@@ -34,6 +37,7 @@ static func _resolve_path_or_uid(path_or_uid: String) -> String:
 			return ResourceUID.get_id_path(id)
 		return ""
 	return path_or_uid
+
 
 ## Clears the internal cache, forcing a reload from disk on the next call.
 static func clear_cache() -> void:
@@ -46,6 +50,7 @@ static func clear_cache() -> void:
 	GraphNodeResource.clear_script_cache()
 	QuestValidator.clear_graph_cache()
 
+
 ## Populates an AutoCompleteLineEdit with all item IDs from the registry.
 static func populate_item_completer(completer: AutoCompleteLineEdit):
 	var settings = QWConstants.get_settings()
@@ -55,6 +60,7 @@ static func populate_item_completer(completer: AutoCompleteLineEdit):
 	if not _item_registry_loaded:
 		_load_item_registry_data()
 	completer.set_items(_cached_item_ids)
+
 
 ## Populates an AutoCompleteLineEdit with all quest IDs from the registry.
 ## Call refresh_quest_id_cache_for_graph when opening a graph so unsaved quest IDs appear.
@@ -67,9 +73,11 @@ static func populate_quest_id_completer(completer: AutoCompleteLineEdit):
 		_load_quest_registry_data()
 	completer.set_items(_cached_quest_ids)
 
+
 ## Sets the callback used to resolve the active graph (e.g. from QuestWeaverEditor).
 static func set_active_graph_callback(cb: Callable) -> void:
 	_get_active_graph_callback = cb
+
 
 ## Refreshes quest ID cache from the active graph then repopulates the completer.
 ## Call on first focus in quest-ID fields so autocomplete works for clean/unsaved quests.
@@ -78,6 +86,7 @@ static func refresh_quest_id_completer_from_active_graph(completer: AutoComplete
 		var graph = _get_active_graph_callback.call()
 		refresh_quest_id_cache_for_graph(graph)
 	populate_quest_id_completer(completer)
+
 
 ## Merges quest IDs from the graph's QuestContextNodes into the cache.
 ## Enables autocomplete for current/unsaved quests. Call on active_graph_changed.
@@ -92,6 +101,7 @@ static func refresh_quest_id_cache_for_graph(graph: QuestGraphResource) -> void:
 			if not _cached_quest_ids.has(qid):
 				_cached_quest_ids.append(qid)
 				_cached_quest_ids.sort()
+
 
 # Internal function to load item data and fill the cache.
 static func _load_item_registry_data() -> void:
@@ -120,6 +130,7 @@ static func _load_item_registry_data() -> void:
 	else:
 		_cached_item_ids = all_ids
 
+
 # Internal function to load quest data and fill the cache.
 static func _load_quest_registry_data() -> void:
 	_cached_quest_ids.clear()
@@ -140,5 +151,3 @@ static func _load_quest_registry_data() -> void:
 			var raw_ids = registry.get_all_ids()
 			for id in raw_ids:
 				_cached_quest_ids.append(str(id))
-	else:
-		_cached_quest_ids.append("!Error: Could not load Quest Registry!")

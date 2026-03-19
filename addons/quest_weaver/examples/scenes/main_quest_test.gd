@@ -1,6 +1,36 @@
 # res://addons/quest_weaver/examples/scenes/main_quest_test.gd
 extends Node
 
+var inventory_controller: Node
+
+var qw_global = null
+
+@onready var quest_log_ui: QuestLogUI = %QuestLogUI
+
+@onready var journal_button: Button = %JournalButton
+
+@onready var lang_opt_button: OptionButton = %LangOptButton
+
+@onready var inventory_amount: Label = %InventoryAmount
+
+# Old Man Nestor
+@onready var mq_vbox_container: VBoxContainer = %MQ_VBoxContainer
+
+@onready var old_man_talk_button: Button = %OldManTalkButton
+
+@onready var old_man_kill_button: Button = %OldManKillButton
+
+@onready var collect_v_box_container: VBoxContainer = %CollectVBoxContainer
+
+# Young Lady Lydia
+@onready var mq_vbox_container_2: VBoxContainer = %MQ_VBoxContainer2
+
+@onready var lady_talk_button: Button = %LadyTalkButton
+
+@onready var lady_kill_button: Button = %LadyKillButton
+
+@onready var lady_spare_button: Button = %LadySpareButton
+
 # This scene demonstrates how to interact with the QuestWeaver system from your game.
 # It uses a safe access pattern to avoid errors if the plugin is not yet enabled.
 #
@@ -11,25 +41,6 @@ extends Node
 #   entered_location:      QuestWeaverGlobal.entered_location.emit("tavern")            # For ENTER_LOCATION objectives
 
 # Adventure related stuff
-@onready var quest_log_ui: QuestLogUI = %QuestLogUI
-@onready var journal_button: Button = %JournalButton
-@onready var lang_opt_button: OptionButton = %LangOptButton
-@onready var inventory_amount: Label = %InventoryAmount
-
-# Old Man Nestor
-@onready var mq_vbox_container: VBoxContainer = %MQ_VBoxContainer
-@onready var old_man_talk_button: Button = %OldManTalkButton
-@onready var old_man_kill_button: Button = %OldManKillButton
-@onready var collect_v_box_container: VBoxContainer = %CollectVBoxContainer
-
-# Young Lady Lydia
-@onready var mq_vbox_container_2: VBoxContainer = %MQ_VBoxContainer2
-@onready var lady_talk_button: Button = %LadyTalkButton
-@onready var lady_kill_button: Button = %LadyKillButton
-@onready var lady_spare_button: Button = %LadySpareButton
-
-var inventory_controller: Node
-var qw_global = null
 
 func _ready() -> void:
 	# We find the inventory controller when the scene starts.
@@ -61,6 +72,7 @@ func _ready() -> void:
 	if qw_global:
 		qw_global.quest_event_fired.connect(_on_quest_event)
 
+
 func _on_quest_event(event_name: String, _payload: Dictionary) -> void:
 	if event_name == "enable_collect_ui":
 		collect_v_box_container.visible = true
@@ -73,15 +85,18 @@ func _on_quest_event(event_name: String, _payload: Dictionary) -> void:
 	if event_name == "end_the_game":
 		get_tree().quit()
 
+
 func _on_old_man_talked() -> void:
 	if qw_global && !qw_global.is_locked:
 		print("Demo: Interact with Old Man...")
 		qw_global.quest_event_fired.emit("interact_old_man", {})
 
+
 func _on_lady_talked() -> void:
 	if qw_global && !qw_global.is_locked:
 		print("Demo: Interact with Lady...")
 		qw_global.quest_event_fired.emit("interact_lady", {})
+
 
 func _on_kill_nestor() -> void:
 	if qw_global && !qw_global.is_locked:
@@ -96,6 +111,7 @@ func _on_kill_nestor() -> void:
 	if mq_vbox_container:
 		mq_vbox_container.modulate = Color(0.0, 0.0, 0.0, 0.25)
 
+
 func _on_kill_lydia() -> void:
 	if qw_global && !qw_global.is_locked:
 		print("Demo: Lydia was killed")
@@ -108,6 +124,7 @@ func _on_kill_lydia() -> void:
 
 	if mq_vbox_container_2:
 		mq_vbox_container_2.modulate = Color(0.0, 0.0, 0.0, 0.25)
+
 
 func _update_rewards_display() -> void:
 	if not is_instance_valid(inventory_controller) or not is_instance_valid(inventory_amount):
@@ -123,26 +140,34 @@ func _update_rewards_display() -> void:
 		parts.append("%s × %d" % [item_id, items[item_id]])
 	inventory_amount.text = ", ".join(parts)
 
+
 func _on_collect_item(item_id: String, amount: int) -> void:
 	if is_instance_valid(inventory_controller):
 		inventory_controller.give_item(item_id, amount)
 		print("Demo: Player collect %d x %s" % [amount, item_id])
 
+
 func _on_journal_button_pressed() -> void:
 	quest_log_ui.visible = true
+
 
 func _on_collect_button_1_pressed() -> void:
 	_on_collect_item("wood", 1)
 
+
 func _on_collect_button_2_pressed() -> void:
 	_on_collect_item("iron", 1)
+
 
 func _on_collect_button_3_pressed() -> void:
 	_on_collect_item("silk", 1)
 
+
 func _on_collect_button_4_pressed() -> void:
 	_on_collect_item("meat", 1)
+
 
 # Helper to get the singleton safely without breaking compilation on first import
 func _get_global_bus() -> Node:
 	return get_tree().root.get_node_or_null("QuestWeaverGlobal")
+

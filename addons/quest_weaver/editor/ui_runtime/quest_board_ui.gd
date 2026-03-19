@@ -1,4 +1,5 @@
 class_name QuestBoardUI
+
 extends CanvasLayer
 
 ## Runtime UI for the Quest Board. Shows quests in AVAILABLE state and lets the player accept them.
@@ -6,17 +7,19 @@ extends CanvasLayer
 
 const QuestBoardEntryScene = preload("./quest_board_entry.tscn")
 
-# --- UI References ---
-@onready var quest_list_container: VBoxContainer = %BoardQuestListContainer
-@onready var empty_label: Label = %BoardEmptyLabel
-@onready var close_button: Button = %BoardCloseButton
-
 @export var toggle_board_action: StringName = &"toggle_quest_board"
 
 # --- Internal State ---
 var quest_controller: QuestController
+
 var _list_needs_redraw := false
 
+# --- UI References ---
+@onready var quest_list_container: VBoxContainer = %BoardQuestListContainer
+
+@onready var empty_label: Label = %BoardEmptyLabel
+
+@onready var close_button: Button = %BoardCloseButton
 
 func _ready() -> void:
 	self.visible = false
@@ -36,15 +39,18 @@ func _ready() -> void:
 			services.controller_ready.connect(_on_controller_ready, CONNECT_ONE_SHOT)
 
 
+
 func _input(event: InputEvent) -> void:
 	if not toggle_board_action.is_empty() and event.is_action_pressed(toggle_board_action):
 		visible = !visible
 		get_viewport().set_input_as_handled()
 
 
+
 func _on_visibility_changed() -> void:
 	if visible:
 		_request_list_redraw()
+
 
 
 func _initialize_connections() -> void:
@@ -59,6 +65,7 @@ func _initialize_connections() -> void:
 		_request_list_redraw()
 
 
+
 func _on_controller_ready() -> void:
 	var services = _get_services_safe()
 	if services:
@@ -69,8 +76,10 @@ func _on_controller_ready() -> void:
 		push_error("QuestBoardUI: Controller_ready received but controller invalid!")
 
 
+
 func _on_board_list_changed(_arg: Variant = null) -> void:
 	_request_list_redraw()
+
 
 
 func _request_list_redraw() -> void:
@@ -80,12 +89,14 @@ func _request_list_redraw() -> void:
 	call_deferred(&"_process_redraw")
 
 
+
 func _process_redraw() -> void:
 	if not _list_needs_redraw:
 		return
 	_list_needs_redraw = false
 	if self.visible:
 		_redraw_quest_list()
+
 
 
 func _redraw_quest_list() -> void:
@@ -117,6 +128,7 @@ func _redraw_quest_list() -> void:
 		quest_list_container.add_child(entry)
 
 
+
 func _on_quest_accepted(quest_id: StringName) -> void:
 	if quest_id.is_empty():
 		return
@@ -125,8 +137,10 @@ func _on_quest_accepted(quest_id: StringName) -> void:
 		_request_list_redraw()
 
 
+
 func _on_close_button_pressed() -> void:
 	self.visible = false
+
 
 
 func _get_services_safe() -> Node:
@@ -134,3 +148,4 @@ func _get_services_safe() -> Node:
 	if main_loop and main_loop.root:
 		return main_loop.root.get_node_or_null("QuestWeaverServices")
 	return null
+

@@ -1,35 +1,57 @@
 # res://addons/quest_weaver/editor/conditions/objective_editor_entry.gd
 @tool
+
 class_name ObjectiveEditorEntry
+
 extends PanelContainer
 
 # --- SIGNALS ---
 signal description_changed(new_description: String)
+
 signal trigger_type_changed(new_trigger_type: int)
+
 signal trigger_param_changed(param_name: String, new_value: Variant)
+
 signal delete_requested
+
 signal direct_property_changed(property_name: String, new_value: Variant)
+
 signal id_changed(new_id: String)
+
 signal requirements_changed(new_requirements: Dictionary)
+
 signal move_up_requested
+
 signal move_down_requested
+
+var objective_resource: ObjectiveResource
+
+var _is_setting_up := false
 
 # --- UI REFERENCES ---
 @onready var description_edit: LineEdit = %DescriptionEdit
-@onready var delete_button: Button = %DeleteButton
-@onready var trigger_type_picker: OptionButton = %TriggerTypePicker
-@onready var counter_checkbox: CheckBox = %CounterCheckBox
-@onready var track_progress_checkbox: CheckBox = %TrackProgressCheckbox
-@onready var complete_on_delivery_checkbox: CheckBox = %CompleteOnDeliveryCheckbox
-@onready var optional_checkbox: CheckBox = %OptionalCheckBox
-@onready var hidden_checkbox: CheckBox = %HiddenCheckBox
-@onready var trigger_params_container: VBoxContainer = %TriggerParamsContainer
-@onready var id_line_edit: LineEdit = %IdLineEdit
-@onready var copy_id_button: Button = %CopyIdButton
-@onready var sort_editor: QWSortEditor = find_child("SortEditor", true, false)
 
-var objective_resource: ObjectiveResource
-var _is_setting_up := false
+@onready var delete_button: Button = %DeleteButton
+
+@onready var trigger_type_picker: OptionButton = %TriggerTypePicker
+
+@onready var counter_checkbox: CheckBox = %CounterCheckBox
+
+@onready var track_progress_checkbox: CheckBox = %TrackProgressCheckbox
+
+@onready var complete_on_delivery_checkbox: CheckBox = %CompleteOnDeliveryCheckbox
+
+@onready var optional_checkbox: CheckBox = %OptionalCheckBox
+
+@onready var hidden_checkbox: CheckBox = %HiddenCheckBox
+
+@onready var trigger_params_container: VBoxContainer = %TriggerParamsContainer
+
+@onready var id_line_edit: LineEdit = %IdLineEdit
+
+@onready var copy_id_button: Button = %CopyIdButton
+
+@onready var sort_editor: QWSortEditor = find_child("SortEditor", true, false)
 
 func _ready() -> void:
 	if is_instance_valid(sort_editor):
@@ -61,6 +83,7 @@ func _ready() -> void:
 	for type_name in ObjectiveResource.TriggerType.keys():
 		trigger_type_picker.add_item(type_name)
 
+
 func set_objective(obj_res: ObjectiveResource) -> void:
 	_is_setting_up = true
 	self.objective_resource = obj_res
@@ -85,12 +108,15 @@ func set_objective(obj_res: ObjectiveResource) -> void:
 	call_deferred(&"_rebuild_trigger_param_ui")
 	call_deferred(&"_finish_setup")
 
+
 func update_sort_index(index: int, total_count: int) -> void:
 	if is_instance_valid(sort_editor):
 		sort_editor.set_index(index, total_count)
 
+
 func _finish_setup() -> void:
 	_is_setting_up = false
+
 
 func _rebuild_trigger_param_ui():
 	for child in trigger_params_container.get_children():
@@ -112,6 +138,7 @@ func _rebuild_trigger_param_ui():
 		track_progress_checkbox.visible = false
 		complete_on_delivery_checkbox.visible = false
 		counter_checkbox.visible = false
+
 
 # --- LIST BUILDER (ITEM / KILL) ---
 func _build_requirements_list_ui():
@@ -201,6 +228,7 @@ func _build_requirements_list_ui():
 	add_btn.pressed.connect(_on_req_add_pressed)
 	trigger_params_container.add_child(add_btn)
 
+
 # --- SINGULAR BUILDER (LOCATION / INTERACT) ---
 func _build_singular_param_ui():
 	var key_map = {
@@ -216,6 +244,7 @@ func _build_singular_param_ui():
 	param_edit.focus_exited.connect(func(): trigger_param_changed.emit(param_key, param_edit.text))
 
 	add_param_row(param_key.replace("_", " ").capitalize(), param_edit)
+
 
 # --- REQUIREMENTS HANDLERS ---
 
@@ -235,6 +264,7 @@ func _on_req_add_pressed():
 		var last_row = trigger_params_container.get_child(trigger_params_container.get_child_count() - 2)
 		if last_row is HBoxContainer and last_row.get_child_count() > 1:
 			last_row.get_child(1).grab_focus()
+
 
 func _on_req_key_changed(old_key, new_key_text):
 	if new_key_text.is_empty(): return
@@ -257,17 +287,21 @@ func _on_req_key_changed(old_key, new_key_text):
 	_emit_req_update()
 	call_deferred(&"_rebuild_trigger_param_ui")
 
+
 func _on_req_val_changed(key, new_val):
 	objective_resource.requirements[key] = new_val
 	_emit_req_update()
+
 
 func _on_req_deleted(key):
 	objective_resource.requirements.erase(key)
 	_emit_req_update()
 	call_deferred(&"_rebuild_trigger_param_ui")
 
+
 func _emit_req_update():
 	requirements_changed.emit(objective_resource.requirements.duplicate())
+
 
 # --- Signal Handlers ---
 
@@ -276,43 +310,52 @@ func _on_description_changed(new_text: String):
 	if is_instance_valid(objective_resource) and objective_resource.description != new_text:
 		description_changed.emit(new_text)
 
+
 func _on_id_submitted(new_text: String) -> void:
 	if _is_setting_up: return
 	if is_instance_valid(objective_resource) and String(objective_resource.id) != new_text:
 		id_changed.emit(new_text)
+
 
 func _on_trigger_type_selected(index: int):
 	if _is_setting_up: return
 	if is_instance_valid(objective_resource) and objective_resource.trigger_type != index:
 		trigger_type_changed.emit(index)
 
+
 func _on_counter_toggled(is_pressed: bool):
 	if _is_setting_up: return
 	if is_instance_valid(objective_resource) and objective_resource.show_counter != is_pressed:
 		direct_property_changed.emit("show_counter", is_pressed)
+
 
 func _on_track_progress_toggled(is_pressed: bool):
 	if _is_setting_up: return
 	if is_instance_valid(objective_resource) and objective_resource.track_progress_since_activation != is_pressed:
 		direct_property_changed.emit("track_progress_since_activation", is_pressed)
 
+
 func _on_complete_on_delivery_toggled(is_pressed: bool):
 	if _is_setting_up: return
 	if is_instance_valid(objective_resource) and objective_resource.complete_on_delivery != is_pressed:
 		direct_property_changed.emit("complete_on_delivery", is_pressed)
+
 
 func _on_optional_toggled(is_pressed: bool):
 	if _is_setting_up: return
 	if is_instance_valid(objective_resource) and objective_resource.is_optional != is_pressed:
 		direct_property_changed.emit("is_optional", is_pressed)
 
+
 func _on_hidden_toggled(is_pressed: bool):
 	if _is_setting_up: return
 	if is_instance_valid(objective_resource) and objective_resource.is_hidden != is_pressed:
 		direct_property_changed.emit("is_hidden", is_pressed)
 
+
 func _on_copy_id_pressed():
 	DisplayServer.clipboard_set(id_line_edit.text)
+
 
 func add_param_row(label_text: String, control: Control) -> void:
 	var row = HBoxContainer.new()
@@ -323,3 +366,4 @@ func add_param_row(label_text: String, control: Control) -> void:
 	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(control)
 	trigger_params_container.add_child(row)
+

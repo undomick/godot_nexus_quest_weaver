@@ -45,7 +45,7 @@ func remove_node(node_id: StringName) -> void:
 func add_connection(from_node: StringName, from_port: int, to_node: StringName, to_port: int) -> void:
 	for c in connections:
 		if c.from_node == from_node and c.from_port == from_port and \
-		   c.to_node == to_node and c.to_port == to_port:
+				c.to_node == to_node and c.to_port == to_port:
 			return
 
 	connections.append({
@@ -60,7 +60,7 @@ func remove_connection(from_node: StringName, from_port: int, to_node: StringNam
 	for i in range(connections.size() - 1, -1, -1):
 		var c = connections[i]
 		if c.from_node == from_node and c.from_port == from_port and \
-		   c.to_node == to_node and c.to_port == to_port:
+				c.to_node == to_node and c.to_port == to_port:
 			connections.remove_at(i)
 			return
 

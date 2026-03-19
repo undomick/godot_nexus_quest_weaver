@@ -1,20 +1,27 @@
 # res://addons/quest_weaver/editor/conditions/condition_editor.gd
 @tool
+
 extends PanelContainer
+
+signal move_up_requested
+
+signal move_down_requested
+
+signal property_changed(property_name: String, new_value: Variant, target_resource: Resource)
+
+signal rebuild_requested()
 
 const ConditionEditorScene = preload("res://addons/quest_weaver/editor/conditions/condition_editor.tscn")
 
-signal move_up_requested
-signal move_down_requested
-signal property_changed(property_name: String, new_value: Variant, target_resource: Resource)
-signal rebuild_requested()
+var edited_condition: ConditionResource
+
+var _is_setting_up: bool = false
 
 @onready var type_picker: OptionButton = %ConditionTypePicker
-@onready var property_fields: VBoxContainer = %PropertyFields
-@onready var sort_editor: QWSortEditor = find_child("SortEditor", true, false)
 
-var edited_condition: ConditionResource
-var _is_setting_up: bool = false
+@onready var property_fields: VBoxContainer = %PropertyFields
+
+@onready var sort_editor: QWSortEditor = find_child("SortEditor", true, false)
 
 func _ready() -> void:
 	if is_instance_valid(sort_editor):
@@ -32,9 +39,11 @@ func _ready() -> void:
 	type_picker.item_selected.connect(_on_type_picker_selected)
 	type_picker.tooltip_text = "Select the type of logic check to perform."
 
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PREDELETE:
 		edited_condition = null
+
 
 func update_sort_index(index: int, total_count: int) -> void:
 	if is_instance_valid(sort_editor):
@@ -44,11 +53,13 @@ func update_sort_index(index: int, total_count: int) -> void:
 		# No SortEditor when ConditionEditor is used for sub-conditions dynamically
 		pass
 
+
 func edit_condition(condition_res: ConditionResource) -> void:
 	_is_setting_up = true
 	self.edited_condition = condition_res
 	_rebuild_ui()
 	_is_setting_up = false
+
 
 func _rebuild_ui() -> void:
 	var previous_setup_state = _is_setting_up
@@ -226,6 +237,7 @@ func _rebuild_ui() -> void:
 
 	_is_setting_up = previous_setup_state
 
+
 # --- Signal Handlers ---
 
 func _on_type_picker_selected(index: int):
@@ -236,10 +248,12 @@ func _on_type_picker_selected(index: int):
 		property_changed.emit("type", selected_enum_value, edited_condition)
 		rebuild_requested.emit()
 
+
 func _on_checkbox_toggled(is_pressed: bool, property_name: String):
 	if _is_setting_up: return
 	if is_instance_valid(edited_condition) and edited_condition.get(property_name) != is_pressed:
 		property_changed.emit(property_name, is_pressed, edited_condition)
+
 
 func _on_quest_status_picker_selected(index: int):
 	if _is_setting_up: return
@@ -260,16 +274,19 @@ func _on_quest_status_picker_selected(index: int):
 	if edited_condition.expected_custom_pool_id != new_pool_id:
 		property_changed.emit("expected_custom_pool_id", new_pool_id, edited_condition)
 
+
 func _on_option_button_selected(index: int, property_name: String):
 	if _is_setting_up: return
 	if is_instance_valid(edited_condition) and edited_condition.get(property_name) != index:
 		property_changed.emit(property_name, index, edited_condition)
+
 
 func _on_line_edit_confirmed(line_edit: LineEdit, property_name: String):
 	if _is_setting_up: return
 	var new_text = line_edit.text
 	if is_instance_valid(edited_condition) and edited_condition.get(property_name) != new_text:
 		property_changed.emit(property_name, new_text, edited_condition)
+
 
 # --- Handlers for Compound Conditions ---
 
@@ -279,10 +296,12 @@ func _on_add_sub_condition_pressed() -> void:
 	edited_condition.sub_conditions.append(new_sub_condition)
 	rebuild_requested.emit()
 
+
 func _on_remove_sub_condition_pressed(index: int) -> void:
 	if not is_instance_valid(edited_condition): return
 	edited_condition.sub_conditions.remove_at(index)
 	rebuild_requested.emit()
+
 
 func add_row(label_text: String, control: Control) -> void:
 	var row = HBoxContainer.new()
@@ -293,3 +312,4 @@ func add_row(label_text: String, control: Control) -> void:
 	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(control)
 	property_fields.add_child(row)
+

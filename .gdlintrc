@@ -1,0 +1,10 @@
+# Relaxed gdlint config for Quest Weaver
+# See: https://github.com/Scony/godot-gdscript-toolkit/wiki/3.-Linter
+
+max-line-length: 200
+max-file-lines: 2000
+max-public-methods: 50
+max-returns: 10
+
+disable:
+  - no-else-return

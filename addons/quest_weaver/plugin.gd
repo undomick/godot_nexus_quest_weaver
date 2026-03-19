@@ -3,6 +3,8 @@
 class_name QuestWeaverPlugin
 extends EditorPlugin
 
+const _PLUGIN_ICON = preload("assets/icons/icon.svg")
+
 var main_view: QuestWeaverEditor = null
 var editor_data: QuestEditorData
 var validator_dock: QuestWeaverValidator
@@ -15,8 +17,7 @@ var registry_inspector: EditorInspectorPlugin
 var translation_parser: EditorTranslationParserPlugin
 
 var _save_debounce_timer: Timer
-
-const _PLUGIN_ICON = preload("assets/icons/icon.svg")
+var _cached_version: String = ""
 
 func _enable_plugin() -> void:
 	var base_path = get_plugin_path()
@@ -343,8 +344,6 @@ func _get_plugin_name() -> String:
 
 func _get_plugin_icon() -> Texture2D:
 	return _PLUGIN_ICON
-
-var _cached_version: String = ""
 
 func get_version() -> String:
 	if _cached_version.is_empty():

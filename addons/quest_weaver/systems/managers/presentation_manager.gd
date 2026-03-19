@@ -1,21 +1,30 @@
 # res://addons/quest_weaver/systems/managers/presentation_manager.gd
 class_name PresentationManager
+
 extends Node
+
+signal presentation_completed(request_id: StringName)
+
+
+var _queue: Array[Dictionary] = []  # Presentation request data dicts
+
+var _is_displaying := false
+
+var _is_force_closing := false
+
+var _registry: PresentationRegistry
+
+var _panel_scene_cache: Dictionary = {}  # scene_path -> PackedScene
+
+var _current_request_id: StringName = &""
+
+var _current_panel_instance: BaseUIPanel = null # Reference for skipping
 
 ## Manages a queue of UI presentations (dialogs, messages, etc.).
 ## Requires a valid PresentationRegistry at settings.presentation_registry_path.
 ## Without a valid registry, no presentations are shown and queue_presentation calls are effectively no-ops.
 
 # The signal carries the ID of the node that requested the message
-signal presentation_completed(request_id: StringName)
-
-var _queue: Array[Dictionary] = []  # Presentation request data dicts
-var _is_displaying := false
-var _is_force_closing := false
-var _registry: PresentationRegistry
-var _panel_scene_cache: Dictionary = {}  # scene_path -> PackedScene
-var _current_request_id: StringName = &""
-var _current_panel_instance: BaseUIPanel = null # Reference for skipping
 
 func _ready() -> void:
 	var settings = QWConstants.get_settings()
@@ -24,11 +33,13 @@ func _ready() -> void:
 	else:
 		push_error("PresentationManager: PresentationRegistry not found!")
 
+
 func queue_presentation(data: Dictionary) -> void:
 	_queue.append(data)
 
 	if not _is_displaying:
 		_show_next_in_queue()
+
 
 func force_close_current() -> void:
 	# Called by QuestController when skipping/resetting or on game exit
@@ -52,6 +63,7 @@ func force_close_current() -> void:
 		# Optional: Clear the rest of the queue on skip to avoid "spamming" the next messages
 		_queue.clear()
 	_is_force_closing = false
+
 
 func _show_next_in_queue() -> void:
 	if _queue.is_empty():
@@ -100,8 +112,10 @@ func _show_next_in_queue() -> void:
 	panel_instance.presentation_completed.connect(_on_panel_completed_from_panel.bind(panel_instance), CONNECT_ONE_SHOT)
 	panel_instance.present(data)
 
+
 func _on_panel_completed() -> void:
 	_on_panel_completed_from_panel(null)
+
 
 func _on_panel_completed_from_panel(panel_instance: BaseUIPanel = null) -> void:
 	if _is_force_closing:
@@ -111,3 +125,4 @@ func _on_panel_completed_from_panel(panel_instance: BaseUIPanel = null) -> void:
 	_current_panel_instance = null
 	presentation_completed.emit(_current_request_id)
 	_show_next_in_queue()
+

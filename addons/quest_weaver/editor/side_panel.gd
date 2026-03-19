@@ -1,70 +1,113 @@
 # res://addons/quest_weaver/editor/side_panel.gd
 @tool
+
 extends VBoxContainer
 
 signal create_new_file_at_path(path: String)
+
 signal open_file_requested(path: String)
+
 signal bookmark_selected(path: String)
+
 signal close_bookmark_requested(path: String)
+
 signal close_all_requested
+
 signal save_active_graph_requested
+
 signal save_single_file_requested(path: String)
+
 signal save_all_files_requested
-
-var data_manager: QWGraphData
-
-# UI References
-@onready var tree: Tree = %QuestTree
-@onready var filter_edit: LineEdit = %FilterEdit
-@onready var context_menu: PopupMenu = %ContextMenu
-@onready var open_file_dialog: FileDialog = $OpenFileDialog
-@onready var quick_create_edit: LineEdit = %QuickCreateEdit
-
-# Buttons
-@onready var new_button: Button = %NewButton
-@onready var open_button: Button = %OpenButton
-@onready var open_dir_button: Button = %OpenDirButton
-@onready var save_button: Button = %SaveButton
-@onready var save_all_button: Button = %SaveAllButton
-@onready var localization_button: Button = %LocalizationButton
-@onready var donate_button: Button = %DonateButton
-@onready var docs_button: Button = %DocsButton
-
-# Internal State
-var _open_files: Array[String] = []
-var _category_cache: Dictionary = {} # Path -> Category String
-var _tree_items_by_path: Dictionary = {} # Path -> TreeItem
-var _category_collapse_state: Dictionary = {} # Category name -> collapsed (true/false), persisted across redraws
-var _context_menu_target_path: String = ""
-var _context_menu_target_category: String = ""
 
 # Styling
 const CATEGORY_COLOR = Color(0.4, 0.6, 0.9)
+
 const _ICON_QUEST = preload("res://addons/quest_weaver/assets/icons/icon.svg")
+
 const _ICON_SAVE_ALL = preload("res://addons/quest_weaver/assets/icons/save_all.svg")
+
 const _START_NODE_SCRIPT = preload("res://addons/quest_weaver/nodes/common/start_node/start_node_resource.gd")
 
 # Context Menu IDs (0-9: File Ops, 10-19: Category Ops, 20-29: Utilities)
 const CMID_CLOSE_CATEGORY := 10
+
 const CMID_CLOSE_OTHER_CATEGORIES := 11
+
 const CMID_COLLAPSE_OTHER_CATEGORIES := 12
+
 const CMID_SHOW_IN_FILESYSTEM := 20
 
-var _icon_quest: Texture2D
-var _icon_folder: Texture2D
-var _search_icon: Texture2D
-var _clear_icon: Texture2D
+const MAX_SCAN_FILES := 500
+
+const MAX_CATEGORY_PREFETCH := 32
+
+var data_manager: QWGraphData
 
 var open_dir_dialog: FileDialog
+
+# Internal State
+var _open_files: Array[String] = []
+
+var _category_cache: Dictionary = {} # Path -> Category String
+
+var _tree_items_by_path: Dictionary = {} # Path -> TreeItem
+
+var _category_collapse_state: Dictionary = {} # Category name -> collapsed (true/false), persisted across redraws
+
+var _context_menu_target_path: String = ""
+
+var _context_menu_target_category: String = ""
+
+var _icon_quest: Texture2D
+
+var _icon_folder: Texture2D
+
+var _search_icon: Texture2D
+
+var _clear_icon: Texture2D
+
 var _open_files_uids: Dictionary = {} # { int(UID) : String(Path) }
+
 var _path_to_uid: Dictionary = {} # { String(Path) : int(UID) } for O(1) lookup
+
 var _editor_interface_ref = null # type Variant for avoiding parsing error in exported game
+
 var _filter_debounce_timer: Timer = null
+
 var _file_list_debounce_timer: Timer = null
+
+# UI References
+@onready var tree: Tree = %QuestTree
+
+@onready var filter_edit: LineEdit = %FilterEdit
+
+@onready var context_menu: PopupMenu = %ContextMenu
+
+@onready var open_file_dialog: FileDialog = $OpenFileDialog
+
+@onready var quick_create_edit: LineEdit = %QuickCreateEdit
+
+# Buttons
+@onready var new_button: Button = %NewButton
+
+@onready var open_button: Button = %OpenButton
+
+@onready var open_dir_button: Button = %OpenDirButton
+
+@onready var save_button: Button = %SaveButton
+
+@onready var save_all_button: Button = %SaveAllButton
+
+@onready var localization_button: Button = %LocalizationButton
+
+@onready var donate_button: Button = %DonateButton
+
+@onready var docs_button: Button = %DocsButton
 
 func initialize(p_data_manager: QWGraphData, p_editor_interface = null) -> void:
 	self.data_manager = p_data_manager
 	self._editor_interface_ref = p_editor_interface
+
 
 func _ready() -> void:
 	if not is_instance_valid(tree):
@@ -85,12 +128,14 @@ func _ready() -> void:
 	# Initial draw
 	_redraw_tree()
 
+
 func _init_filter_debounce() -> void:
 	_filter_debounce_timer = Timer.new()
 	_filter_debounce_timer.one_shot = true
 	_filter_debounce_timer.wait_time = 0.15
 	_filter_debounce_timer.timeout.connect(_on_filter_debounce_timeout)
 	add_child(_filter_debounce_timer)
+
 
 func _init_file_list_debounce() -> void:
 	_file_list_debounce_timer = Timer.new()
@@ -99,12 +144,15 @@ func _init_file_list_debounce() -> void:
 	_file_list_debounce_timer.timeout.connect(_on_file_list_debounce_timeout)
 	add_child(_file_list_debounce_timer)
 
+
 func _request_tree_redraw() -> void:
 	_file_list_debounce_timer.stop()
 	_file_list_debounce_timer.start()
 
+
 func _on_file_list_debounce_timeout() -> void:
 	_redraw_tree()
+
 
 func _init_dir_dialog() -> void:
 	open_dir_dialog = FileDialog.new()
@@ -113,6 +161,7 @@ func _init_dir_dialog() -> void:
 	open_dir_dialog.title = "Open All Quests in Folder"
 	add_child(open_dir_dialog)
 	open_dir_dialog.dir_selected.connect(_on_folder_selected_to_load)
+
 
 func _load_icons() -> void:
 	_icon_quest = _ICON_QUEST
@@ -129,6 +178,7 @@ func _load_icons() -> void:
 	docs_button.icon = get_theme_icon("Help", "EditorIcons")
 
 	filter_edit.right_icon = _search_icon
+
 
 func _setup_ui_connections() -> void:
 	save_button.disabled = true
@@ -158,6 +208,7 @@ func _setup_ui_connections() -> void:
 
 	open_file_dialog.file_selected.connect(open_file_requested.emit)
 
+
 # ==============================================================================
 # TREE BUILDING & LOGIC
 # ==============================================================================
@@ -167,6 +218,7 @@ func _on_new_button_toggled() -> void:
 	if quick_create_edit.visible:
 		quick_create_edit.clear()
 		quick_create_edit.grab_focus()
+
 
 func _on_quick_create_submitted(new_name: String) -> void:
 	if new_name.is_empty():
@@ -221,6 +273,7 @@ func _on_quick_create_submitted(new_name: String) -> void:
 		_editor_interface_ref.get_resource_filesystem().scan()
 	call_deferred(&"_safe_open_new_file", full_path)
 
+
 func _on_scan_keys_pressed() -> void:
 	if not Engine.is_editor_hint(): return
 
@@ -237,8 +290,10 @@ func _on_scan_keys_pressed() -> void:
 	if is_instance_valid(_editor_interface_ref):
 		_editor_interface_ref.get_resource_filesystem().scan()
 
+
 func get_open_files() -> Array[String]:
 	return _open_files.duplicate()
+
 
 func _safe_open_new_file(path: String) -> void:
 	var attempts = 0
@@ -252,6 +307,7 @@ func _safe_open_new_file(path: String) -> void:
 		_redraw_tree()
 	else:
 		push_error("QuestWeaver: Created file not found after waiting: " + path)
+
 
 func add_file_to_open_list(path: String) -> void:
 	if path.is_empty(): return
@@ -267,6 +323,7 @@ func add_file_to_open_list(path: String) -> void:
 		_update_category_cache(path)
 	_request_tree_redraw()
 
+
 func remove_file_from_open_list(path: String) -> void:
 	if _open_files.has(path):
 		_open_files.erase(path)
@@ -278,6 +335,7 @@ func remove_file_from_open_list(path: String) -> void:
 			_path_to_uid.erase(path)
 
 		_request_tree_redraw()
+
 
 func check_for_moved_files_via_uid() -> void:
 
@@ -317,12 +375,14 @@ func check_for_moved_files_via_uid() -> void:
 	if redraw_needed:
 		_request_tree_redraw()
 
+
 func refresh_category_for_path(path: String) -> void:
 	if _category_cache.has(path):
 		_category_cache.erase(path)
 	# Force immediate reload
 	_update_category_cache(path)
 	_redraw_tree()
+
 
 func mark_file_as_unsaved(_file_path: String, _is_unsaved: bool) -> void:
 	if not is_instance_valid(data_manager):
@@ -343,6 +403,7 @@ func mark_file_as_unsaved(_file_path: String, _is_unsaved: bool) -> void:
 
 	_update_save_all_button_state()
 
+
 func _update_save_all_button_state() -> void:
 	if not is_instance_valid(data_manager):
 		save_all_button.disabled = true
@@ -350,6 +411,7 @@ func _update_save_all_button_state() -> void:
 
 	var unsaved_paths = data_manager.get_all_unsaved_paths()
 	save_all_button.disabled = unsaved_paths.is_empty()
+
 
 func update_selection(active_path: String) -> void:
 	if not is_instance_valid(tree): return
@@ -369,6 +431,7 @@ func update_selection(active_path: String) -> void:
 	else:
 		tree.deselect_all()
 		save_button.disabled = true
+
 
 func _redraw_tree() -> void:
 	# Save collapse state from category items (root's direct children).
@@ -442,6 +505,7 @@ func _redraw_tree() -> void:
 	if is_instance_valid(data_manager):
 		update_selection(data_manager.get_active_graph_path())
 
+
 # Helper: Read category from StartNodeResource (cached)
 func _get_category_for_path(path: String) -> String:
 	if _category_cache.has(path):
@@ -450,6 +514,7 @@ func _get_category_for_path(path: String) -> String:
 	# Fallback if not cached (load and check)
 	_update_category_cache(path)
 	return _category_cache.get(path, "Uncategorized")
+
 
 func _update_category_cache(path: String) -> void:
 	var res: QuestGraphResource = null
@@ -474,11 +539,13 @@ func _update_category_cache(path: String) -> void:
 
 	_category_cache[path] = category
 
+
 func is_uid_valid_for_path(path: String) -> bool:
 	if not _path_to_uid.has(path):
 		return false
 	var uid: int = _path_to_uid[path]
 	return ResourceUID.has_id(uid)
+
 
 # ==============================================================================
 # FOLDER SCAN & DRAG DROP
@@ -504,8 +571,6 @@ func _on_folder_selected_to_load(dir_path: String) -> void:
 		for f in found_files:
 			add_file_to_open_list(f)
 
-const MAX_SCAN_FILES := 500
-const MAX_CATEGORY_PREFETCH := 32
 
 func _scan_folder_recursive(path: String, accumulated_count: Array) -> Array[String]:
 	var results: Array[String] = []
@@ -527,6 +592,7 @@ func _scan_folder_recursive(path: String, accumulated_count: Array) -> Array[Str
 		dir.list_dir_end()
 	return results
 
+
 func _build_drag_data_for_item(item: TreeItem) -> Variant:
 	if not item: return null
 	var meta = item.get_metadata(0)
@@ -534,10 +600,12 @@ func _build_drag_data_for_item(item: TreeItem) -> Variant:
 	var file_path: String = meta.path
 	return {"type": "files", "files": [file_path], "from": self}
 
+
 func _create_drag_preview_for_path(file_path: String) -> Label:
 	var preview = Label.new()
 	preview.text = file_path.get_file()
 	return preview
+
 
 func _tree_get_drag_data(at_position: Vector2) -> Variant:
 	var item = tree.get_item_at_position(at_position)
@@ -546,10 +614,12 @@ func _tree_get_drag_data(at_position: Vector2) -> Variant:
 	set_drag_preview(_create_drag_preview_for_path(data.files[0]))
 	return data
 
+
 func _tree_can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	if data is Dictionary and data.get("type") == "files":
 		return true
 	return false
+
 
 func _tree_drop_data(_at_position: Vector2, data: Variant) -> void:
 	if data is Dictionary and data.get("type") == "files":
@@ -559,6 +629,7 @@ func _tree_drop_data(_at_position: Vector2, data: Variant) -> void:
 				open_file_requested.emit(path)
 			elif DirAccess.dir_exists_absolute(path):
 				_on_folder_selected_to_load(path)
+
 
 # ==============================================================================
 # CONTEXT MENU
@@ -587,6 +658,7 @@ func _build_context_menu() -> void:
 	context_menu.add_item("Show in FileSystem", 20)
 	context_menu.add_item("Copy Path", 21)
 	context_menu.add_item("Copy UID", 22)
+
 
 func _on_tree_item_mouse_selected(pos: Vector2, mouse_btn: int) -> void:
 	if mouse_btn != MOUSE_BUTTON_RIGHT: return
@@ -618,6 +690,7 @@ func _on_tree_item_mouse_selected(pos: Vector2, mouse_btn: int) -> void:
 		context_menu.set_item_disabled(context_menu.get_item_index(CMID_SHOW_IN_FILESYSTEM), true)
 
 	context_menu.popup(Rect2i(get_global_mouse_position(), Vector2i.ZERO))
+
 
 func _on_context_menu_id_pressed(id: int) -> void:
 	match id:
@@ -674,11 +747,13 @@ func _on_context_menu_id_pressed(id: int) -> void:
 				else:
 					DisplayServer.clipboard_set("UID_NOT_FOUND")
 
+
 func _close_files_in_category(category: String) -> void:
 	# Iterate over duplicate to safely remove
 	for p in _open_files.duplicate():
 		if _get_category_for_path(p) == category:
 			close_bookmark_requested.emit(p)
+
 
 func _collapse_all_other_categories(keep_expanded: String) -> void:
 	var root_item = tree.get_root()
@@ -692,6 +767,7 @@ func _collapse_all_other_categories(keep_expanded: String) -> void:
 		_category_collapse_state[cat_name] = should_collapse
 		category_item = category_item.get_next()
 
+
 func _on_tree_item_activated() -> void:
 	var item = tree.get_selected()
 	if not item: return
@@ -702,6 +778,7 @@ func _on_tree_item_activated() -> void:
 	elif meta.type == "category":
 		item.collapsed = not item.collapsed
 
+
 # ==============================================================================
 # FILTER & SEARCH
 # ==============================================================================
@@ -711,8 +788,10 @@ func _on_filter_text_changed(new_text: String) -> void:
 	_filter_debounce_timer.stop()
 	_filter_debounce_timer.start()
 
+
 func _on_filter_debounce_timeout() -> void:
 	_redraw_tree()
+
 
 func _on_filter_gui_input(event: InputEvent) -> void:
 	if filter_edit.text.is_empty(): return
@@ -721,6 +800,7 @@ func _on_filter_gui_input(event: InputEvent) -> void:
 		if event.position.x > filter_edit.size.x - 30:
 			filter_edit.clear()
 			get_viewport().set_input_as_handled()
+
 
 # ==============================================================================
 # DRAG & DROP (SIDE_PANEL TO PROPERTIES_PANEL)
@@ -733,11 +813,13 @@ func _get_drag_data(at_position: Vector2) -> Variant:
 	set_drag_preview(_create_drag_preview_for_path(data.files[0]))
 	return data
 
+
 # ==============================================================================
 # HANDLE FILES MOVED
 # ==============================================================================
 
 ## Called when a quest file is renamed/moved (e.g. from FileSystem dock).
+
 ## Use this for explicit path updates; check_for_moved_files_via_uid handles UID-based detection.
 func update_moved_files(old_path: String, new_path: String) -> void:
 	# 1. Update Open Files List
@@ -763,3 +845,4 @@ func update_moved_files(old_path: String, new_path: String) -> void:
 		data_manager.set_active_graph(new_path)
 
 	_request_tree_redraw()
+

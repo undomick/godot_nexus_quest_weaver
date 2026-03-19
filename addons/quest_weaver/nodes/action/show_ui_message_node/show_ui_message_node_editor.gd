@@ -1,35 +1,51 @@
 # res://addons/quest_weaver/nodes/action/show_ui_message_node/show_ui_message_node_editor.gd
 @tool
+
 extends NodePropertyEditorBase
 
+var _registry_keys: Array[String] = []
+
+var _spinbox_undo_values: Dictionary = {}
+
 @onready var message_type_picker: OptionButton = %MessageTypeEdit
+
 @onready var title_override_edit: LineEdit = %TitleOverrideEdit
+
 @onready var message_override_edit: TextEdit = %MessageOverrideEdit
+
 @onready var wait_checkbox: CheckBox = %WaitForCompletionCheckbox
 
 @onready var anim_in_picker: OptionButton = %AnimationInPicker
+
 @onready var ease_in_picker: OptionButton = %EaseInPicker
+
 @onready var per_character_in_checkbox: CheckBox = %PerCharacterInCheckbox
 
 @onready var anim_out_picker: OptionButton = %AnimationOutPicker
+
 @onready var ease_out_picker: OptionButton = %EaseOutPicker
+
 @onready var per_character_out_checkbox: CheckBox = %PerCharacterOutCheckbox
 
 @onready var duration_in_container: HBoxContainer = %DurationInContainer
+
 @onready var duration_out_container: HBoxContainer = %DurationOutContainer
+
 @onready var character_stagger_container: HBoxContainer = %CharacterStaggerContainer
+
 @onready var delay_title_message_container: HBoxContainer = %DelayTitleMessageContainer
 
 @onready var duration_in_spinbox: SpinBox = %DurationInSpinBox
+
 @onready var duration_out_spinbox: SpinBox = %DurationOutSpinBox
+
 @onready var delay_title_message_spinbox: SpinBox = %DelayTitleMessageSpinBox
+
 @onready var hold_duration_spinbox: SpinBox = %HoldDurationSpinBox
+
 @onready var character_stagger_spinbox: SpinBox = %CharacterStaggerSpinBox
 
 @onready var terminal_checkbox: CheckBox = %TerminalCheckBox
-
-var _registry_keys: Array[String] = []
-var _spinbox_undo_values: Dictionary = {}
 
 func _ready() -> void:
 	_populate_animation_pickers()
@@ -56,6 +72,7 @@ func _ready() -> void:
 	_connect_spinbox_signals(hold_duration_spinbox, "hold_duration")
 	_connect_spinbox_signals(character_stagger_spinbox, "character_stagger_ms")
 
+
 func _connect_spinbox_signals(spinbox: SpinBox, property_name: String) -> void:
 	spinbox.value_changed.connect(
 		func(new_value: float):
@@ -69,6 +86,7 @@ func _connect_spinbox_signals(spinbox: SpinBox, property_name: String) -> void:
 			if edited_node_data.get(property_name) != final_value:
 				property_update_requested.emit(edited_node_data.id, property_name, final_value, null, {})
 	)
+
 
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
@@ -98,6 +116,7 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 
 	_update_ui_visibility()
 
+
 # --- Handlers for confirmed changes ---
 
 func _on_title_override_confirmed() -> void:
@@ -105,14 +124,17 @@ func _on_title_override_confirmed() -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.title_override != new_text:
 		property_update_requested.emit(edited_node_data.id, "title_override", new_text, null, {})
 
+
 func _on_message_override_confirmed() -> void:
 	var new_text = message_override_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.message_override != new_text:
 		property_update_requested.emit(edited_node_data.id, "message_override", StringName(new_text), null, {})
 
+
 func _on_wait_toggled(is_pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.wait_for_completion != is_pressed:
 		property_update_requested.emit(edited_node_data.id, "wait_for_completion", is_pressed, null, {})
+
 
 func _on_message_type_selected(index: int):
 	if index >= 0 and index < _registry_keys.size():
@@ -120,33 +142,40 @@ func _on_message_type_selected(index: int):
 		if is_instance_valid(edited_node_data) and edited_node_data.message_type != selected_key:
 			property_update_requested.emit(edited_node_data.id, "message_type", selected_key, null, {})
 
+
 func _on_anim_in_selected(index: int) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.animation_in != index:
 		property_update_requested.emit(edited_node_data.id, "animation_in", index, null, {})
 	_update_ui_visibility()
 
+
 func _on_ease_in_selected(index: int) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.ease_in != index:
 		property_update_requested.emit(edited_node_data.id, "ease_in", index, null, {})
+
 
 func _on_per_char_in_toggled(is_pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.per_character_in != is_pressed:
 		property_update_requested.emit(edited_node_data.id, "per_character_in", is_pressed, null, {})
 	_update_ui_visibility()
 
+
 func _on_anim_out_selected(index: int) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.animation_out != index:
 		property_update_requested.emit(edited_node_data.id, "animation_out", index, null, {})
 	_update_ui_visibility()
 
+
 func _on_ease_out_selected(index: int) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.ease_out != index:
 		property_update_requested.emit(edited_node_data.id, "ease_out", index, null, {})
+
 
 func _on_per_char_out_toggled(is_pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.per_character_out != is_pressed:
 		property_update_requested.emit(edited_node_data.id, "per_character_out", is_pressed, null, {})
 	_update_ui_visibility()
+
 
 # --- UI Helper functions ---
 
@@ -163,12 +192,14 @@ func _populate_message_type_picker():
 				_registry_keys.append(key_str)
 				message_type_picker.add_item(key_str)
 
+
 func _populate_animation_pickers():
 	anim_in_picker.clear()
 	anim_out_picker.clear()
 	for preset_name in ShowUIMessageNodeResource.AnimationPreset.keys():
 		anim_in_picker.add_item(preset_name)
 		anim_out_picker.add_item(preset_name)
+
 
 func _populate_ease_pickers():
 	ease_in_picker.clear()
@@ -178,11 +209,13 @@ func _populate_ease_pickers():
 		ease_in_picker.add_item(ease_name)
 		ease_out_picker.add_item(ease_name)
 
+
 func _on_terminal_toggled(pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.is_terminal != pressed:
 		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed, null, {})
 		edited_node_data.is_terminal = pressed
 		edited_node_data._update_ports_from_data()
+
 
 func _update_ui_visibility():
 	if not is_instance_valid(edited_node_data): return
@@ -204,3 +237,4 @@ func _update_ui_visibility():
 	character_stagger_container.visible = show_stagger
 
 	delay_title_message_container.visible = has_in_animation
+

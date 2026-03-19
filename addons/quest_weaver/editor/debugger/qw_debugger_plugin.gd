@@ -1,22 +1,32 @@
 # res://addons/quest_weaver/editor/debugger/qw_debugger_plugin.gd
 @tool
+
 class_name QuestWeaverDebuggerPlugin
+
 extends EditorDebuggerPlugin
 
 signal session_started()
+
 signal session_ended()
+
 signal node_activated_in_game(node_id: StringName)
+
 signal node_completed_in_game(node_id: StringName)
+
 signal node_failed_in_game(node_id: StringName)
+
 signal instance_updated(payload: Dictionary)
 
-var _session_id_to_viewer: Dictionary = {}
-var _session_stopped_callables: Dictionary = {}
 
 const VIEWER_SCENE = preload("res://addons/quest_weaver/editor/debugger/quest_weaver_debugger_viewer.tscn")
 
+var _session_id_to_viewer: Dictionary = {}
+
+var _session_stopped_callables: Dictionary = {}
+
 func _has_capture(capture: String) -> bool:
 	return capture == "quest_weaver"
+
 
 func _setup_session(session_id: int) -> void:
 	var session = get_session(session_id)
@@ -29,6 +39,7 @@ func _setup_session(session_id: int) -> void:
 	session.add_session_tab(viewer)
 	_session_id_to_viewer[session_id] = viewer
 
+
 func _on_session_stopped(session_id: int) -> void:
 	var viewer = _session_id_to_viewer.get(session_id)
 	if is_instance_valid(viewer) and viewer.has_method(&"clear_display"):
@@ -36,6 +47,7 @@ func _on_session_stopped(session_id: int) -> void:
 	_session_id_to_viewer.erase(session_id)
 	_session_stopped_callables.erase(session_id)
 	session_ended.emit()
+
 
 func _capture(message: String, data: Array, session_id: int) -> bool:
 	var command = message.trim_prefix("quest_weaver:")
@@ -73,3 +85,4 @@ func _capture(message: String, data: Array, session_id: int) -> bool:
 
 		_:
 			return false
+

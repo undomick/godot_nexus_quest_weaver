@@ -1,8 +1,10 @@
-# res://addons/quest_weaver/nodes/action/play_cutscene_node/play_cutscene_node_executor.gd
-## Uses QuestController internals (_trigger_next_nodes_from_port) by design.
 ## Cutscene flow requires custom port routing (On Start / On Finish); this API is not exposed publicly.
 class_name PlayCutsceneNodeExecutor
+
 extends NodeExecutor
+
+# res://addons/quest_weaver/nodes/action/play_cutscene_node/play_cutscene_node_executor.gd
+## Uses QuestController internals (_trigger_next_nodes_from_port) by design.
 
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var cutscene_node = node as PlayCutsceneNodeResource
@@ -65,3 +67,4 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 				controller._trigger_next_nodes_from_port(cutscene_node, 1)
 				controller.complete_node(cutscene_node)
 		anim_player.animation_finished.connect(callback, CONNECT_ONE_SHOT)
+

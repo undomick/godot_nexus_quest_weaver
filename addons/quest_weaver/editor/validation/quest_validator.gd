@@ -1,17 +1,21 @@
 # res://addons/quest_weaver/editor/validation/quest_validator.gd
 @tool
-class_name QuestValidator
-extends Node
 
-var _item_registry: Resource
-var _quest_registry: Resource
+class_name QuestValidator
+
+extends Node
 
 # Session cache: path -> QuestGraphResource (avoids reloading unchanged quests)
 static var _graph_cache: Dictionary = {}
 
+var _item_registry: Resource
+
+var _quest_registry: Resource
+
 ## Clears the graph cache. Call when quests are saved to avoid stale validation.
 static func clear_graph_cache() -> void:
 	_graph_cache.clear()
+
 
 ## Validates quests at the given file paths. Returns aggregated ValidationResults.
 ## Quest display name is derived from path (e.g. path.get_file().get_basename()).
@@ -46,6 +50,7 @@ func validate_quests_at_paths(paths: Array[String]) -> Array[ValidationResult]:
 		for r in results:
 			all_results.append(ValidationResult.new(r.severity, r.message, r.node_id, path, r.node_type))
 	return all_results
+
 
 ## Validates all quest graphs in the Quest Registry. Iterates by unique quest file path (no duplicates).
 func validate_all_quests_in_registry() -> Array[ValidationResult]:
@@ -86,6 +91,7 @@ func validate_all_quests_in_registry() -> Array[ValidationResult]:
 			all_results.append(ValidationResult.new(r.severity, r.message, r.node_id, path, r.node_type))
 	return all_results
 
+
 ## Exports validation report as JSON or Markdown.
 ## Returns the report string (in-memory). If output_path is set, attempts to write to file:
 ## - On success: returns empty string.
@@ -107,6 +113,7 @@ func export_validation_report(format: String = "json", output_path: String = "")
 		return content
 	return content
 
+
 func _format_report_json(results: Array[ValidationResult]) -> String:
 	var arr: Array = []
 	for r in results:
@@ -116,6 +123,7 @@ func _format_report_json(results: Array[ValidationResult]) -> String:
 			"node_id": r.node_id
 		})
 	return JSON.stringify(arr, "\t")
+
 
 func _format_report_markdown(results: Array[ValidationResult]) -> String:
 	var md := "# Quest Validation Report\n\n"
@@ -137,6 +145,7 @@ func _format_report_markdown(results: Array[ValidationResult]) -> String:
 			md += "\n"
 		md += "\n"
 	return md
+
 
 func validate_graph(graph: QuestGraphResource) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
@@ -206,12 +215,14 @@ func validate_graph(graph: QuestGraphResource) -> Array[ValidationResult]:
 	return results
 
 
+
 # --- HELPER FUNCTIONS ---
 
 func _get_node_type_name(node: GraphNodeResource) -> String:
 	if not is_instance_valid(node):
 		return ""
 	return node.get_display_name()
+
 
 func _validate_node_properties(node: GraphNodeResource) -> Array[ValidationResult]:
 	# We pack the registries into a context dictionary to pass it to the node.
@@ -227,6 +238,7 @@ func _validate_node_properties(node: GraphNodeResource) -> Array[ValidationResul
 		r.node_type = type_name
 	# BranchNode conditions are validated in the main loop of validate_graph() to avoid duplication.
 	return results
+
 
 func _validate_condition(condition: ConditionResource, node: GraphNodeResource) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
@@ -280,6 +292,7 @@ func _validate_condition(condition: ConditionResource, node: GraphNodeResource) 
 
 	return results
 
+
 func _build_port_connection_map(graph: QuestGraphResource) -> Dictionary:
 	var map: Dictionary = {}
 	for connection in graph.connections:
@@ -288,6 +301,7 @@ func _build_port_connection_map(graph: QuestGraphResource) -> Dictionary:
 		var key = "%s|%d" % [from_node, from_port]
 		map[key] = true
 	return map
+
 
 func _validate_node_connections(node: GraphNodeResource, graph: QuestGraphResource, port_connected_map: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
@@ -320,6 +334,7 @@ func _validate_node_connections(node: GraphNodeResource, graph: QuestGraphResour
 
 	return results
 
+
 # --- GRAPH STRUCTURE RULES ---
 
 func _check_start_node_count(graph: QuestGraphResource) -> Array[ValidationResult]:
@@ -336,6 +351,7 @@ func _check_start_node_count(graph: QuestGraphResource) -> Array[ValidationResul
 			var n = graph.nodes.get(nid)
 			results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Graph has more than one StartNode. Exactly one is required.", str(nid), "", _get_node_type_name(n) if n else "Start Node"))
 	return results
+
 
 # --- Helpers & Algorithms ---
 
@@ -378,10 +394,12 @@ func _check_for_orphan_nodes(graph: QuestGraphResource) -> Array[ValidationResul
 
 	return results
 
+
 func _load_resource(path: String) -> Resource:
 	if not path.is_empty() and ResourceLoader.exists(path):
 		return ResourceLoader.load(path)
 	return null
+
 
 func _check_for_cycles(graph: QuestGraphResource) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
@@ -406,6 +424,7 @@ func _check_for_cycles(graph: QuestGraphResource) -> Array[ValidationResult]:
 
 	return results
 
+
 func _build_neighbors_cache(graph: QuestGraphResource) -> Dictionary:
 	var cache: Dictionary = {}
 	for conn in graph.connections:
@@ -414,6 +433,7 @@ func _build_neighbors_cache(graph: QuestGraphResource) -> Dictionary:
 			cache[from_id] = []
 		cache[from_id].append(conn.get("to_node", &""))
 	return cache
+
 
 ## Iterative DFS for cycle detection. Avoids stack overflow on very deep graphs.
 func _is_cyclic_iterative(start_node_id: StringName, visited: Dictionary, recursion_stack: Dictionary, neighbors_cache: Dictionary) -> bool:

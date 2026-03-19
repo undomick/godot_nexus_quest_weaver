@@ -1,55 +1,113 @@
 # res://addons/quest_weaver/editor/qw_action_handler.gd
 @tool
+
 class_name QWActionHandler
 extends Node
 
+class SyncPatternCommand extends EditorCommand:
+	var node: SynchronizeNodeResource
+	var out_idx: int
+	var in_idx: int
+	var new_state: int
+	var old_state: int
+
+	func _init(p_node, p_out, p_in, p_state):
+		node = p_node
+		out_idx = p_out
+		in_idx = p_in
+		new_state = p_state
+
+	func execute():
+		if out_idx < node.outputs.size() and in_idx < node.outputs[out_idx].patterns.size():
+			old_state = node.outputs[out_idx].patterns[in_idx]
+			node.outputs[out_idx].patterns[in_idx] = new_state
+
+	func undo():
+		if out_idx < node.outputs.size() and in_idx < node.outputs[out_idx].patterns.size():
+			node.outputs[out_idx].patterns[in_idx] = old_state
+
+
 signal node_data_changed(node_id: StringName, action: String)
+
 
 # --- Command Preloads ---
 const ChangePropertyCommand = preload("commands/change_property_command.gd")
-const DeleteNodesCommand = preload("commands/delete_nodes_command.gd")
-const CreateNodeCommand = preload("commands/create_node_command.gd")
-const MoveNodesCommand = preload("commands/move_nodes_command.gd")
-const ConnectionCommand = preload("commands/connection_command.gd")
-const PasteNodesCommand = preload("commands/paste_nodes_command.gd")
-const ChangeDictionaryValueCommand = preload("commands/change_dictionary_value_command.gd")
-const AddObjectiveCommand = preload("commands/add_objective_command.gd")
-const RemoveObjectiveCommand = preload("commands/remove_objective_command.gd")
-const AddConditionCommand = preload("commands/add_condition_command.gd")
-const RemoveConditionCommand = preload("commands/remove_condition_command.gd")
-const AddParallelPortCommand = preload("commands/add_parallel_port_command.gd")
-const RemoveParallelPortCommand = preload("commands/remove_parallel_port_command.gd")
-const AddRandomPortCommand = preload("commands/add_random_port_command.gd")
-const RemoveRandomPortCommand = preload("commands/remove_random_port_command.gd")
-const AddSyncInputPortCommand = preload("commands/add_sync_input_port_command.gd")
-const RemoveSyncInputPortCommand = preload("commands/remove_sync_input_port_command.gd")
-const AddSyncOutputPortCommand = preload("commands/add_sync_output_port_command.gd")
-const RemoveSyncOutputPortCommand = preload("commands/remove_sync_output_port_command.gd")
-const CreateBackdropCommand = preload("commands/create_backdrop_command.gd")
-const AddPayloadCommand = preload("commands/add_payload_command.gd")
-const RemovePayloadCommand = preload("commands/remove_payload_command.gd")
-const ReorderObjectiveCommand = preload("commands/reorder_objective_command.gd")
-const ReorderConditionCommand = preload("commands/reorder_condition_command.gd")
-const AddRewardCommand = preload("commands/add_reward_command.gd")
-const RemoveRewardCommand = preload("commands/remove_reward_command.gd")
-const AddSimpleConditionCommand = preload("commands/add_simple_condition_command.gd")
-const RemoveSimpleConditionCommand = preload("commands/remove_simple_condition_command.gd")
-const SetSimpleConditionCommand = preload("commands/set_simple_condition_command.gd")
-const AddSwitchCaseCommand = preload("commands/add_switch_case_command.gd")
-const RemoveSwitchCaseCommand = preload("commands/remove_switch_case_command.gd")
 
+const DeleteNodesCommand = preload("commands/delete_nodes_command.gd")
+
+const CreateNodeCommand = preload("commands/create_node_command.gd")
+
+const MoveNodesCommand = preload("commands/move_nodes_command.gd")
+
+const ConnectionCommand = preload("commands/connection_command.gd")
+
+const PasteNodesCommand = preload("commands/paste_nodes_command.gd")
+
+const ChangeDictionaryValueCommand = preload("commands/change_dictionary_value_command.gd")
+
+const AddObjectiveCommand = preload("commands/add_objective_command.gd")
+
+const RemoveObjectiveCommand = preload("commands/remove_objective_command.gd")
+
+const AddConditionCommand = preload("commands/add_condition_command.gd")
+
+const RemoveConditionCommand = preload("commands/remove_condition_command.gd")
+
+const AddParallelPortCommand = preload("commands/add_parallel_port_command.gd")
+
+const RemoveParallelPortCommand = preload("commands/remove_parallel_port_command.gd")
+
+const AddRandomPortCommand = preload("commands/add_random_port_command.gd")
+
+const RemoveRandomPortCommand = preload("commands/remove_random_port_command.gd")
+
+const AddSyncInputPortCommand = preload("commands/add_sync_input_port_command.gd")
+
+const RemoveSyncInputPortCommand = preload("commands/remove_sync_input_port_command.gd")
+
+const AddSyncOutputPortCommand = preload("commands/add_sync_output_port_command.gd")
+
+const RemoveSyncOutputPortCommand = preload("commands/remove_sync_output_port_command.gd")
+
+const CreateBackdropCommand = preload("commands/create_backdrop_command.gd")
+
+const AddPayloadCommand = preload("commands/add_payload_command.gd")
+
+const RemovePayloadCommand = preload("commands/remove_payload_command.gd")
+
+const ReorderObjectiveCommand = preload("commands/reorder_objective_command.gd")
+
+const ReorderConditionCommand = preload("commands/reorder_condition_command.gd")
+
+const AddRewardCommand = preload("commands/add_reward_command.gd")
+
+const RemoveRewardCommand = preload("commands/remove_reward_command.gd")
+
+const AddSimpleConditionCommand = preload("commands/add_simple_condition_command.gd")
+
+const RemoveSimpleConditionCommand = preload("commands/remove_simple_condition_command.gd")
+
+const SetSimpleConditionCommand = preload("commands/set_simple_condition_command.gd")
+
+const AddSwitchCaseCommand = preload("commands/add_switch_case_command.gd")
+
+const RemoveSwitchCaseCommand = preload("commands/remove_switch_case_command.gd")
 
 # --- Dependencies ---
 var _history: QWEditorHistory
+
 var _data_manager: QWGraphData
+
 var _properties_panel: PanelContainer
+
 var _graph_controller: QuestWeaverGraphController
+
 var _clipboard: QWClipboard
+
 var _editor: QuestWeaverEditor
 
 # --- State ---
 var _drag_start_positions: Dictionary = {}
-
 
 func initialize(p_editor: QuestWeaverEditor, p_history: QWEditorHistory, p_data_manager: QWGraphData, p_properties_panel: PanelContainer, p_graph_controller: QuestWeaverGraphController, p_clipboard: QWClipboard) -> void:
 	self._editor = p_editor
@@ -58,6 +116,7 @@ func initialize(p_editor: QuestWeaverEditor, p_history: QWEditorHistory, p_data_
 	self._properties_panel = p_properties_panel
 	self._graph_controller = p_graph_controller
 	self._clipboard = p_clipboard
+
 
 
 func on_node_property_update_requested(node_id: StringName, property_name: String, new_value: Variant, sub_resource: Resource = null, extra: Dictionary = {}) -> void:
@@ -119,6 +178,7 @@ func on_node_property_update_requested(node_id: StringName, property_name: Strin
 
 	node_data_changed.emit(node_id, property_name)
 	_graph_controller.call_deferred(&"grab_focus")
+
 
 # Complex actions are actions that require multiple properties to be changed.
 # Example: Adding an objective requires adding a new objective resource and updating the task node's objectives array.
@@ -244,6 +304,7 @@ func on_complex_action_requested(node_id: StringName, action: String, payload: D
 	node_data_changed.emit(node_id, action)
 
 
+
 func on_begin_node_move() -> void:
 	var current_graph = _data_manager.get_active_graph()
 	if not is_instance_valid(current_graph): return
@@ -265,6 +326,7 @@ func on_begin_node_move() -> void:
 							_drag_start_positions[inner_id] = inner_data.graph_position
 
 
+
 func on_end_node_move() -> void:
 	var current_graph_instance = _data_manager.get_active_graph()
 	if not is_instance_valid(current_graph_instance) or _drag_start_positions.is_empty():
@@ -282,6 +344,7 @@ func on_end_node_move() -> void:
 	_graph_controller.clear_backdrop_drag_state()
 
 
+
 func on_connection_request(from_node: StringName, from_port: int, to_node: StringName, to_port: int) -> void:
 	if from_node == to_node: return
 	var editable_graph = _data_manager.make_active_graph_editable()
@@ -291,12 +354,14 @@ func on_connection_request(from_node: StringName, from_port: int, to_node: Strin
 	_history.execute_command(command)
 
 
+
 func on_disconnection_request(from_node: StringName, from_port: int, to_node: StringName, to_port: int) -> void:
 	var editable_graph = _data_manager.make_active_graph_editable()
 	if not is_instance_valid(editable_graph): return
 
 	var command = ConnectionCommand.new(_editor, editable_graph, from_node, from_port, to_node, to_port, false)
 	_history.execute_command(command)
+
 
 
 func on_nodes_deleted(node_ids: Array[StringName]) -> void:
@@ -328,6 +393,7 @@ func on_nodes_deleted(node_ids: Array[StringName]) -> void:
 		_properties_panel.clear_inspection()
 
 
+
 func copy_selection_to_clipboard() -> void:
 	var current_graph = _data_manager.get_active_graph()
 	if not is_instance_valid(current_graph):
@@ -340,6 +406,7 @@ func copy_selection_to_clipboard() -> void:
 			selected_nodes_data.append(node_data)
 
 	_clipboard.copy_selection_to_clipboard(selected_nodes_data, current_graph.connections)
+
 
 
 func paste_from_clipboard() -> void:
@@ -358,6 +425,7 @@ func paste_from_clipboard() -> void:
 	_history.execute_command(command)
 
 
+
 func save_all_modified_graphs() -> void:
 	var unsaved_paths = _data_manager.get_all_unsaved_paths()
 	if unsaved_paths.is_empty():
@@ -365,6 +433,7 @@ func save_all_modified_graphs() -> void:
 
 	for path in unsaved_paths:
 		_editor.save_single_file(path)
+
 
 
 func _handle_terminal_toggle(graph: QuestGraphResource, node_id: StringName, node_resource: GraphNodeResource) -> void:
@@ -392,28 +461,8 @@ func _handle_terminal_toggle(graph: QuestGraphResource, node_id: StringName, nod
 	node_data_changed.emit(node_id, "is_terminal")
 	_graph_controller.call_deferred(&"grab_focus")
 
+
 # Helper to create the command
 func _create_sync_pattern_command(node: SynchronizeNodeResource, payload: Dictionary) -> EditorCommand:
 	return SyncPatternCommand.new(node, payload.output_index, payload.input_index, payload.state)
 
-class SyncPatternCommand extends EditorCommand:
-	var node: SynchronizeNodeResource
-	var out_idx: int
-	var in_idx: int
-	var new_state: int
-	var old_state: int
-
-	func _init(p_node, p_out, p_in, p_state):
-		node = p_node
-		out_idx = p_out
-		in_idx = p_in
-		new_state = p_state
-
-	func execute():
-		if out_idx < node.outputs.size() and in_idx < node.outputs[out_idx].patterns.size():
-			old_state = node.outputs[out_idx].patterns[in_idx]
-			node.outputs[out_idx].patterns[in_idx] = new_state
-
-	func undo():
-		if out_idx < node.outputs.size() and in_idx < node.outputs[out_idx].patterns.size():
-			node.outputs[out_idx].patterns[in_idx] = old_state

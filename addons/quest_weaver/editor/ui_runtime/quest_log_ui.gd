@@ -1,5 +1,6 @@
 # res://addons/quest_weaver/editor/ui_runtime/quest_log_ui.gd
 class_name QuestLogUI
+
 extends CanvasLayer
 
 ## Main runtime UI for the Quest Journal.
@@ -7,37 +8,49 @@ extends CanvasLayer
 ## when quests start, progress, or finish.
 
 const QuestLogEntryScene = preload("./quest_log_entry.tscn")
+
 const QuestCategoryHeader = preload("./quest_category_header.gd")
 
-# --- UI References (Right Side / Detail View) ---
-@onready var quest_list: VBoxContainer = %QuestListContainer
-@onready var active_quests_header: QuestCategoryHeader = %ActiveQuestsHeader
-@onready var completed_quests_header: QuestCategoryHeader = %CompletedQuestsHeader
-@onready var failed_quests_header: QuestCategoryHeader = %FailedQuestsHeader
-
-# --- UI References (Left Side / List View) ---
-@onready var detail_title_label: Label = %DetailTitleLabel
-@onready var detail_description_label: RichTextLabel = %DetailDescriptionLabel
-@onready var detail_objectives_list: VBoxContainer = %DetailObjectivesList
-@onready var detail_log_list: VBoxContainer = %DetailLogList
-@onready var close_button: Button = %CloseButton
+# Object pool to reduce allocations on redraw
+const ENTRY_POOL_MAX := 20
 
 @export var toggle_log_action: StringName = &"toggle_quest_log"
 
+var quest_controller: QuestController
+
 # --- Internal State ---
 var _all_quest_entries: Array[QuestLogEntry] = []
-var quest_controller: QuestController
+
 var _current_selected_quest_id: StringName = &""
+
 var _item_registry: Resource = null
+
 var _item_registry_load_attempted := false
 
 # Redraw flag to prevent multiple rebuilds in the same frame
 var _list_needs_redraw := false
 
-# Object pool to reduce allocations on redraw
-const ENTRY_POOL_MAX := 20
 var _entry_pool: Array[QuestLogEntry] = []
 
+# --- UI References (Right Side / Detail View) ---
+@onready var quest_list: VBoxContainer = %QuestListContainer
+
+@onready var active_quests_header: QuestCategoryHeader = %ActiveQuestsHeader
+
+@onready var completed_quests_header: QuestCategoryHeader = %CompletedQuestsHeader
+
+@onready var failed_quests_header: QuestCategoryHeader = %FailedQuestsHeader
+
+# --- UI References (Left Side / List View) ---
+@onready var detail_title_label: Label = %DetailTitleLabel
+
+@onready var detail_description_label: RichTextLabel = %DetailDescriptionLabel
+
+@onready var detail_objectives_list: VBoxContainer = %DetailObjectivesList
+
+@onready var detail_log_list: VBoxContainer = %DetailLogList
+
+@onready var close_button: Button = %CloseButton
 
 func _ready() -> void:
 	self.visible = false
@@ -65,15 +78,18 @@ func _ready() -> void:
 			# Wait until controller is ready
 			services.controller_ready.connect(_on_controller_ready, CONNECT_ONE_SHOT)
 
+
 func _input(event: InputEvent) -> void:
 	if not toggle_log_action.is_empty() and event.is_action_pressed(toggle_log_action):
 		visible = !visible
 		get_viewport().set_input_as_handled()
 
+
 func _on_visibility_changed() -> void:
 	# Refresh data only when the UI becomes visible to save performance
 	if visible:
 		_request_list_redraw()
+
 
 # Connect to all relevant signals from the QuestController logic
 func _initialize_connections() -> void:
@@ -89,6 +105,7 @@ func _initialize_connections() -> void:
 	if self.visible:
 		_request_list_redraw()
 
+
 func _on_controller_ready() -> void:
 	var services = _get_services_safe()
 	if services:
@@ -98,10 +115,12 @@ func _on_controller_ready() -> void:
 	else:
 		push_error("QuestLogUI: Controller_ready signal received, but controller is still invalid!")
 
+
 # --- Signal Handlers ---
 
 func _on_quest_list_changed(_quest_id: StringName) -> void:
 	_request_list_redraw()
+
 
 func _on_quest_data_changed(quest_id: StringName) -> void:
 	_request_list_redraw()
@@ -109,6 +128,7 @@ func _on_quest_data_changed(quest_id: StringName) -> void:
 	# If the currently viewed quest changed, update the details immediately
 	if self.visible and quest_id == _current_selected_quest_id:
 		_update_detail_view()
+
 
 # --- Redraw Logic (Debounced) ---
 
@@ -119,6 +139,7 @@ func _request_list_redraw() -> void:
 
 	_list_needs_redraw = true
 	call_deferred(&"_process_redraw")
+
 
 func _process_redraw() -> void:
 	if not _list_needs_redraw:
@@ -134,6 +155,7 @@ func _process_redraw() -> void:
 		failed_quests_header.update_display()
 
 		_update_detail_view()
+
 
 func _redraw_quest_list() -> void:
 	if not is_instance_valid(quest_controller): return
@@ -175,6 +197,7 @@ func _redraw_quest_list() -> void:
 	# 4. Ensure the selection highlight is correct
 	_update_selection_and_highlights(all_quests)
 
+
 func _update_selection_and_highlights(all_quests: Array) -> void:
 	var all_quest_ids = all_quests.map(func(q): return q.id)
 
@@ -189,6 +212,7 @@ func _update_selection_and_highlights(all_quests: Array) -> void:
 	else:
 		_update_entry_highlights()
 
+
 func _on_quest_entry_selected(quest_id: StringName) -> void:
 	if _current_selected_quest_id == quest_id:
 		return
@@ -198,10 +222,12 @@ func _on_quest_entry_selected(quest_id: StringName) -> void:
 	_update_entry_highlights()
 	_update_detail_view()
 
+
 func _update_entry_highlights() -> void:
 	# Visually highlight the selected entry in the list
 	for entry in _all_quest_entries:
 		entry.set_active_state(entry.get_quest_id() == _current_selected_quest_id)
+
 
 func _get_entry_from_pool() -> QuestLogEntry:
 	if _entry_pool.size() > 0:
@@ -211,9 +237,11 @@ func _get_entry_from_pool() -> QuestLogEntry:
 		return entry
 	return QuestLogEntryScene.instantiate()
 
+
 func _trim_entry_pool() -> void:
 	while _entry_pool.size() > ENTRY_POOL_MAX:
 		_entry_pool.pop_back().queue_free()
+
 
 # --- Detail View Logic ---
 
@@ -223,6 +251,7 @@ func _clear_detail_view() -> void:
 	detail_description_label.text = ""
 	for child in detail_objectives_list.get_children(): child.queue_free()
 	for child in detail_log_list.get_children(): child.queue_free()
+
 
 func _update_detail_view() -> void:
 	if _current_selected_quest_id.is_empty():
@@ -316,6 +345,7 @@ func _update_detail_view() -> void:
 
 			detail_objectives_list.add_child(obj_label)
 
+
 func _get_item_registry() -> Resource:
 	if _item_registry != null:
 		return _item_registry
@@ -327,6 +357,7 @@ func _get_item_registry() -> Resource:
 		_item_registry = ResourceLoader.load(settings.item_registry_path)
 	return _item_registry
 
+
 func _get_item_display_name(item_id: String) -> String:
 	var registry = _get_item_registry()
 	if registry and registry.has_method(&"find"):
@@ -335,11 +366,14 @@ func _get_item_display_name(item_id: String) -> String:
 			return str(def.display_name)
 	return item_id.capitalize()
 
+
 func _get_services_safe() -> Node:
 	var main_loop = Engine.get_main_loop()
 	if main_loop and main_loop.root:
 		return main_loop.root.get_node_or_null("QuestWeaverServices")
 	return null
 
+
 func _on_close_button_pressed() -> void:
 	self.visible = false
+

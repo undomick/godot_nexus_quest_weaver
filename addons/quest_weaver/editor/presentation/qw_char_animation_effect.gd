@@ -1,24 +1,23 @@
 # res://addons/quest_weaver/editor/presentation/qw_char_animation_effect.gd
 class_name QWCharAnimationEffect
+
 extends RichTextEffect
+
+@export var elapsed_time: float = 0.0
 
 # This effect will be identified by the BBCode tag [qw_anim]
 var bbcode = "qw_anim"
 
 var owner_label: RichTextLabel
 
-@export var elapsed_time: float = 0.0:
-	set(value):
-		elapsed_time = value
-		if is_instance_valid(owner_label):
-			owner_label.queue_redraw()
-
 # Parameters passed from the BaseUIPanel
 var preset: int = 0
-var duration: float = 0.4
-var stagger: float = 0.04
-var ease_type: Tween.EaseType = Tween.EASE_IN_OUT
 
+var duration: float = 0.4
+
+var stagger: float = 0.04
+
+var ease_type: Tween.EaseType = Tween.EASE_IN_OUT
 
 # This is the core function of the effect.
 func _process_custom_fx(char_fx: CharFXTransform) -> bool:
@@ -51,9 +50,11 @@ func _process_custom_fx(char_fx: CharFXTransform) -> bool:
 
 	return true
 
+
 # --- NEW HELPER FUNCTION ---
 
 # This function correctly applies easing based on the Tween.EaseType enum.
+
 func _apply_ease(progress: float, p_ease_type: Tween.EaseType) -> float:
 	match p_ease_type:
 		Tween.EASE_IN:
@@ -71,3 +72,4 @@ func _apply_ease(progress: float, p_ease_type: Tween.EaseType) -> float:
 		# Add other ease types here if needed (e.g., CUBIC, SINE...)
 		_: # Default case: EASE_OUT_IN or any other, falls back to linear
 			return progress
+

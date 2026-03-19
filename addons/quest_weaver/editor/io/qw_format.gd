@@ -1,5 +1,6 @@
 # res://addons/quest_weaver/editor/io/qw_format.gd
 @tool
+
 class_name QWFormat
 extends RefCounted
 

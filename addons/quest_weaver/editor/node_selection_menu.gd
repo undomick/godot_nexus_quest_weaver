@@ -1,15 +1,20 @@
 # res://addons/quest_weaver/editor/node_selection_menu.gd
 @tool
+
 class_name NodeSelectionMenu
+
 extends PopupPanel
 
 signal node_selected(type_name: StringName)
 
-@onready var filter_edit: LineEdit = %FilterEdit
-@onready var node_list: ItemList = %NodeList
 
 var _all_node_types: Array[NodeTypeInfo] = []
+
 var _filtered_indices: Array[int] = [] # Maps list index to original array index
+
+@onready var filter_edit: LineEdit = %FilterEdit
+
+@onready var node_list: ItemList = %NodeList
 
 func _ready() -> void:
 	filter_edit.text_changed.connect(_on_filter_text_changed)
@@ -28,6 +33,7 @@ func _ready() -> void:
 
 	about_to_popup.connect(_on_about_to_popup)
 
+
 func set_available_nodes(node_types: Array[NodeTypeInfo]) -> void:
 	# Sort: Category first, then Name (duplicate to avoid mutating caller's array)
 	var sorted = node_types.duplicate()
@@ -38,6 +44,7 @@ func set_available_nodes(node_types: Array[NodeTypeInfo]) -> void:
 	)
 	_all_node_types = sorted
 	_refresh_list("")
+
 
 func _refresh_list(filter: String) -> void:
 	node_list.clear()
@@ -92,8 +99,10 @@ func _refresh_list(filter: String) -> void:
 	if node_list.item_count > 0:
 		node_list.select(0)
 
+
 func _on_filter_text_changed(new_text: String) -> void:
 	_refresh_list(new_text)
+
 
 func _on_text_submitted(_text: String) -> void:
 	if node_list.item_count > 0:
@@ -103,17 +112,20 @@ func _on_text_submitted(_text: String) -> void:
 		else:
 			_on_list_item_activated(0)
 
+
 func _on_list_item_activated(index: int) -> void:
 	var original_index = _filtered_indices[index]
 	var info = _all_node_types[original_index]
 	node_selected.emit(StringName(info.node_name))
 	hide()
 
+
 func _on_about_to_popup() -> void:
 	filter_edit.clear()
 	_refresh_list("")
 	# Set focus to search field immediately
 	filter_edit.call_deferred(&"grab_focus")
+
 
 func _on_filter_gui_input(event: InputEvent) -> void:
 	# Allows arrow key navigation in the list while typing in the text field
@@ -132,3 +144,4 @@ func _on_filter_gui_input(event: InputEvent) -> void:
 				node_list.select(current_selection - 1)
 				node_list.ensure_current_is_visible()
 			get_viewport().set_input_as_handled()
+

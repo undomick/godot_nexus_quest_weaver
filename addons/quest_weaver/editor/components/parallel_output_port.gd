@@ -1,21 +1,24 @@
 # res://addons/quest_weaver/editor/components/parallel_output_port.gd
 @tool
+
 class_name ParallelOutputPort
+
 extends Resource
 
-## Contains the configuration for a single output of a ParallelNode.
-
-## The name displayed on the port in the GraphEdit.
 @export var port_name: StringName = &"Out"
 
 ## An optional condition that must be met for this output to activate.
 ## If null, the output will always activate.
 @export var condition: ConditionResource
 
+## Contains the configuration for a single output of a ParallelNode.
+
+## The name displayed on the port in the GraphEdit.
 
 func _init() -> void:
 	condition = ConditionResource.new()
 	condition.type = ConditionResource.ConditionType.BOOL
+
 
 func to_dictionary() -> Dictionary:
 	var data: Dictionary = {
@@ -28,6 +31,7 @@ func to_dictionary() -> Dictionary:
 
 	return data
 
+
 func from_dictionary(data: Dictionary) -> void:
 	port_name = StringName(data.get("port_name", &"Out"))
 
@@ -37,3 +41,4 @@ func from_dictionary(data: Dictionary) -> void:
 		if is_instance_valid(new_cond):
 			condition = new_cond as ConditionResource
 			condition.from_dictionary(condition_data)
+

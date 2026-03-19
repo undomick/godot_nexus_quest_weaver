@@ -1,15 +1,19 @@
 # res://addons/quest_weaver/nodes/flow/branch_node/branch_node_editor.gd
 @tool
+
 class_name BranchNodeEditor
+
 extends NodePropertyEditorBase
 
 const ConditionEditorScene = preload("res://addons/quest_weaver/editor/conditions/condition_editor.tscn")
 
-@onready var operator_picker: OptionButton = %OperatorPicker
-@onready var conditions_list: VBoxContainer = %ConditionsList
-@onready var add_button: Button = %AddConditionButton
-
 var _is_setting_up := false
+
+@onready var operator_picker: OptionButton = %OperatorPicker
+
+@onready var conditions_list: VBoxContainer = %ConditionsList
+
+@onready var add_button: Button = %AddConditionButton
 
 func _ready() -> void:
 	operator_picker.item_selected.connect(_on_operator_changed)
@@ -23,6 +27,7 @@ func _ready() -> void:
 		"- NOR: Returns true only if all conditions are false (Not OR)."
 
 	add_button.tooltip_text = "Add a new condition to evaluate."
+
 
 func set_node_data(node_data: GraphNodeResource) -> void:
 	_is_setting_up = true
@@ -38,6 +43,7 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 
 	call_deferred(&"_rebuild_conditions_list")
 	_is_setting_up = false
+
 
 func _rebuild_conditions_list() -> void:
 	for child in conditions_list.get_children():
@@ -72,12 +78,15 @@ func _rebuild_conditions_list() -> void:
 		editor_instance.property_changed.connect(_make_condition_property_handler(i))
 		editor_instance.rebuild_requested.connect(_rebuild_conditions_list)
 
+
 func _on_move_condition(_condition: ConditionResource, condition_index: int, direction: int) -> void:
 	var payload = {"condition_index": condition_index, "direction": direction}
 	complex_action_requested.emit(edited_node_data.id, "move_condition", payload)
 
+
 func _on_add_condition_pressed() -> void:
 	complex_action_requested.emit(edited_node_data.id, "add_condition", {})
+
 
 func _on_operator_changed(index: int) -> void:
 	if _is_setting_up: return
@@ -85,10 +94,13 @@ func _on_operator_changed(index: int) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.operator != index:
 		property_update_requested.emit(edited_node_data.id, "operator", index, null, {})
 
+
 func _make_condition_property_handler(condition_index: int):
 	return func(prop_name: String, new_value: Variant, _target_resource: Resource):
 		property_update_requested.emit(edited_node_data.id, prop_name, new_value, null, {"condition_index": condition_index})
 
+
 func _on_remove_condition_requested(_condition_to_remove: ConditionResource, condition_index: int) -> void:
 	var payload = {"condition_index": condition_index}
 	complex_action_requested.emit(edited_node_data.id, "remove_condition", payload)
+

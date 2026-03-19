@@ -1,19 +1,24 @@
 # res://addons/quest_weaver/systems/managers/quest_event_manager.gd
 class_name QuestEventManager
+
 extends RefCounted
+
+var _event_listeners: Dictionary = {}
+
+var _controller_weak: WeakRef
 
 ## Manages global event listeners.
 ## Stores mapping: EventName -> List of NodeIDs.
 
 # Map: StringName -> Array[StringName]
-var _event_listeners: Dictionary = {}
-var _controller_weak: WeakRef
 
 func _init(p_controller: QuestController):
 	self._controller_weak = weakref(p_controller)
 
+
 func _get_controller() -> QuestController:
 	return _controller_weak.get_ref() as QuestController
+
 
 func register_listener(listener_node: EventListenerNodeResource) -> void:
 	var evt: StringName = listener_node.event_name
@@ -24,12 +29,14 @@ func register_listener(listener_node: EventListenerNodeResource) -> void:
 	if not listener_node.id in _event_listeners[evt]:
 		_event_listeners[evt].append(listener_node.id)
 
+
 func unregister_listener(listener_node: EventListenerNodeResource) -> void:
 	var evt: StringName = listener_node.event_name
 	if _event_listeners.has(evt):
 		_event_listeners[evt].erase(listener_node.id)
 		if _event_listeners[evt].is_empty():
 			_event_listeners.erase(evt)
+
 
 func on_global_event(event_name: StringName, payload: Dictionary) -> void:
 	var controller = _get_controller()
@@ -72,8 +79,10 @@ func on_global_event(event_name: StringName, payload: Dictionary) -> void:
 					_event_listeners[event_name].erase(node_id)
 					controller.complete_node(node_def)
 
+
 func clear() -> void:
 	_event_listeners.clear()
+
 
 ## Removes all event listeners for nodes in the given set. Use Dictionary for O(1) lookup.
 func remove_listeners_for_quest(nodes_in_quest: Dictionary) -> void:
@@ -82,6 +91,7 @@ func remove_listeners_for_quest(nodes_in_quest: Dictionary) -> void:
 		for i in range(list.size() - 1, -1, -1):
 			if nodes_in_quest.has(list[i]):
 				list.remove_at(i)
+
 
 # --- Helper for Simple Conditions ---
 func _check_simple_conditions(conditions: Array[Dictionary], payload: Dictionary) -> bool:
@@ -111,3 +121,4 @@ func _check_simple_conditions(conditions: Array[Dictionary], payload: Dictionary
 			return false
 
 	return true
+

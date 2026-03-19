@@ -323,8 +323,8 @@ func _synchronize_visual_graph(graph_resource: QuestGraphResource) -> void:
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and \
-	   (event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN) and \
-	   event.is_command_or_control_pressed():
+			(event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN) and \
+			event.is_command_or_control_pressed():
 
 		call_deferred(&"_emit_view_changed_signal")
 

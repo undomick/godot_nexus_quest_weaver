@@ -1,6 +1,8 @@
 # res://addons/quest_weaver/editor/validation/validator_dock.gd
 @tool
+
 class_name QuestWeaverValidator
+
 extends MarginContainer
 
 ## Combines validation results (Validate Active / Validate All) with runtime debug category toggles.
@@ -8,24 +10,31 @@ extends MarginContainer
 ## when running the game with QuestWeaver debugger connected; they are co-located here for
 ## developer convenience since both are development-time tools.
 signal validation_requested
+
 signal result_selected(node_id: StringName, source_quest_path: String)
+
 
 # Runtime debug overlay categories; used to build the checkbox UI in this dock.
 const DEBUG_CATEGORIES = ["System", "Flow", "Executor", "Inventory", "Animation", "SaveLoad"]
 
 var _debug_settings: QuestWeaverDebugSettings
 
-@onready var validate_button: Button = %ValidateButton
-@onready var validate_side_panel_button: Button = %ValidateSidePanelButton
-@onready var validate_all_button: Button = %ValidateAllButton
-@onready var results_tree: Tree = %ResultsTree
-@onready var category_list: VBoxContainer = %CategoryList
-
 ## Callable that returns Array[String] of open quest file paths. Set by plugin.
 var _get_open_files: Callable
 
+@onready var validate_button: Button = %ValidateButton
+
+@onready var validate_side_panel_button: Button = %ValidateSidePanelButton
+
+@onready var validate_all_button: Button = %ValidateAllButton
+
+@onready var results_tree: Tree = %ResultsTree
+
+@onready var category_list: VBoxContainer = %CategoryList
+
 func set_open_files_provider(getter: Callable) -> void:
 	_get_open_files = getter
+
 
 func _ready() -> void:
 	validate_button.text = "Validate Active Quest"
@@ -61,6 +70,7 @@ func _ready() -> void:
 	# --- Load settings and build the debug UI ---
 	_load_debug_settings()
 	_build_debug_ui()
+
 
 # Called externally by the editor to display validation results.
 func display_results(results: Array[ValidationResult]) -> void:
@@ -101,9 +111,11 @@ func display_results(results: Array[ValidationResult]) -> void:
 		for col in range(4):
 			item.set_autowrap_mode(col, TextServer.AUTOWRAP_WORD_SMART)
 
+
 # Forwards the button click signal to the editor.
 func _on_validate_button_pressed() -> void:
 	validation_requested.emit()
+
 
 # Validates all quests in the SidePanel (opened files) and displays results.
 func _on_validate_side_panel_pressed() -> void:
@@ -127,12 +139,14 @@ func _on_validate_side_panel_pressed() -> void:
 	validator.free()
 	display_results(results)
 
+
 # Validates all quests in the registry and displays results (no main view required).
 func _on_validate_all_button_pressed() -> void:
 	var validator = QuestValidator.new()
 	var results = validator.validate_all_quests_in_registry()
 	validator.free()
 	display_results(results)
+
 
 # Forwards the item selection signal to the editor to focus the node.
 func _on_results_tree_item_selected() -> void:
@@ -150,9 +164,11 @@ func _on_results_tree_item_selected() -> void:
 	if not node_id.is_empty():
 		result_selected.emit(node_id, source_path)
 
+
 # --- DEBUG SETTINGS ---
 
 # Loads the settings resource or creates it if it doesn't exist.
+
 func _load_debug_settings() -> void:
 	if ResourceLoader.exists(QWConstants.DEBUG_SETTINGS_PATH):
 		_debug_settings = ResourceLoader.load(QWConstants.DEBUG_SETTINGS_PATH)
@@ -172,6 +188,7 @@ func _load_debug_settings() -> void:
 	if settings_changed:
 		ResourceSaver.save(_debug_settings, QWConstants.DEBUG_SETTINGS_PATH)
 
+
 # Creates the CheckBox controls dynamically based on the master list.
 func _build_debug_ui() -> void:
 	for child in category_list.get_children():
@@ -185,6 +202,7 @@ func _build_debug_ui() -> void:
 		checkbox.toggled.connect(_on_debug_category_toggled.bind(category))
 		category_list.add_child(checkbox)
 
+
 # Called when any checkbox is toggled by the user.
 func _on_debug_category_toggled(is_pressed: bool, category: String) -> void:
 	if not is_instance_valid(_debug_settings): return
@@ -193,3 +211,4 @@ func _on_debug_category_toggled(is_pressed: bool, category: String) -> void:
 	_debug_settings.active_categories[category] = is_pressed
 	# ...and save the change back to the .tres file immediately.
 	ResourceSaver.save(_debug_settings, QWConstants.DEBUG_SETTINGS_PATH)
+

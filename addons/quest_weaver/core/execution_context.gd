@@ -7,6 +7,7 @@ extends RefCounted
 
 var game_state: Node
 var services: Node
+var _controller_weak: WeakRef
 
 var logger: QWLogger:
 	get:
@@ -14,7 +15,6 @@ var logger: QWLogger:
 			return services.logger
 		return null
 
-var _controller_weak: WeakRef
 var quest_controller: QuestController:
 	get:
 		if _controller_weak:
