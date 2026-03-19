@@ -168,7 +168,7 @@ func _redraw_quest_list() -> void:
 	_trim_entry_pool()
 
 	# 2. Fetch fresh data from the controller
-	var all_quests = quest_controller.get_all_managed_quests_data()
+	var all_quests = quest_controller.get_quest_data_manager().get_all_managed_quests_data()
 
 	# 3. Iterate and sort into categories
 	for quest_data in all_quests:
@@ -260,7 +260,7 @@ func _update_detail_view() -> void:
 	if not is_instance_valid(quest_controller):
 		return
 
-	var quest_data = quest_controller.get_quest_data(_current_selected_quest_id)
+	var quest_data = quest_controller.get_quest_data_manager().get_quest_data(_current_selected_quest_id)
 	if quest_data.is_empty():
 		_clear_detail_view()
 		return
@@ -287,7 +287,7 @@ func _update_detail_view() -> void:
 	for child in detail_objectives_list.get_children():
 		child.queue_free()
 
-	var active_objectives = quest_controller.get_active_objectives_for_quest(_current_selected_quest_id)
+	var active_objectives = quest_controller.get_objective_manager().get_active_objectives_for_quest(_current_selected_quest_id)
 	var quest_status = quest_data.get("status")
 
 	if active_objectives.is_empty() and quest_status == QWEnums.QuestState.ACTIVE:
@@ -331,7 +331,7 @@ func _update_detail_view() -> void:
 								if key_str.begins_with("new_target_"):
 									continue
 								var max_val = objective.requirements[key]
-								var current = quest_controller.get_objective_progress_by_key(objective.id, key)
+								var current = quest_controller.get_objective_manager().get_objective_progress_by_key(objective.id, key)
 								var display_name = _get_item_display_name(key_str)
 								parts.append("%s (%d/%d)" % [display_name, current, max_val])
 							if parts.size() > 0:

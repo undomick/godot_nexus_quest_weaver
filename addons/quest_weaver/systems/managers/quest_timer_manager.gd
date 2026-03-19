@@ -71,7 +71,7 @@ func _on_timer_tick(node_id: StringName):
 		return
 
 	# 1. Resolve Instance
-	var instance: QuestInstance = controller.get_instance_for_node(node_id)
+	var instance: QuestInstance = controller.get_quest_data_manager().get_instance_for_node(node_id)
 
 	# Safety check: If instance is gone, kill timer
 	if not instance:

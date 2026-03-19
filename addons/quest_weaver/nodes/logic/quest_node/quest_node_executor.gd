@@ -12,7 +12,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, _instance: Ques
 		return
 
 	if quest_node.action == QuestNodeResource.QuestAction.MOVE_TO_CUSTOM_POOL:
-		context.quest_controller.move_quest_to_custom_pool(quest_node.target_quest_id, quest_node.custom_pool_id)
+		context.quest_controller.get_quest_pool_manager().move_quest_to_custom_pool(quest_node.target_quest_id, quest_node.custom_pool_id)
 	else:
 		context.quest_controller.set_quest_status(quest_node.target_quest_id, quest_node.action)
 

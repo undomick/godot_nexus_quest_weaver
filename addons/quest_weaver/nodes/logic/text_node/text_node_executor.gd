@@ -13,8 +13,8 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 
 	match text_node.target_property:
 		TextNodeResource.TextTarget.ADD_TO_QUEST_LOG:
-			context.quest_controller.add_quest_log_entry(text_node.id, final_text)
+			context.quest_controller.get_quest_data_manager().add_quest_log_entry(text_node.id, final_text)
 		TextNodeResource.TextTarget.SET_QUEST_DESCRIPTION:
-			context.quest_controller.set_quest_description(text_node.id, final_text)
+			context.quest_controller.get_quest_data_manager().set_quest_description(text_node.id, final_text)
 
 	context.quest_controller.complete_node(node)

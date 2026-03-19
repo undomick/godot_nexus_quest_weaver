@@ -34,6 +34,9 @@ QuestController._activate_node()
 
 ### Managers
 
+- **QuestPoolManager** – Quest pool queries: `get_available_quests()`, `move_quest_to_custom_pool()`, etc. Extracted from QuestController.
+- **QuestObjectiveManager** – Objective queries and status: `get_objective_status()`, `get_objective_progress_by_key()`, `set_manual_objective_status()`, etc. Extracted from QuestController.
+- **QuestDataManager** – Quest data, instance lookup, presentation: `get_quest_data()`, `get_instance_for_node()`, `add_quest_log_entry()`, etc. Extracted from QuestController.
 - **QuestScopeManager** – StartScope/EndScope iteration limits
 - **QuestSyncManager** – Synchronize node pattern matching (deferred batching)
 - **QuestTimerManager** – Physical timers for TimerNode

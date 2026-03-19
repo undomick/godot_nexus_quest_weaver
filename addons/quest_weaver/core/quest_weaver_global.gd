@@ -104,7 +104,7 @@ func is_quest_failed(quest_id: StringName) -> bool:
 func get_quest_state(quest_id: StringName) -> int:
 	var controller = _get_controller_safe()
 	if not controller: return QWEnums.QuestState.UNAVAILABLE
-	return controller.get_quest_state(quest_id)
+	return controller.get_quest_data_manager().get_quest_state(quest_id)
 
 
 ## Returns the rewards for a quest.
@@ -123,7 +123,7 @@ func is_objective_completed(objective_id: StringName) -> bool:
 	if not controller: return false
 
 	# Mapping directly to ObjectiveResource.Status for clarity
-	return controller.get_objective_status(objective_id) == ObjectiveResource.Status.COMPLETED
+	return controller.get_objective_manager().get_objective_status(objective_id) == ObjectiveResource.Status.COMPLETED
 
 
 ## Returns the current progress count of an objective.
@@ -131,7 +131,7 @@ func is_objective_completed(objective_id: StringName) -> bool:
 func get_objective_progress(objective_id: StringName) -> int:
 	var controller = _get_controller_safe()
 	if controller:
-		return controller.get_objective_progress(objective_id)
+		return controller.get_objective_manager().get_objective_progress(objective_id)
 	return 0
 
 
@@ -140,7 +140,7 @@ func get_objective_progress(objective_id: StringName) -> int:
 func get_objective_resource(objective_id: StringName) -> ObjectiveResource:
 	var controller = _get_controller_safe()
 	if controller:
-		return controller.get_objective_resource(objective_id)
+		return controller.get_objective_manager().get_objective_resource(objective_id)
 	return null
 
 
@@ -148,7 +148,7 @@ func get_objective_resource(objective_id: StringName) -> ObjectiveResource:
 func get_quest_variable(quest_id: StringName, key: StringName, default: Variant = null) -> Variant:
 	var controller = _get_controller_safe()
 	if controller:
-		return controller.get_quest_variable(quest_id, key, default)
+		return controller.get_quest_data_manager().get_quest_variable(quest_id, key, default)
 	return default
 
 
@@ -184,55 +184,55 @@ func set_quest_available(quest_id: StringName) -> void:
 	if not _is_id_valid(quest_id, "set_quest_available"):
 		return
 	var controller = _get_controller_safe()
-	if controller: controller.set_quest_available(quest_id)
+	if controller: controller.get_quest_pool_manager().set_quest_available(quest_id)
 
 
 ## Returns a list of all quests that are currently in the AVAILABLE state.
 func get_available_quests() -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_available_quests()
+	if controller: return controller.get_quest_pool_manager().get_available_quests()
 	return []
 
 
 ## Returns a list of all quests that are currently ACTIVE.
 func get_active_quests() -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_active_quests()
+	if controller: return controller.get_quest_pool_manager().get_active_quests()
 	return []
 
 
 ## Returns a list of all quests that are COMPLETED.
 func get_completed_quests() -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_completed_quests()
+	if controller: return controller.get_quest_pool_manager().get_completed_quests()
 	return []
 
 
 ## Returns a list of all quests that are FAILED.
 func get_failed_quests() -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_failed_quests()
+	if controller: return controller.get_quest_pool_manager().get_failed_quests()
 	return []
 
 
 ## Returns IDs of all custom pools (from additional_pool_scripts).
 func get_all_custom_pool_ids() -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_all_custom_pool_ids()
+	if controller: return controller.get_quest_pool_manager().get_all_custom_pool_ids()
 	return []
 
 
 ## Returns quest IDs in a custom pool.
 func get_quests_in_pool(pool_id: StringName) -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_quests_in_pool(pool_id)
+	if controller: return controller.get_quest_pool_manager().get_quests_in_pool(pool_id)
 	return []
 
 
 ## Moves a quest to a custom pool (e.g. "daily", "seasonal").
 func move_quest_to_custom_pool(quest_id: StringName, pool_id: StringName) -> void:
 	var controller = _get_controller_safe()
-	if controller: controller.move_quest_to_custom_pool(quest_id, pool_id)
+	if controller: controller.get_quest_pool_manager().move_quest_to_custom_pool(quest_id, pool_id)
 
 
 ## Starts a quest by its Logical ID (QuestContext). Auto-loads if registered.
@@ -292,7 +292,7 @@ func complete_quest_file(file_id: StringName, success: bool = true) -> void:
 ## Manually completes a specific objective by ID.
 func complete_objective(objective_id: StringName) -> void:
 	var controller = _get_controller_safe()
-	if controller: controller.set_manual_objective_status(objective_id, ObjectiveResource.Status.COMPLETED)
+	if controller: controller.get_objective_manager().set_manual_objective_status(objective_id, ObjectiveResource.Status.COMPLETED)
 
 
 ## Debug: Jump to node
@@ -355,7 +355,7 @@ func load_quest_data(data: Dictionary) -> void:
 func get_active_objectives(quest_id: StringName) -> Array:
 	var controller = _get_controller_safe()
 	if controller:
-		return controller.get_active_objectives_for_quest(quest_id)
+		return controller.get_objective_manager().get_active_objectives_for_quest(quest_id)
 	return []
 
 
@@ -365,14 +365,14 @@ func get_active_objectives(quest_id: StringName) -> Array:
 func get_active_objective_markers() -> Array:
 	var controller = _get_controller_safe()
 	if controller:
-		return controller.get_active_objective_markers()
+		return controller.get_objective_manager().get_active_objective_markers()
 	return []
 
 
 ## Sets a runtime description override for a quest (by quest_id or node_id).
 func set_quest_description(quest_or_node_id: StringName, description: String) -> void:
 	var controller = _get_controller_safe()
-	if controller: controller.set_quest_description_by_quest_id(quest_or_node_id, description)
+	if controller: controller.get_quest_data_manager().set_quest_description_by_quest_id(quest_or_node_id, description)
 
 
 # ==============================================================================

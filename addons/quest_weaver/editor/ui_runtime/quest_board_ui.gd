@@ -106,7 +106,7 @@ func _redraw_quest_list() -> void:
 	for child in quest_list_container.get_children():
 		child.queue_free()
 
-	var available_ids = quest_controller.get_available_quests()
+	var available_ids = quest_controller.get_quest_pool_manager().get_available_quests()
 
 	if available_ids.is_empty():
 		if is_instance_valid(empty_label):
@@ -118,7 +118,7 @@ func _redraw_quest_list() -> void:
 		empty_label.visible = false
 
 	for quest_id in available_ids:
-		var quest_data = quest_controller.get_quest_data(quest_id)
+		var quest_data = quest_controller.get_quest_data_manager().get_quest_data(quest_id)
 		if quest_data.is_empty():
 			continue
 

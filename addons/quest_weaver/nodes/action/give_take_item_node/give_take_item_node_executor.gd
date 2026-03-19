@@ -47,7 +47,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 				logger.warn("Inventory", "ItemsFromObjective has no Target Objective ID.")
 			exit_port = 1
 		else:
-			var obj_res = controller.get_objective_resource(item_node.target_objective_id)
+			var obj_res = controller.get_objective_manager().get_objective_resource(item_node.target_objective_id)
 			if not obj_res or obj_res.requirements.is_empty():
 				if is_instance_valid(logger):
 					logger.warn("Inventory", "Target Objective '%s' not found or has no requirements." % item_node.target_objective_id)
@@ -174,7 +174,7 @@ func _process_take_logic(
 		return 2  # FAILURE
 	# Success only when objective is fully met (all targets reached). Otherwise Partial.
 	if update_obj_id != &"":
-		var objective_def = controller.get_objective_resource(update_obj_id) if is_instance_valid(controller) else null
+		var objective_def = controller.get_objective_manager().get_objective_resource(update_obj_id) if is_instance_valid(controller) else null
 		if is_instance_valid(objective_def):
 			var all_met = true
 			for req_key in objective_def.requirements:

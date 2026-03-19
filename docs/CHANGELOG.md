@@ -21,7 +21,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **QuestController**: Replaced `_runtime_instances` with `_pool_registry`. All status transitions use `move_instance_to_pool`. Public API unchanged.
+- **QuestController**: Replaced `_runtime_instances` with `_pool_registry`. All status transitions use `move_instance_to_pool`.
+- **QuestController (Breaking)**: Pool, objective, and data methods moved to managers. Use `get_quest_pool_manager()`, `get_objective_manager()`, `get_quest_data_manager()`. Example: `get_available_quests()` → `get_quest_pool_manager().get_available_quests()`; `get_quest_data()` → `get_quest_data_manager().get_quest_data()`; `get_objective_status()` → `get_objective_manager().get_objective_status()`.
+- **QuestController Refactoring (Breaking)**: 25 public methods moved to three new managers to satisfy GDLint `max-public-methods`. Migration:
+  - `get_available_quests()`, `get_active_quests()`, `get_completed_quests()`, `get_failed_quests()`, `get_all_custom_pool_ids()`, `get_quests_in_pool()`, `set_quest_available()`, `move_quest_to_custom_pool()` → `get_quest_pool_manager()`
+  - `get_active_objectives_for_quest()`, `get_active_objective_markers()`, `get_objective_status()`, `set_manual_objective_status()`, `get_objective_progress()`, `get_objective_progress_by_key()`, `get_objective_resource()` → `get_objective_manager()`
+  - `get_quest_state()`, `get_quest_data()`, `get_all_managed_quests_data()`, `get_quest_variable()`, `get_quest_id_for_node()`, `get_instance_for_node()`, `get_node_definition()`, `set_quest_description()`, `set_quest_description_by_quest_id()`, `add_quest_log_entry()` → `get_quest_data_manager()`
+  - Example: `controller.get_available_quests()` → `controller.get_quest_pool_manager().get_available_quests()`
 - **QuestStatePersistenceManager**: SAVE_VERSION bumped to 1.5; `pool_state_as_dict()` / `restore_from_data()` with migration for legacy format.
 - **Performance Monitors**: Now read from pool counts instead of iterating instances.
 - **Side Panel**: Folder scan limited to 500 files.

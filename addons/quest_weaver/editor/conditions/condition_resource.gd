@@ -87,9 +87,11 @@ func check(context: Variant, instance: QuestInstance = null) -> bool:
 
 		ConditionType.CHECK_QUEST_STATUS:
 			if is_instance_valid(controller):
-				var current_status = controller.get_quest_state(quest_id)
+				var dm = controller.get_quest_data_manager()
+				var pm = controller.get_quest_pool_manager()
+				var current_status = dm.get_quest_state(quest_id)
 				if expected_status == QWEnums.QuestState.CUSTOM and not expected_custom_pool_id.is_empty():
-					result = controller.get_quests_in_pool(expected_custom_pool_id).has(quest_id)
+					result = pm.get_quests_in_pool(expected_custom_pool_id).has(quest_id)
 				else:
 					result = current_status == expected_status
 
@@ -105,11 +107,11 @@ func check(context: Variant, instance: QuestInstance = null) -> bool:
 
 		ConditionType.CHECK_OBJECTIVE_STATUS:
 			if is_instance_valid(controller) and not objective_id.is_empty():
-				result = controller.get_objective_status(objective_id) == expected_objective_status
+				result = controller.get_objective_manager().get_objective_status(objective_id) == expected_objective_status
 
 		ConditionType.CHECK_OBJECTIVE_REQUIREMENT:
 			if is_instance_valid(controller) and not objective_id.is_empty() and instance:
-				var objective_def = controller.get_objective_resource(objective_id)
+				var objective_def = controller.get_objective_manager().get_objective_resource(objective_id)
 				if objective_def:
 					var inventory_adapter = controller.get_inventory_adapter()
 					if has_any_progress:

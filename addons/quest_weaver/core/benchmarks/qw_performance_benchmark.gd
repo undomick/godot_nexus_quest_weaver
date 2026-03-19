@@ -45,26 +45,26 @@ func _run_benchmarks() -> void:
 	_benchmark("get_quest_state", ITERATIONS_SMALL, func() -> void:
 		if _quest_ids.is_empty(): return
 		var q = _quest_ids[0]
-		_controller.get_quest_state(q)
+		_controller.get_quest_data_manager().get_quest_state(q)
 	)
 	_benchmark("get_objective_progress", ITERATIONS_SMALL, func() -> void:
 		if _objective_ids.is_empty(): return
-		_controller.get_objective_progress(_objective_ids[0])
+		_controller.get_objective_manager().get_objective_progress(_objective_ids[0])
 	)
 	_benchmark("get_objective_progress_by_key", ITERATIONS_SMALL, func() -> void:
 		if _objective_ids.is_empty(): return
-		_controller.get_objective_progress_by_key(_objective_ids[0], &"wood")
+		_controller.get_objective_manager().get_objective_progress_by_key(_objective_ids[0], &"wood")
 	)
 	_benchmark("get_objective_status", ITERATIONS_SMALL, func() -> void:
 		if _objective_ids.is_empty(): return
-		_controller.get_objective_status(_objective_ids[0])
+		_controller.get_objective_manager().get_objective_status(_objective_ids[0])
 	)
 	_benchmark("get_quest_data", ITERATIONS_SMALL, func() -> void:
 		if _quest_ids.is_empty(): return
-		_controller.get_quest_data(_quest_ids[0])
+		_controller.get_quest_data_manager().get_quest_data(_quest_ids[0])
 	)
 	_benchmark("get_active_quests", ITERATIONS_SMALL, func() -> void:
-		_controller.get_active_quests()
+		_controller.get_quest_pool_manager().get_active_quests()
 	)
 	_benchmark("_resolve_instance_file_id", ITERATIONS_LARGE, func() -> void:
 		if _quest_ids.is_empty(): return
@@ -76,22 +76,25 @@ func _run_benchmarks() -> void:
 func _prepare_test_data() -> void:
 	_quest_ids.clear()
 	_objective_ids.clear()
-	for q in _controller.get_active_quests():
+	var pool_mgr = _controller.get_quest_pool_manager()
+	var data_mgr = _controller.get_quest_data_manager()
+	var obj_mgr = _controller.get_objective_manager()
+	for q in pool_mgr.get_active_quests():
 		_quest_ids.append(q)
-	for q in _controller.get_available_quests():
+	for q in pool_mgr.get_available_quests():
 		if not _quest_ids.has(q):
 			_quest_ids.append(q)
-	for q in _controller.get_completed_quests():
+	for q in pool_mgr.get_completed_quests():
 		if not _quest_ids.has(q):
 			_quest_ids.append(q)
 	if _quest_ids.is_empty():
-		var all_data = _controller.get_all_managed_quests_data()
+		var all_data = data_mgr.get_all_managed_quests_data()
 		for d in all_data:
 			var qid = d.get("id", &"")
 			if not qid.is_empty():
 				_quest_ids.append(qid)
 				break
-	var objectives = _controller.get_active_objectives_for_quest(_quest_ids[0]) if not _quest_ids.is_empty() else []
+	var objectives = obj_mgr.get_active_objectives_for_quest(_quest_ids[0]) if not _quest_ids.is_empty() else []
 	for obj in objectives:
 		_objective_ids.append(obj.id)
 	if _objective_ids.is_empty():

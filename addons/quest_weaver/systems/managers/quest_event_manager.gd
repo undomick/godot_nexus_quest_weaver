@@ -50,13 +50,13 @@ func on_global_event(event_name: StringName, payload: Dictionary) -> void:
 
 	for node_id: StringName in listeners:
 		# 1. Resolve Instance
-		var instance: QuestInstance = controller.get_instance_for_node(node_id)
+		var instance: QuestInstance = controller.get_quest_data_manager().get_instance_for_node(node_id)
 
 		# If instance or node is not active, ignore/cleanup
 		if not instance or not instance.is_node_active(node_id):
 			continue
 
-		var node_def = controller.get_node_definition(node_id)
+		var node_def = controller.get_quest_data_manager().get_node_definition(node_id)
 		if node_def is EventListenerNodeResource:
 			# 2. Check Conditions (Instance-aware)
 			var condition_passes = true

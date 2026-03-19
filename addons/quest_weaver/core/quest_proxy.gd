@@ -79,7 +79,7 @@ func restart() -> void:
 ## Returns the raw quest state enum (QWEnums.QuestState).
 func get_state() -> int:
 	var c = _get_controller()
-	return c.get_quest_state(_id) if c else QWEnums.QuestState.UNAVAILABLE
+	return c.get_quest_data_manager().get_quest_state(_id) if c else QWEnums.QuestState.UNAVAILABLE
 
 ## Marks the quest as available (e.g. for Quest Board) without starting it.
 func make_available() -> void:
@@ -120,14 +120,14 @@ func get_variable(key: StringName, default: Variant = null) -> Variant:
 func get_title() -> String:
 	var c = _get_controller()
 	if not c: return ""
-	var data = c.get_quest_data(_id)
+	var data = c.get_quest_data_manager().get_quest_data(_id)
 	return data.get("title", "")
 
 ## Returns the current description (runtime override or blueprint).
 func get_description() -> String:
 	var c = _get_controller()
 	if not c: return ""
-	var data = c.get_quest_data(_id)
+	var data = c.get_quest_data_manager().get_quest_data(_id)
 	return data.get("description", "")
 
 ## Expose rewards to the Expression system

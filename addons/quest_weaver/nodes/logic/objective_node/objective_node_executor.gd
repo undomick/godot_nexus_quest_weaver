@@ -25,6 +25,6 @@ func execute(context: ExecutionContext, node: GraphNodeResource, _instance: Ques
 			target_status = ObjectiveResource.Status.ACTIVE
 
 	# This affects objectives globally (in any active quest instance)
-	context.quest_controller.set_manual_objective_status(obj_node.target_objective_id, target_status)
+	context.quest_controller.get_objective_manager().set_manual_objective_status(obj_node.target_objective_id, target_status)
 
 	context.quest_controller.complete_node(node)
