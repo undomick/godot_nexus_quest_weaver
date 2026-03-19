@@ -3,7 +3,7 @@
 class_name QuestNodeResource
 extends GraphNodeResource
 
-enum QuestAction { COMPLETE, FAIL, START, MARK_AVAILABLE, MOVE_TO_CUSTOM_POOL }  # Sets the status to COMPLETED  # Sets the status to FAILED  # Explicitly starts another quest (rare but powerful)  # Marks quest as AVAILABLE (e.g. for Quest Board, quest chains)  # Moves quest to a custom pool (e.g. daily, seasonal)
+enum QuestAction { COMPLETE, FAIL, START, MARK_AVAILABLE, MOVE_TO_CUSTOM_POOL }
 
 ## Reference to the Quest ID that should be affected.
 @export var target_quest_id: StringName = &""
