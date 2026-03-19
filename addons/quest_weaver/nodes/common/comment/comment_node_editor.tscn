@@ -22,4 +22,4 @@ layout_mode = 2
 size_flags_vertical = 3
 wrap_mode = 1
 script = ExtResource("2_fc7io")
-metadata/_custom_type_script = "uid://c6oph8cilr6lc"
+metadata/_custom_type_script = "res://addons/quest_weaver/nodes/common/comment/comment_node_editor.gd"

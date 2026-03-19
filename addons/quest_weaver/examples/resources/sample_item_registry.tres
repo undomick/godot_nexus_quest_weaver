@@ -1,14 +1,14 @@
-[gd_resource type="Resource" script_class="QWItemRegistry" load_steps=8 format=3 uid="uid://joenm0bc2epp"]
+[gd_resource type="Resource" script_class="QWItemRegistry" load_steps=8 format=3]
 
-[ext_resource type="Script" uid="uid://iogyrkfpnou4" path="res://addons/quest_weaver/examples/resources/qw_item_definition.gd" id="1_s5ld1"]
-[ext_resource type="Script" uid="uid://duj860ptbqrsj" path="res://addons/quest_weaver/examples/resources/qw_item_registry.gd" id="2_1x6ug"]
-[ext_resource type="Resource" uid="uid://caagawym34s2b" path="res://addons/quest_weaver/examples/resources/items/iron.tres" id="2_is5b2"]
-[ext_resource type="Resource" uid="uid://cstpi5ob2irod" path="res://addons/quest_weaver/examples/resources/items/meat.tres" id="3_ad8tj"]
-[ext_resource type="Resource" uid="uid://dwwh68bsyca2r" path="res://addons/quest_weaver/examples/resources/items/silk.tres" id="4_7aedp"]
-[ext_resource type="Resource" uid="uid://bqhjr2hitqccw" path="res://addons/quest_weaver/examples/resources/items/wood.tres" id="5_oxuqd"]
-[ext_resource type="Resource" uid="uid://d2ewhvccg1gth" path="res://addons/quest_weaver/examples/resources/items/gold.tres" id="6_ad8tj"]
+[ext_resource type="Script" path="res://addons/quest_weaver/examples/resources/qw_item_definition.gd" id="1_s5ld1"]
+[ext_resource type="Script" path="res://addons/quest_weaver/examples/resources/qw_item_registry.gd" id="2_1x6ug"]
+[ext_resource type="Resource" path="res://addons/quest_weaver/examples/resources/items/iron.tres" id="2_is5b2"]
+[ext_resource type="Resource" path="res://addons/quest_weaver/examples/resources/items/meat.tres" id="3_ad8tj"]
+[ext_resource type="Resource" path="res://addons/quest_weaver/examples/resources/items/silk.tres" id="4_7aedp"]
+[ext_resource type="Resource" path="res://addons/quest_weaver/examples/resources/items/wood.tres" id="5_oxuqd"]
+[ext_resource type="Resource" path="res://addons/quest_weaver/examples/resources/items/gold.tres" id="6_ad8tj"]
 
 [resource]
 script = ExtResource("2_1x6ug")
 item_definitions = Array[ExtResource("1_s5ld1")]([ExtResource("2_is5b2"), ExtResource("3_ad8tj"), ExtResource("4_7aedp"), ExtResource("5_oxuqd"), ExtResource("6_ad8tj")])
-metadata/_custom_type_script = "uid://duj860ptbqrsj"
+metadata/_custom_type_script = "res://addons/quest_weaver/examples/resources/qw_item_registry.gd"

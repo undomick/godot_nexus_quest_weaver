@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="UIPanelTemplateResource" load_steps=2 format=3 uid="uid://4333n7gd7qbm"]
+[gd_resource type="Resource" script_class="UIPanelTemplateResource" load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://jo26rus3ta6a" path="res://addons/quest_weaver/editor/presentation/ui_panel_template_resource.gd" id="1_th5rr"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/presentation/ui_panel_template_resource.gd" id="1_th5rr"]
 
 [resource]
 script = ExtResource("1_th5rr")
 panel_scene_path = "res://addons/quest_weaver/editor/presentation/bottom_centered_ui_panel.tscn"
-metadata/_custom_type_script = "uid://jo26rus3ta6a"
+metadata/_custom_type_script = "res://addons/quest_weaver/editor/presentation/ui_panel_template_resource.gd"

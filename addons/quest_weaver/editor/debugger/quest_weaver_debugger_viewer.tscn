@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://ttmqfiuwllba"]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://addons/quest_weaver/editor/debugger/quest_weaver_debugger_viewer.gd" id="1_viewer"]
 

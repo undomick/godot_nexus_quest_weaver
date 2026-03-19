@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="NodeTypeRegistry" load_steps=2 format=3 uid="uid://dcukuqx8urbm2"]
+[gd_resource type="Resource" script_class="NodeTypeRegistry" load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://3p4fn5yvpg5a" path="res://addons/quest_weaver/editor/node_type_registry.gd" id="1_qmd5i"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/node_type_registry.gd" id="1_qmd5i"]
 
 [resource]
 script = ExtResource("1_qmd5i")
-metadata/_custom_type_script = "uid://3p4fn5yvpg5a"
+metadata/_custom_type_script = "res://addons/quest_weaver/editor/node_type_registry.gd"

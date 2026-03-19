@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="QuestWeaverSettings" format=3 uid="uid://e1d3a25kticw"]
+[gd_resource type="Resource" script_class="QuestWeaverSettings" format=3]
 
-[ext_resource type="Script" uid="uid://dup5r1ylyhuxo" path="res://addons/quest_weaver/core/quest_weaver_settings.gd" id="1_ugjl6"]
+[ext_resource type="Script" path="res://addons/quest_weaver/core/quest_weaver_settings.gd" id="1_ugjl6"]
 
 [resource]
 script = ExtResource("1_ugjl6")
@@ -12,4 +12,4 @@ quest_scan_folder = "res://addons/quest_weaver/examples/quests"
 auto_start_quests = Array[String](["res://addons/quest_weaver/examples/quests/main/questline.quest"])
 additional_pool_scripts = Array[String](["res://addons/quest_weaver/examples/pools/daily_pool.gd"])
 quest_registry_path = "res://addons/quest_weaver/quest_registry.tres"
-metadata/_custom_type_script = "uid://dup5r1ylyhuxo"
+metadata/_custom_type_script = "res://addons/quest_weaver/core/quest_weaver_settings.gd"

@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://bqx7qm8n2k4wp"]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://addons/quest_weaver/core/benchmarks/qw_performance_benchmark.gd" id="1_bench"]
 [ext_resource type="Script" path="res://addons/quest_weaver/core/quest_controller.gd" id="2_ctrl"]

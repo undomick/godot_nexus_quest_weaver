@@ -1,4 +1,4 @@
-[gd_resource type="Theme" format=3 uid="uid://mtmkw0xcdqtj"]
+[gd_resource type="Theme" format=3]
 
 [resource]
 HeaderLarge/base_type = &"RichTextLabel"

@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="QWItemDefinition" load_steps=2 format=3 uid="uid://caagawym34s2b"]
+[gd_resource type="Resource" script_class="QWItemDefinition" load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://iogyrkfpnou4" path="res://addons/quest_weaver/examples/resources/qw_item_definition.gd" id="1_mrmax"]
+[ext_resource type="Script" path="res://addons/quest_weaver/examples/resources/qw_item_definition.gd" id="1_mrmax"]
 
 [resource]
 script = ExtResource("1_mrmax")
 id = "iron"
 display_name = "Iron"
-metadata/_custom_type_script = "uid://iogyrkfpnou4"
+metadata/_custom_type_script = "res://addons/quest_weaver/examples/resources/qw_item_definition.gd"

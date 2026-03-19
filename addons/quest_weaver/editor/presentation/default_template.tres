@@ -1,10 +1,10 @@
-[gd_resource type="Resource" script_class="UIPanelTemplateResource" load_steps=3 format=3 uid="uid://claf5ry1haobe"]
+[gd_resource type="Resource" script_class="UIPanelTemplateResource" load_steps=3 format=3]
 
-[ext_resource type="Script" uid="uid://jo26rus3ta6a" path="res://addons/quest_weaver/editor/presentation/ui_panel_template_resource.gd" id="1_rb8ml"]
-[ext_resource type="AnimationLibrary" uid="uid://ds08873pgy8h3" path="res://addons/quest_weaver/editor/presentation/default_anims.res" id="2_ebaw4"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/presentation/ui_panel_template_resource.gd" id="1_rb8ml"]
+[ext_resource type="AnimationLibrary" path="res://addons/quest_weaver/editor/presentation/default_anims.res" id="2_ebaw4"]
 
 [resource]
 script = ExtResource("1_rb8ml")
 panel_scene_path = "res://addons/quest_weaver/editor/presentation/base_ui_panel.tscn"
 text_animations = ExtResource("2_ebaw4")
-metadata/_custom_type_script = "uid://jo26rus3ta6a"
+metadata/_custom_type_script = "res://addons/quest_weaver/editor/presentation/ui_panel_template_resource.gd"

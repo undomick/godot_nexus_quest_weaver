@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="GraphNodeCategory" load_steps=2 format=3 uid="uid://dmv4f6v1xujpr"]
+[gd_resource type="Resource" script_class="GraphNodeCategory" load_steps=2 format=3]
 
-[ext_resource type="Script" uid="uid://dwfmpo83pa8i" path="res://addons/quest_weaver/assets/graph_node_category.gd" id="1_7q6w5"]
+[ext_resource type="Script" path="res://addons/quest_weaver/assets/graph_node_category.gd" id="1_7q6w5"]
 
 [resource]
 script = ExtResource("1_7q6w5")
@@ -12,4 +12,4 @@ categories = Dictionary[String, Color]({
 "Logic": Color(0.4787122, 0.4212724, 0.09920975, 1),
 "Utility": Color(0.29411766, 0, 0.15686275, 1)
 })
-metadata/_custom_type_script = "uid://dwfmpo83pa8i"
+metadata/_custom_type_script = "res://addons/quest_weaver/assets/graph_node_category.gd"

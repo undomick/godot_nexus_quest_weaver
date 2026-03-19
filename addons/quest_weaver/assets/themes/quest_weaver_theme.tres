@@ -1,6 +1,6 @@
-[gd_resource type="Theme" format=3 uid="uid://ccxtg65xjhu81"]
+[gd_resource type="Theme" format=3]
 
-[ext_resource type="Texture2D" uid="uid://clsjfmujsr8q1" path="res://addons/quest_weaver/assets/icons/port.svg" id="1_b8yjt"]
+[ext_resource type="Texture2D" path="res://addons/quest_weaver/assets/icons/port.svg" id="1_b8yjt"]
 
 [sub_resource type="Image" id="Image_8akjt"]
 data = {

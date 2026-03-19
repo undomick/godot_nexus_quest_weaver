@@ -1,4 +1,4 @@
-[gd_resource type="Theme" format=3 uid="uid://doya4xepinsd"]
+[gd_resource type="Theme" format=3]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hqfki"]
 bg_color = Color(0.11764706, 0.13333334, 0.14901961, 1)

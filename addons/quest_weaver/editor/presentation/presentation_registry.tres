@@ -1,10 +1,10 @@
-[gd_resource type="Resource" script_class="PresentationRegistry" load_steps=6 format=3 uid="uid://ds3oso48ofcph"]
+[gd_resource type="Resource" script_class="PresentationRegistry" load_steps=6 format=3]
 
-[ext_resource type="Resource" uid="uid://by7fx44ae1q7u" path="res://addons/quest_weaver/editor/presentation/area_template.tres" id="1_ne4do"]
-[ext_resource type="Resource" uid="uid://claf5ry1haobe" path="res://addons/quest_weaver/editor/presentation/default_template.tres" id="2_12wdi"]
-[ext_resource type="Resource" uid="uid://cbaufnru2xynb" path="res://addons/quest_weaver/editor/presentation/instruction_template.tres" id="3_4v4hs"]
-[ext_resource type="Resource" uid="uid://4333n7gd7qbm" path="res://addons/quest_weaver/editor/presentation/bottom_centered_template.tres" id="4_12wdi"]
-[ext_resource type="Script" uid="uid://b6rjmw6qx60o7" path="res://addons/quest_weaver/editor/presentation/presentation_registry.gd" id="4_dq0bg"]
+[ext_resource type="Resource" path="res://addons/quest_weaver/editor/presentation/area_template.tres" id="1_ne4do"]
+[ext_resource type="Resource" path="res://addons/quest_weaver/editor/presentation/default_template.tres" id="2_12wdi"]
+[ext_resource type="Resource" path="res://addons/quest_weaver/editor/presentation/instruction_template.tres" id="3_4v4hs"]
+[ext_resource type="Resource" path="res://addons/quest_weaver/editor/presentation/bottom_centered_template.tres" id="4_12wdi"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/presentation/presentation_registry.gd" id="4_dq0bg"]
 
 [resource]
 script = ExtResource("4_dq0bg")
@@ -14,4 +14,4 @@ entries = {
 "Default": ExtResource("2_12wdi"),
 "Instruction": ExtResource("3_4v4hs")
 }
-metadata/_custom_type_script = "uid://b6rjmw6qx60o7"
+metadata/_custom_type_script = "res://addons/quest_weaver/editor/presentation/presentation_registry.gd"
