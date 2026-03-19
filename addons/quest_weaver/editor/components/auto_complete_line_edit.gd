@@ -46,8 +46,10 @@ func _ready() -> void:
 	filter_edit.item_rect_changed.connect(_update_popup_position)
 
 	result_list.item_activated.connect(_on_item_confirmed)
-	result_list.item_clicked.connect(func(index, _at_pos, mouse_btn): \
-		if mouse_btn == MOUSE_BUTTON_LEFT: _on_item_confirmed(index))
+	result_list.item_clicked.connect(func(index, _at_pos, mouse_btn):
+		if mouse_btn == MOUSE_BUTTON_LEFT:
+			_on_item_confirmed(index)
+	)
 
 	# Connect mouse events to track hover state.
 	popup_container.mouse_entered.connect(func(): _mouse_is_over_popup = true)

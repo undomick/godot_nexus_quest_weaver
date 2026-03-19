@@ -214,7 +214,7 @@ func _build_lookup_tables() -> void:
 		var res_script: Script = entry.get("resource")
 		var exec_script: Script = entry.get("executor")
 		var editor_packed: PackedScene = entry.get("editor")
-		
+
 		if not is_instance_valid(res_script):
 			push_error("QuestWeaver: Invalid resource script in NodeTypeRegistry definition.")
 			continue
@@ -238,18 +238,18 @@ func _build_lookup_tables() -> void:
 			info.icon = temp_node.get_icon()
 			info.default_size = temp_node.determine_default_size()
 			info.description = temp_node.get_description()
-			
+
 			if is_instance_valid(editor_packed):
 				info.editor_scene_path = editor_packed.resource_path
-			
+
 			if temp_node is StartNodeResource: info.role = NodeTypeInfo.Role.START
 			elif temp_node is EndNodeResource: info.role = NodeTypeInfo.Role.END
 			else: info.role = NodeTypeInfo.Role.NORMAL
-			
+
 			# Intern maps (always register these so existing nodes work)
 			_resource_to_info_map[res_script] = info
 			_name_to_resource_map[info.node_name] = res_script
-			
+
 			# Public List for "Add Node" Menu
 			if info.role != NodeTypeInfo.Role.START:
 				node_types.append(info)
@@ -264,14 +264,14 @@ func _build_lookup_tables() -> void:
 ## Called by QuestController during execution.
 func get_executor_for_node(node_data: GraphNodeResource) -> NodeExecutor:
 	if not _is_initialized: _build_lookup_tables()
-	
+
 	if not is_instance_valid(node_data):
 		return NodeExecutor.new()
-		
+
 	var script = node_data.get_script()
 	if _resource_to_executor_map.has(script):
 		return _resource_to_executor_map[script]
-	
+
 	push_warning("QuestWeaver: No executor found for %s. Using default." % node_data.id)
 	return NodeExecutor.new()
 
