@@ -81,7 +81,7 @@ func _load_additional_pools() -> void:
 func _resolve_path_or_uid(path_or_uid: String) -> String:
 	if path_or_uid.begins_with("uid://"):
 		var id = ResourceUID.text_to_id(path_or_uid)
-		if id != ResourceUID.INVALID_ID:
+		if id != ResourceUID.INVALID_ID and ResourceUID.has_id(id):
 			return ResourceUID.get_id_path(id)
 		return ""
 	return path_or_uid

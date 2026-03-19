@@ -920,8 +920,8 @@ func start_all_loaded_graphs() -> void:
 
 			var final_path = raw_path
 			if raw_path.begins_with("uid://"):
-				var id = ResourceLoader.get_resource_uid(raw_path)
-				if id != -1:
+				var id = ResourceUID.text_to_id(raw_path)
+				if id != ResourceUID.INVALID_ID and ResourceUID.has_id(id):
 					final_path = ResourceUID.get_id_path(id)
 
 			if is_instance_valid(_logger):
@@ -990,9 +990,9 @@ func push_to_call_stack(parent_node_id: StringName) -> void:
 	if node and node is SubGraphNodeResource:
 		child_path = node.quest_graph_path
 		if child_path.begins_with("uid://"):
-			var uid = ResourceLoader.get_resource_uid(child_path)
-			if uid != -1:
-				child_path = ResourceUID.get_id_path(uid)
+			var id = ResourceUID.text_to_id(child_path)
+			if id != ResourceUID.INVALID_ID and ResourceUID.has_id(id):
+				child_path = ResourceUID.get_id_path(id)
 
 	_call_stack.append(
 		{
@@ -1381,8 +1381,8 @@ func _load_auto_start_graphs() -> void:
 		if not raw_path.is_empty():
 			var p = raw_path
 			if p.begins_with("uid://"):
-				var id = ResourceLoader.get_resource_uid(p)
-				if id != -1:
+				var id = ResourceUID.text_to_id(p)
+				if id != ResourceUID.INVALID_ID and ResourceUID.has_id(id):
 					p = ResourceUID.get_id_path(id)
 			paths.append(p)
 
