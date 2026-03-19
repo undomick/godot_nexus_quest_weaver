@@ -10,14 +10,14 @@ func _parse_begin(object: Object) -> void:
 	btn.text = "Update Registry from Project"
 	btn.icon = EditorInterface.get_base_control().get_theme_icon("Reload", "EditorIcons")
 	btn.custom_minimum_size.y = 30
-	
+
 	btn.pressed.connect(_on_update_pressed.bind(object as QuestRegistry))
-	
+
 	add_custom_control(btn)
 
 func _on_update_pressed(registry: QuestRegistry) -> void:
 	var settings = QWConstants.get_settings()
-	
+
 	if not settings or settings.quest_scan_folder.is_empty():
 		push_error("QuestWeaver: Cannot update registry. 'Quest Scan Folder' is not set in QuestWeaverSettings.")
 		return

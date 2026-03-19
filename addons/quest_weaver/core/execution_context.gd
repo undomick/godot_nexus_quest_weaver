@@ -14,7 +14,7 @@ var logger: QWLogger:
 			return services.logger
 		return null
 
-var _controller_weak: WeakRef 
+var _controller_weak: WeakRef
 var quest_controller: QuestController:
 	get:
 		if _controller_weak:
@@ -52,7 +52,7 @@ func cleanup() -> void:
 	game_state = null
 	services = null
 	_controller_weak = null
-	
+
 	item_objective_listeners.clear()
 	kill_objective_listeners.clear()
 	interact_objective_listeners.clear()

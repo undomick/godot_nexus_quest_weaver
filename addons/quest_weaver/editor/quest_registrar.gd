@@ -9,7 +9,7 @@ static func update_registry_from_project(registry: QuestRegistry, scan_folder: S
 	if not is_instance_valid(registry):
 		push_error("QuestRegistrar: The provided QuestRegistry resource is invalid.")
 		return
-		
+
 	if scan_folder.is_empty() or not scan_folder.begins_with("res://"):
 		push_warning("QuestRegistrar: The 'Scan Folder' is not configured or invalid.")
 		return
@@ -55,7 +55,7 @@ static func update_registry_from_project(registry: QuestRegistry, scan_folder: S
 
 			item_name = dir.get_next()
 		dir.list_dir_end()
-	
+
 	# Update Registry
 	if registry.quest_path_map.hash() != new_map.hash():
 		registry.quest_path_map = new_map
@@ -68,7 +68,7 @@ static func _scan_file_for_id(file_path: String, out_map: Dictionary) -> void:
 	var file = FileAccess.open(file_path, FileAccess.READ)
 	if file == null:
 		return
-	
+
 	var data = file.get_var(true)
 	file.close()
 
@@ -85,10 +85,10 @@ static func _scan_file_for_id(file_path: String, out_map: Dictionary) -> void:
 
 			if script_path == QWConstants.QUEST_CONTEXT_NODE_SCRIPT_PATH:
 				var quest_id = node_data.get("quest_id", "")
-				
+
 				if not quest_id.is_empty():
 					# If LogicID differs from FileID, map it too
 					if out_map.has(quest_id) and out_map[quest_id] != file_path:
 						push_warning("QuestRegistrar: Duplicate ID collision! '%s' exists in '%s' and '%s'." % [quest_id, out_map[quest_id], file_path])
-					
+
 					out_map[quest_id] = file_path

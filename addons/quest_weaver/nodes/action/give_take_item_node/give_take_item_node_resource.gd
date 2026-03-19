@@ -21,7 +21,7 @@ enum Action { GIVE, TAKE, REWARD_FROM_QUEST, ITEMS_FROM_OBJECTIVE }
 @export var complete_objective_on_success: bool = false
 
 func _init() -> void:
-	category = &"Action" 
+	category = &"Action"
 	input_ports = [&"In"]
 	_update_ports_from_data()
 
@@ -36,7 +36,7 @@ func _update_ports_from_data() -> void:
 func get_editor_summary() -> String:
 	var action_text = Action.keys()[action].capitalize()
 	var info_text = ""
-	
+
 	if action == Action.REWARD_FROM_QUEST:
 		if target_quest_id == &"":
 			info_text = "[WARN](No Quest Target)"
@@ -52,7 +52,7 @@ func get_editor_summary() -> String:
 			info_text = "%d x %s" % [items[key], key]
 		else:
 			info_text = "%d Items..." % items.size()
-	
+
 	return "%s:\n%s" % [action_text, info_text]
 
 func get_description() -> String:
@@ -93,25 +93,25 @@ func from_dictionary(data: Dictionary):
 			elif str(v).is_valid_int():
 				amount = int(str(v))
 			self.items[StringName(key)] = amount
-		
+
 	_update_ports_from_data()
 
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
-	
+
 	match action:
 		Action.REWARD_FROM_QUEST:
 			if target_quest_id.is_empty():
 				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Reward: No Target Quest ID specified.", id))
-		
+
 		Action.ITEMS_FROM_OBJECTIVE:
 			if target_objective_id.is_empty():
 				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Items From Objective: No Target Objective ID specified.", id))
-				
+
 		Action.GIVE, Action.TAKE:
 			if items.is_empty():
 				results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Give/Take: Item list is empty.", id))
-		
+
 	return results
 
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:

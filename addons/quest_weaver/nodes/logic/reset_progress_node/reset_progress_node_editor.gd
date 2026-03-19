@@ -8,13 +8,13 @@ extends NodePropertyEditorBase
 func _ready() -> void:
 	target_scope_id_edit.text_submitted.connect(func(_text): _on_scope_id_confirmed())
 	target_scope_id_edit.focus_exited.connect(_on_scope_id_confirmed)
-	
+
 	restart_scope_checkbox.toggled.connect(_on_restart_toggled)
 
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is ResetProgressNodeResource: return
-	
+
 	target_scope_id_edit.text = node_data.target_scope_id
 	restart_scope_checkbox.button_pressed = node_data.restart_scope_on_completion
 

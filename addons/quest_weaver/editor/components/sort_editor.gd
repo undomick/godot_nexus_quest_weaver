@@ -16,11 +16,11 @@ func _ready() -> void:
 
 func set_index(index: int, total_count: int) -> void:
 	index_label.text = str(index + 1) # Display as 1-based index
-	
+
 	# Disable buttons if at boundaries
 	up_button.disabled = (index == 0)
 	down_button.disabled = (index >= total_count - 1)
-	
+
 	# Visual hint: dim disabled buttons
 	up_button.modulate.a = 0.3 if up_button.disabled else 1.0
 	down_button.modulate.a = 0.3 if down_button.disabled else 1.0

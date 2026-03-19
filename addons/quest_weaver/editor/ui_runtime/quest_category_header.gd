@@ -14,7 +14,7 @@ func _ready() -> void:
 	header_button.toggle_mode = true
 	header_button.button_pressed = is_expanded
 	header_button.toggled.connect(_on_header_toggled)
-	
+
 	_on_header_toggled(is_expanded)
 
 func _on_header_toggled(is_button_pressed: bool) -> void:
@@ -22,7 +22,7 @@ func _on_header_toggled(is_button_pressed: bool) -> void:
 	main_quest_list.visible = is_expanded
 	side_quest_list.visible = is_expanded
 	separator.visible = is_expanded and _should_separator_be_visible()
-	
+
 	update_display()
 
 func set_category_name(new_name: String) -> void:
@@ -33,7 +33,7 @@ func add_quest_entry(entry_node: QuestLogEntry, quest_type: QuestContextNodeReso
 		main_quest_list.add_child(entry_node)
 	else: # SIDE
 		side_quest_list.add_child(entry_node)
-	
+
 ## Clears entries. If recycle_to is an Array, entries are returned to it instead of freed.
 func clear_entries(recycle_to: Variant = null) -> void:
 	for child in main_quest_list.get_children().duplicate():
@@ -57,7 +57,7 @@ func update_display() -> void:
 	var main_count = main_quest_list.get_child_count()
 	var side_count = side_quest_list.get_child_count()
 	var total_count = main_count + side_count
-	
+
 	var arrow = "▼" if is_expanded else "►"
 	header_button.text = "%s %s (%d)" % [arrow, category_name, total_count]
 

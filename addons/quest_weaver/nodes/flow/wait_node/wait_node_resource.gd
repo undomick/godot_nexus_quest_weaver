@@ -8,7 +8,7 @@ extends GraphNodeResource
 
 
 func _init():
-	category = "Flow" 
+	category = "Flow"
 	input_ports = ["In"]
 	output_ports = ["Out"]
 

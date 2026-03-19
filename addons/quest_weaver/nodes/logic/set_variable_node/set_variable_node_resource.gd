@@ -15,7 +15,7 @@ enum Operator { SET, ADD, SUBTRACT, MULTIPLY, DIVIDE, TOGGLE }
 
 
 func _init():
-	category = "Logic" 
+	category = "Logic"
 	input_ports = ["In"]
 	_update_ports_from_data()
 
@@ -34,13 +34,13 @@ func get_editor_summary() -> String:
 		Operator.MULTIPLY: op_text = "*="
 		Operator.DIVIDE: op_text = "/="
 		Operator.TOGGLE: op_text = "~="
-	
+
 	var var_name_text = String(variable_name) if not variable_name.is_empty() else "???"
-	
+
 	# For TOGGLE, we don't need to display a value, keeping the UI cleaner.
 	if operator == Operator.TOGGLE:
 		return "%s %s" % [var_name_text, op_text]
-	
+
 	var value_text = value_to_set_string if not value_to_set_string.is_empty() else "???"
 	return "%s %s %s" % [var_name_text, op_text, value_text]
 

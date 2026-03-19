@@ -27,7 +27,7 @@ func _get(property: StringName) -> Variant:
 func start() -> void:
 	var c = _get_controller()
 	if not c: return
-	
+
 	if _use_file_logic:
 		c.start_quest_file(_id)
 	else:
@@ -37,7 +37,7 @@ func start() -> void:
 func start_with_params(params: Dictionary) -> void:
 	var c = _get_controller()
 	if not c: return
-	
+
 	# Note: start_quest_with_parameters currently expects an ID and resolves internally.
 	# We pass the ID we have.
 	c.start_quest_with_parameters(_id, params)
@@ -46,7 +46,7 @@ func start_with_params(params: Dictionary) -> void:
 func complete() -> void:
 	var c = _get_controller()
 	if not c: return
-	
+
 	if _use_file_logic:
 		c.complete_quest_file(_id, true)
 	else:
@@ -56,7 +56,7 @@ func complete() -> void:
 func fail() -> void:
 	var c = _get_controller()
 	if not c: return
-	
+
 	if _use_file_logic:
 		c.complete_quest_file(_id, false)
 	else:
@@ -66,7 +66,7 @@ func fail() -> void:
 func restart() -> void:
 	var c = _get_controller()
 	if not c: return
-	
+
 	if _use_file_logic:
 		c.restart_quest_file(_id)
 	else:

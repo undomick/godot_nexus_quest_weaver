@@ -13,7 +13,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	var scope_manager = controller._scope_manager
 	var target_scope_id = reset_node.target_scope_id
 	var logger = context.logger
-	
+
 	if target_scope_id.is_empty():
 		push_warning("ResetProgressNode '%s' has no target_scope_id." % reset_node.id)
 		controller.complete_node(reset_node)
@@ -22,7 +22,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	# Ask Manager to find nodes in this scope.
 	# The manager also resets the 'max execution' counter variable in the instance if restart is requested.
 	var nodes_to_reset_ids: Array[String] = scope_manager.handle_reset_scope(reset_node, instance)
-	
+
 	if nodes_to_reset_ids.is_empty():
 		if is_instance_valid(logger):
 			logger.warn("Flow", "ResetProgressNode: Scope '%s' is empty or invalid." % target_scope_id)
@@ -37,18 +37,18 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		# This ensures we don't have lingering logic running when we restart the nodes.
 		if instance.is_node_active(node_id):
 			controller._cleanup_node_runtime(node_id, instance)
-			
+
 		# 2. Clear internal node state in instance (e.g. Timer ticks, specific inputs)
 		instance.clear_node_state(node_id)
 
 	if reset_node.restart_scope_on_completion:
 		var start_node_id = scope_manager.get_start_node_id_for_scope(target_scope_id)
 		var start_node_def = controller._node_definitions.get(start_node_id)
-		
+
 		# Mark ResetNode complete logic-wise, but do NOT trigger the "On Reset" output port
 		# because we are jumping flow back to the start of the scope.
-		controller._mark_node_as_logically_complete(reset_node) 
-		
+		controller._mark_node_as_logically_complete(reset_node)
+
 		if is_instance_valid(start_node_def):
 			controller._activate_node(start_node_def)
 		else:

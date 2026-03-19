@@ -19,7 +19,7 @@ enum QuestType { MAIN, SIDE }
 ## (Optional) An initial log entry added when the quest starts.
 @export_multiline var log_on_start: String = ""
 
-# CHANGED: Now an Array of Dictionaries. 
+# CHANGED: Now an Array of Dictionaries.
 # Format: { "id": StringName, "amount": int, "linked_objective_id": StringName, "description": String }
 @export var rewards: Array[Dictionary] = []
 
@@ -31,13 +31,13 @@ func _init() -> void:
 func get_editor_summary() -> String:
 	if quest_id.is_empty():
 		return "!! NO QUEST ID SET !!"
-	
+
 	var type_text = "Main" if quest_type == QuestType.MAIN else "Side"
-	
+
 	var reward_text = ""
 	if not rewards.is_empty():
 		reward_text = "\n(%d Rewards)" % rewards.size()
-	
+
 	return "\nID: %s\n%s Quest:\n%s%s" % [quest_id, type_text, quest_title, reward_text]
 
 func get_description() -> String:
@@ -59,7 +59,7 @@ func to_dictionary() -> Dictionary:
 	data["quest_description"] = self.quest_description
 	data["log_on_start"] = self.log_on_start
 	data["rewards"] = self.rewards.duplicate(true)
-	
+
 	return data
 
 func from_dictionary(data: Dictionary):
@@ -72,9 +72,9 @@ func from_dictionary(data: Dictionary):
 	self.quest_title = data.get("quest_title", "")
 	self.quest_description = data.get("quest_description", "")
 	self.log_on_start = data.get("log_on_start", "")
-	
+
 	self.rewards.clear()
-	
+
 	# Load dictionaries and ensure types (String -> StringName conversion for IDs)
 	var raw_rewards = data.get("rewards", [])
 	if raw_rewards is Array:
@@ -88,7 +88,7 @@ func from_dictionary(data: Dictionary):
 					"description": str(r.get("description", ""))
 				}
 				self.rewards.append(clean_reward)
-			
+
 	# Migration Fallback (Old logic)
 	elif data.has("rewards_summary"):
 		var old_dict = data.get("rewards_summary", {})
@@ -111,11 +111,11 @@ func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: i
 func _validate(context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	var item_registry = context.get("item_registry")
-	
+
 	# 1. Check ID
 	if quest_id.is_empty():
 		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Quest Context: Quest ID is not set.", id))
-	
+
 	# 2. Check Rewards
 	if not rewards.is_empty() and is_instance_valid(item_registry):
 		# Helper to check existence based on Registry type

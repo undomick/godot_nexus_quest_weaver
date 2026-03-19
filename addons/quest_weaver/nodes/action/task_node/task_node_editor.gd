@@ -22,7 +22,7 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 		_ui_entry_map.clear()
 		_is_setting_up = false
 		return
-	
+
 	_rebuild_objectives_list()
 	terminal_checkbox.button_pressed = node_data.is_terminal
 	_is_setting_up = false
@@ -43,14 +43,14 @@ func _rebuild_objectives_list() -> void:
 
 func _add_objective_ui(objective_resource: ObjectiveResource, index: int, total_count: int):
 	var entry_instance: ObjectiveEditorEntry = QWConstants.ObjectiveEditorEntryScene.instantiate()
-	
+
 	entry_instance.move_up_requested.connect(_on_move_objective.bind(objective_resource, index, -1))
 	entry_instance.move_down_requested.connect(_on_move_objective.bind(objective_resource, index, 1))
 	entry_instance.description_changed.connect(_on_objective_description_changed.bind(objective_resource, index))
 	entry_instance.trigger_type_changed.connect(_on_objective_trigger_type_changed.bind(objective_resource, index))
 	entry_instance.trigger_param_changed.connect(_on_objective_trigger_param_changed.bind(objective_resource, index))
 	entry_instance.delete_requested.connect(_on_objective_delete_requested.bind(objective_resource, index))
-	
+
 	if entry_instance.has_signal("direct_property_changed"):
 		entry_instance.direct_property_changed.connect(_on_objective_direct_property_changed.bind(objective_resource, index))
 

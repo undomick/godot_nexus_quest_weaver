@@ -14,7 +14,7 @@ func _init(p_global: Node, p_instance: QuestInstance, p_objective: ObjectiveReso
 	self._global = p_global
 	self._instance = p_instance
 	self._objective = p_objective
-	
+
 	# Load registry for name/icon lookup
 	var settings = QWConstants.get_settings()
 	if is_instance_valid(settings) and ResourceLoader.exists(settings.item_registry_path):
@@ -136,7 +136,7 @@ func _get_entry_by_index(index: int) -> Dictionary:
 
 	var entry_id = keys[index]
 	var amount = _objective.requirements[entry_id]
-	
+
 	var data = {
 		"id": entry_id,
 		"amount": amount,
@@ -149,8 +149,8 @@ func _get_entry_by_index(index: int) -> Dictionary:
 		var def = _item_registry.find(str(entry_id))
 		if def:
 			if "display_name" in def: data["name"] = def.display_name
-			if "icon" in def and def.icon: 
+			if "icon" in def and def.icon:
 				# Embed image for RichTextLabel
 				data["icon"] = "[img=16x16]%s[/img]" % def.icon.resource_path
-	
+
 	return data

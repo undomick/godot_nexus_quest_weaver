@@ -20,15 +20,15 @@ func _ready() -> void:
 	if is_instance_valid(sort_editor):
 		sort_editor.move_up_requested.connect(move_up_requested.emit)
 		sort_editor.move_down_requested.connect(move_down_requested.emit)
-	
+
 	type_picker.clear()
 	for type_name in ConditionResource.ConditionType.keys():
 		if type_name == "CHECK_SYNCHRONIZER":
-			continue 
-		
+			continue
+
 		var type_value = ConditionResource.ConditionType[type_name]
 		type_picker.add_item(type_name.replace("_", " ").capitalize(), type_value)
-	
+
 	type_picker.item_selected.connect(_on_type_picker_selected)
 	type_picker.tooltip_text = "Select the type of logic check to perform."
 
@@ -53,18 +53,18 @@ func edit_condition(condition_res: ConditionResource) -> void:
 func _rebuild_ui() -> void:
 	var previous_setup_state = _is_setting_up
 	_is_setting_up = true
-	
+
 	for child in property_fields.get_children():
 		child.queue_free()
-	
+
 	if not is_instance_valid(edited_condition):
 		type_picker.select(-1)
 		_is_setting_up = previous_setup_state
 		return
-	
+
 	var item_index = type_picker.get_item_index(edited_condition.type)
 	type_picker.select(item_index)
-	
+
 	match edited_condition.type:
 		ConditionResource.ConditionType.BOOL:
 			var checkbox = CheckBox.new()
@@ -73,7 +73,7 @@ func _rebuild_ui() -> void:
 			checkbox.toggled.connect(_on_checkbox_toggled.bind("is_true"))
 			checkbox.tooltip_text = "If checked, the condition always passes.\nIf unchecked, it always fails."
 			add_row("Value", checkbox)
-		
+
 		ConditionResource.ConditionType.CHANCE:
 			var spinbox = SpinBox.new()
 			spinbox.min_value = 0.0; spinbox.max_value = 100.0; spinbox.step = 0.1; spinbox.suffix = "%"
@@ -82,12 +82,12 @@ func _rebuild_ui() -> void:
 				if not _is_setting_up: property_changed.emit("chance_percentage", val, edited_condition)
 			)
 			add_row("Chance", spinbox)
-		
+
 		ConditionResource.ConditionType.CHECK_ITEM:
 			var item_id_completer = QWConstants.AutoCompleteLineEditScene.instantiate()
 			QWEditorUtils.populate_item_completer(item_id_completer)
 			item_id_completer.text = edited_condition.item_id
-			item_id_completer.text_submitted.connect(func(text): 
+			item_id_completer.text_submitted.connect(func(text):
 				if not _is_setting_up: property_changed.emit("item_id", text, edited_condition)
 			)
 			add_row("Item ID", item_id_completer)
@@ -95,11 +95,11 @@ func _rebuild_ui() -> void:
 			var amount_spinbox = SpinBox.new()
 			amount_spinbox.min_value = 1; amount_spinbox.step = 1
 			amount_spinbox.value = edited_condition.amount
-			amount_spinbox.value_changed.connect(func(val): 
+			amount_spinbox.value_changed.connect(func(val):
 				if not _is_setting_up: property_changed.emit("amount", int(val), edited_condition)
 			)
 			add_row("Amount", amount_spinbox)
-		
+
 		ConditionResource.ConditionType.CHECK_QUEST_STATUS:
 			var status_picker = OptionButton.new()
 			var core_status_names = ["UNAVAILABLE", "AVAILABLE", "ACTIVE", "COMPLETED", "FAILED"]
@@ -118,25 +118,25 @@ func _rebuild_ui() -> void:
 			status_picker.select(mini(select_idx, status_picker.item_count - 1))
 			status_picker.item_selected.connect(_on_quest_status_picker_selected)
 			add_row("Expected Status", status_picker)
-			
+
 			var quest_id_completer = QWConstants.AutoCompleteLineEditScene.instantiate()
 			QWEditorUtils.populate_quest_id_completer(quest_id_completer)
 			quest_id_completer.text = edited_condition.quest_id
 			var filter_edit = quest_id_completer.get_node_or_null("%FilterEdit")
 			if is_instance_valid(filter_edit):
 				filter_edit.focus_entered.connect(func(): QWEditorUtils.refresh_quest_id_completer_from_active_graph(quest_id_completer))
-			quest_id_completer.text_submitted.connect(func(text): 
+			quest_id_completer.text_submitted.connect(func(text):
 				if not _is_setting_up: property_changed.emit("quest_id", text, edited_condition)
 			)
 			add_row("Quest ID", quest_id_completer)
-		
+
 		ConditionResource.ConditionType.CHECK_VARIABLE:
 			var var_name_edit = LineEdit.new()
 			var_name_edit.text = edited_condition.variable_name
 			var_name_edit.text_submitted.connect(func(_text): _on_line_edit_confirmed(var_name_edit, "variable_name"))
 			var_name_edit.focus_exited.connect(_on_line_edit_confirmed.bind(var_name_edit, "variable_name"))
 			add_row("Variable Name", var_name_edit)
-			
+
 			var operator_picker = OptionButton.new()
 			for op_name in edited_condition.Operator.keys(): operator_picker.add_item(op_name)
 			operator_picker.select(edited_condition.operator)
@@ -149,7 +149,7 @@ func _rebuild_ui() -> void:
 			expected_value_edit.text_submitted.connect(func(_text): _on_line_edit_confirmed(expected_value_edit, "expected_value_string"))
 			expected_value_edit.focus_exited.connect(_on_line_edit_confirmed.bind(expected_value_edit, "expected_value_string"))
 			add_row("Expected Value", expected_value_edit)
-		
+
 		ConditionResource.ConditionType.CHECK_OBJECTIVE_STATUS:
 			var id_edit = LineEdit.new()
 			id_edit.placeholder_text = "Paste Objective ID here..."
@@ -157,7 +157,7 @@ func _rebuild_ui() -> void:
 			id_edit.text_submitted.connect(func(_text): _on_line_edit_confirmed(id_edit, "objective_id"))
 			id_edit.focus_exited.connect(func(): _on_line_edit_confirmed(id_edit, "objective_id"))
 			add_row("Objective ID", id_edit)
-			
+
 			var status_picker = OptionButton.new()
 			var statuses = ObjectiveResource.Status.keys()
 			for status_name in statuses:
@@ -165,7 +165,7 @@ func _rebuild_ui() -> void:
 			status_picker.select(edited_condition.expected_objective_status)
 			status_picker.item_selected.connect(_on_option_button_selected.bind("expected_objective_status"))
 			add_row("Expected Status", status_picker)
-		
+
 		ConditionResource.ConditionType.CHECK_OBJECTIVE_REQUIREMENT:
 			var id_edit = LineEdit.new()
 			id_edit.placeholder_text = "Target Objective ID..."
@@ -173,13 +173,13 @@ func _rebuild_ui() -> void:
 			id_edit.text_submitted.connect(func(_text): _on_line_edit_confirmed(id_edit, "objective_id"))
 			id_edit.focus_exited.connect(func(): _on_line_edit_confirmed(id_edit, "objective_id"))
 			add_row("Objective ID", id_edit)
-			
+
 			var include_inv_checkbox = CheckBox.new()
 			include_inv_checkbox.text = "Include Inventory Holdings"
 			include_inv_checkbox.button_pressed = edited_condition.include_inventory_holdings
 			include_inv_checkbox.toggled.connect(_on_checkbox_toggled.bind("include_inventory_holdings"))
 			add_row("Options", include_inv_checkbox)
-			
+
 			var has_any_checkbox = CheckBox.new()
 			has_any_checkbox.text = "Has Any Progress"
 			has_any_checkbox.button_pressed = edited_condition.has_any_progress
@@ -196,24 +196,24 @@ func _rebuild_ui() -> void:
 			op_picker.select(edited_condition.logic_operator)
 			op_picker.item_selected.connect(_on_option_button_selected.bind("logic_operator"))
 			add_row("Logic", op_picker)
-			
+
 			for i in range(edited_condition.sub_conditions.size()):
 				var sub_condition = edited_condition.sub_conditions[i]
 				var sub_editor_container = HBoxContainer.new()
-				
+
 				var sub_editor = ConditionEditorScene.instantiate()
 				sub_editor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 				sub_editor_container.add_child(sub_editor)
-				
+
 				var remove_sub_button = Button.new()
 				remove_sub_button.text = "X"
 				remove_sub_button.pressed.connect(_on_remove_sub_condition_pressed.bind(i))
 				sub_editor_container.add_child(remove_sub_button)
-				
+
 				property_fields.add_child(sub_editor_container)
-				
+
 				sub_editor.edit_condition(sub_condition)
-				
+
 				sub_editor.property_changed.connect(
 					func(n, v, r): property_changed.emit(n, v, r)
 				)
@@ -223,7 +223,7 @@ func _rebuild_ui() -> void:
 			add_button.text = "Add Sub-Condition"
 			add_button.pressed.connect(_on_add_sub_condition_pressed)
 			property_fields.add_child(add_button)
-	
+
 	_is_setting_up = previous_setup_state
 
 # --- Signal Handlers ---
@@ -231,7 +231,7 @@ func _rebuild_ui() -> void:
 func _on_type_picker_selected(index: int):
 	if _is_setting_up: return
 	var selected_enum_value = type_picker.get_item_id(index)
-	
+
 	if is_instance_valid(edited_condition) and edited_condition.type != selected_enum_value:
 		property_changed.emit("type", selected_enum_value, edited_condition)
 		rebuild_requested.emit()

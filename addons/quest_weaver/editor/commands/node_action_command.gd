@@ -25,7 +25,7 @@ func execute() -> void:
 			var objective = _payload.get("objective")
 			var index = _node_data.objectives.find(objective)
 			_undo_data = {"objective": objective, "index": index}
-		
+
 		"add_parallel_output", "add_random_output", "add_sync_input", "add_sync_output":
 			# Similar to add_objective, undo is just removal.
 			pass
@@ -53,13 +53,13 @@ func undo() -> void:
 			var index = _undo_data.get("index")
 			if index > -1:
 				_node_data.objectives.insert(index, objective)
-		
+
 		"add_parallel_output", "add_random_output":
 			_node_data.outputs.pop_back()
-			
+
 		"add_sync_input":
 			_node_data.inputs.pop_back()
-			
+
 		"add_sync_output":
 			_node_data.outputs.pop_back()
 
@@ -68,7 +68,7 @@ func undo() -> void:
 			var index = _undo_data.get("index", -1)
 			if port_data != null and index >= 0:
 				_node_data.outputs.insert(index, port_data)
-		
+
 		"remove_sync_input":
 			var port_data = _undo_data.get("port_data")
 			var index = _undo_data.get("index", -1)

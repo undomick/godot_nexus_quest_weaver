@@ -25,14 +25,14 @@ func _ready() -> void:
 func set_node_data(node_data: GraphNodeResource) -> void:
 	_is_setting_up = true
 	super.set_node_data(node_data)
-	if not node_data is EventListenerNodeResource: 
+	if not node_data is EventListenerNodeResource:
 		_is_setting_up = false
 		return
-	
+
 	event_name_edit.text = node_data.event_name
 	simple_mode_checkbox.button_pressed = node_data.use_simple_conditions
 	keep_listening_checkbox.button_pressed = node_data.keep_listening
-	
+
 	_rebuild_ui()
 	_is_setting_up = false
 
@@ -46,7 +46,7 @@ func _rebuild_ui():
 	simple_conditions_container.visible = use_simple
 	add_simple_condition_button.visible = use_simple
 	advanced_condition_container.visible = not use_simple
-	
+
 	if use_simple:
 		_rebuild_simple_conditions_list()
 	else:
@@ -55,15 +55,15 @@ func _rebuild_ui():
 func _rebuild_simple_conditions_list():
 	for child in simple_conditions_container.get_children():
 		child.queue_free()
-	
+
 	var listener_node = edited_node_data as EventListenerNodeResource
 	for i in range(listener_node.simple_conditions.size()):
 		var condition_data = listener_node.simple_conditions[i]
 		var entry_instance = SimpleConditionEntryScene.instantiate()
-		
+
 		entry_instance.changed.connect(_on_simple_condition_changed.bind(i))
 		entry_instance.removed.connect(_on_simple_condition_removed.bind(i))
-		
+
 		simple_conditions_container.add_child(entry_instance)
 		entry_instance.set_data(condition_data)
 
@@ -74,17 +74,17 @@ func _rebuild_advanced_condition_editor():
 	var listener_node = edited_node_data as EventListenerNodeResource
 	if not is_instance_valid(listener_node) or not is_instance_valid(listener_node.payload_condition):
 		return
-	
+
 	var editor_instance = AdvancedConditionEditorScene.instantiate()
 	advanced_condition_container.add_child(editor_instance)
-	
+
 	editor_instance.edit_condition(listener_node.payload_condition)
-	
+
 	editor_instance.property_changed.connect(
 		func(prop_name, new_value, _target_res):
 			property_update_requested.emit(edited_node_data.id, prop_name, new_value, null, {"payload_condition": true})
 	)
-	
+
 	editor_instance.rebuild_requested.connect(_rebuild_advanced_condition_editor)
 
 func _on_event_name_confirmed():

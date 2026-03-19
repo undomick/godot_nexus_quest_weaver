@@ -64,7 +64,7 @@ func handle_event(event: InputEvent) -> bool:
 func _is_text_input_focused() -> bool:
 	if not is_instance_valid(_editor_interface):
 		return false
-	
+
 	var focus_owner: Control = _editor_interface.get_editor_main_screen().get_viewport().gui_get_focus_owner()
 	return focus_owner is LineEdit or focus_owner is TextEdit
 
@@ -77,6 +77,6 @@ func _editor_has_focus() -> bool:
 	while is_instance_valid(current_node):
 		if current_node == _editor:
 			return true
-		
+
 		current_node = current_node.get_parent()
 	return false

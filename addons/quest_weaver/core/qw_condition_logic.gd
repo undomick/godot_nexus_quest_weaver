@@ -26,7 +26,7 @@ static func compare(val_a: Variant, val_b: Variant, op: int) -> bool:
 		Op.LESS_THAN: return val_a < val_b
 		Op.GREATER_OR_EQUAL: return val_a >= val_b
 		Op.LESS_OR_EQUAL: return val_a <= val_b
-		
+
 	return false
 
 ## Parses a string to int, float, bool, or returns the string as-is. Empty string returns "".

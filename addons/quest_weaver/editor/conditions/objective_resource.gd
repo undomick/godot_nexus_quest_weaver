@@ -29,9 +29,9 @@ enum TriggerType { MANUAL, ITEM_COLLECT, LOCATION_ENTER, INTERACT, KILL }
 @export var complete_on_delivery: bool = false
 
 # Runtime Properties
-var status: int = 0 
+var status: int = 0
 var owner_task_node_id: StringName = &""
-var current_progress: Variant = 0 
+var current_progress: Variant = 0
 
 func _init():
 	requirements = {}
@@ -40,11 +40,11 @@ func _init():
 func to_dictionary() -> Dictionary:
 	return {
 		"@script_path": get_script().resource_path,
-		"id": self.id, 
-		"description": self.description, 
+		"id": self.id,
+		"description": self.description,
 		"trigger_type": self.trigger_type,
 		"requirements": self.requirements.duplicate(),
-		"trigger_params": self.trigger_params, 
+		"trigger_params": self.trigger_params,
 		"track_progress_since_activation": self.track_progress_since_activation,
 		"show_counter": self.show_counter,
 		"is_optional": self.is_optional,
@@ -56,17 +56,17 @@ func from_dictionary(data: Dictionary) -> void:
 	self.id = StringName(data.get("id", &""))
 	self.description = data.get("description", "")
 	self.trigger_type = _defensive_load(data, "trigger_type", TriggerType.keys(), TriggerType.MANUAL)
-	
+
 	# Load Requirements with StringName Keys
 	self.requirements = {}
 	var raw_reqs = data.get("requirements", {})
 	for key in raw_reqs:
 		self.requirements[StringName(key)] = int(raw_reqs[key])
-	
+
 	# Fallback for migration (if old data exists):
 	var old_params = data.get("trigger_params", {})
 	var old_req_progress = data.get("required_progress", 1)
-	
+
 	if self.requirements.is_empty() and not old_params.is_empty():
 		if self.trigger_type == TriggerType.ITEM_COLLECT and old_params.has("item_id"):
 			self.requirements[StringName(old_params["item_id"])] = old_req_progress
@@ -82,7 +82,7 @@ func from_dictionary(data: Dictionary) -> void:
 	self.is_optional = data.get("is_optional", false)
 	self.is_hidden = data.get("is_hidden", false)
 	self.complete_on_delivery = data.get("complete_on_delivery", false)
-	
+
 	# Reset runtime vars
 	self.status = 0
 	self.current_progress = 0

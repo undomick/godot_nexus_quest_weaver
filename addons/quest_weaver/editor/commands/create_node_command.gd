@@ -23,13 +23,13 @@ func execute() -> void:
 	if not is_instance_valid(_created_node_data):
 		_created_node_data = _node_script.new()
 		var type_name = self._editor.node_registry.get_name_for_script(_node_script)
-		
+
 		var new_id = "%s_%d_%d" % [type_name.to_snake_case(), Time.get_unix_time_from_system(), randi() & 0xFFFF]
 		_created_node_data.id = new_id
 		_created_node_data.graph_position = _node_position
 
 	_graph.add_node(_created_node_data)
-	
+
 	if not _connect_data.is_empty():
 		var from_node = _connect_data.from_node
 		var from_port = _connect_data.from_port

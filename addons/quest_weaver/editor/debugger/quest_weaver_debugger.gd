@@ -14,7 +14,7 @@ var debugger_plugin: QuestWeaverDebuggerPlugin
 
 func _init() -> void:
 	debugger_plugin = QuestWeaverDebuggerPlugin.new()
-	
+
 	debugger_plugin.session_started.connect(session_started.emit)
 	debugger_plugin.session_ended.connect(session_ended.emit)
 	debugger_plugin.node_activated_in_game.connect(node_activated_in_game.emit)

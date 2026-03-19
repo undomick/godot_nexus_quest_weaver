@@ -13,7 +13,7 @@ func execute() -> void:
 	if not is_instance_valid(_new_port_data):
 		_new_port_data = ParallelOutputPort.new()
 		_new_port_data.port_name = "Out %d" % (_node_data.outputs.size() + 1)
-	
+
 	_node_data.outputs.append(_new_port_data)
 	_node_data._update_ports_from_data()
 

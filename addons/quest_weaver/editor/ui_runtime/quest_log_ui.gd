@@ -41,20 +41,20 @@ var _entry_pool: Array[QuestLogEntry] = []
 
 func _ready() -> void:
 	self.visible = false
-	
+
 	# Validate Input Action exists to prevent runtime errors
 	if not toggle_log_action.is_empty() and not InputMap.has_action(toggle_log_action):
 		push_warning("QuestLogUI: Input Action '%s' not found in Project Settings. Log toggle via keyboard disabled." % toggle_log_action)
 		toggle_log_action = &"" # Disable action to prevent crashes in _input
-	
+
 	# Initialize headers with default titles
 	active_quests_header.set_category_name("Active Quests")
 	completed_quests_header.set_category_name("Completed Quests")
 	failed_quests_header.set_category_name("Failed Quests")
-	
+
 	# React to visibility changes (e.g. opened via button or key)
 	visibility_changed.connect(_on_visibility_changed)
-	
+
 	# Try to connect to the controller immediately, or wait for it
 	var services = _get_services_safe()
 	if services:
@@ -105,7 +105,7 @@ func _on_quest_list_changed(_quest_id: StringName) -> void:
 
 func _on_quest_data_changed(quest_id: StringName) -> void:
 	_request_list_redraw()
-	
+
 	# If the currently viewed quest changed, update the details immediately
 	if self.visible and quest_id == _current_selected_quest_id:
 		_update_detail_view()
@@ -116,23 +116,23 @@ func _request_list_redraw() -> void:
 	# Only schedule one redraw per frame, and only if visible
 	if not self.visible or _list_needs_redraw:
 		return
-	
+
 	_list_needs_redraw = true
 	call_deferred(&"_process_redraw")
 
 func _process_redraw() -> void:
 	if not _list_needs_redraw:
 		return
-	
+
 	_list_needs_redraw = false
 	if self.visible:
 		_redraw_quest_list()
-		
+
 		# Update the category headers (expand/collapse/count)
 		active_quests_header.update_display()
 		completed_quests_header.update_display()
 		failed_quests_header.update_display()
-		
+
 		_update_detail_view()
 
 func _redraw_quest_list() -> void:
@@ -144,14 +144,14 @@ func _redraw_quest_list() -> void:
 	failed_quests_header.clear_entries(_entry_pool)
 	_all_quest_entries.clear()
 	_trim_entry_pool()
-	
+
 	# 2. Fetch fresh data from the controller
 	var all_quests = quest_controller.get_all_managed_quests_data()
-	
+
 	# 3. Iterate and sort into categories
 	for quest_data in all_quests:
 		var status = quest_data.get("status", QWEnums.QuestState.UNAVAILABLE)
-		
+
 		# Filter: Don't show UNAVAILABLE or AVAILABLE quests in the active log.
 		# AVAILABLE quests usually belong on a "Quest Board", not the personal Journal.
 		if status == QWEnums.QuestState.UNAVAILABLE or status == QWEnums.QuestState.AVAILABLE:
@@ -160,7 +160,7 @@ func _redraw_quest_list() -> void:
 		var entry_instance: QuestLogEntry = _get_entry_from_pool()
 		entry_instance.selected.connect(_on_quest_entry_selected)
 		_all_quest_entries.append(entry_instance)
-		
+
 		var quest_type = quest_data.get("quest_type", QuestContextNodeResource.QuestType.SIDE)
 		match status:
 			QWEnums.QuestState.ACTIVE:
@@ -169,15 +169,15 @@ func _redraw_quest_list() -> void:
 				completed_quests_header.add_quest_entry(entry_instance, quest_type)
 			QWEnums.QuestState.FAILED:
 				failed_quests_header.add_quest_entry(entry_instance, quest_type)
-		
+
 		entry_instance.set_quest_data(quest_data)
-	
+
 	# 4. Ensure the selection highlight is correct
 	_update_selection_and_highlights(all_quests)
 
 func _update_selection_and_highlights(all_quests: Array) -> void:
 	var all_quest_ids = all_quests.map(func(q): return q.id)
-	
+
 	# If selection is invalid (empty or quest removed), try to select the first active quest
 	if not _current_selected_quest_id in all_quest_ids:
 		var active_quests = all_quests.filter(func(q): return q.get("status") == QWEnums.QuestState.ACTIVE)
@@ -194,7 +194,7 @@ func _on_quest_entry_selected(quest_id: StringName) -> void:
 		return
 
 	_current_selected_quest_id = quest_id
-	
+
 	_update_entry_highlights()
 	_update_detail_view()
 
@@ -235,7 +235,7 @@ func _update_detail_view() -> void:
 	if quest_data.is_empty():
 		_clear_detail_view()
 		return
-	
+
 	# 1. Set Title and Description
 	var title_string = quest_data.get("title", "ERROR_TITLE")
 	var description_string = quest_data.get("description", "")
@@ -246,21 +246,21 @@ func _update_detail_view() -> void:
 	# 2. Build Log Entries (History)
 	for child in detail_log_list.get_children():
 		child.queue_free()
-		
+
 	for log_entry_string in quest_data.get("log_entries", []):
 		var log_label = Label.new()
 		log_label.text = "- " + tr(log_entry_string)
 		log_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		log_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 		detail_log_list.add_child(log_label)
-		
+
 	# 3. Build Active Objectives
 	for child in detail_objectives_list.get_children():
 		child.queue_free()
 
 	var active_objectives = quest_controller.get_active_objectives_for_quest(_current_selected_quest_id)
 	var quest_status = quest_data.get("status")
-	
+
 	if active_objectives.is_empty() and quest_status == QWEnums.QuestState.ACTIVE:
 		var no_obj_label = Label.new()
 		no_obj_label.text = "No active objectives."
@@ -280,14 +280,14 @@ func _update_detail_view() -> void:
 		for objective in active_objectives:
 			if objective.is_hidden: continue #hides hidden objectives
 			var obj_label = Label.new()
-			
+
 			var prefix = "[ ] "
 			# Check against ObjectiveResource Status Enum (or raw int 2)
 			if objective.status == ObjectiveResource.Status.COMPLETED:
 				prefix = "[X] "
-			
+
 			var display_text = prefix + tr(objective.description)
-			
+
 			# Add progress counter for items or kills (only when show_counter is enabled)
 			var progress_text = ""
 			if objective.show_counter:
@@ -307,13 +307,13 @@ func _update_detail_view() -> void:
 								parts.append("%s (%d/%d)" % [display_name, current, max_val])
 							if parts.size() > 0:
 								progress_text = " " + " + ".join(parts)
-			
+
 			display_text += progress_text
 			obj_label.text = display_text
-			
+
 			if objective.is_optional:
 				obj_label.modulate = Color(0.8, 0.8, 0.8)
-				
+
 			detail_objectives_list.add_child(obj_label)
 
 func _get_item_registry() -> Resource:

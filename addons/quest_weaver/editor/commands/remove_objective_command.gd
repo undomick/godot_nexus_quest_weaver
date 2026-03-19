@@ -16,7 +16,7 @@ func _init(p_task_node: TaskNodeResource, p_objective_to_remove: ObjectiveResour
 func execute() -> void:
 	# Store the state *before* performing the action.
 	self._original_index = _task_node.objectives.find(_objective_to_remove)
-	
+
 	if _original_index != -1:
 		_task_node.objectives.erase(_objective_to_remove)
 

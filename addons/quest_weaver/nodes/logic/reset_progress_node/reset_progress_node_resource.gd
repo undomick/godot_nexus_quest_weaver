@@ -15,7 +15,7 @@ func _init():
 	input_ports = ["In"]
 	# This node has an optional output. Logic can continue here after a reset,
 	# although usually the flow jumps back to the StartScopeNode.
-	output_ports = ["On Reset"] 
+	output_ports = ["On Reset"]
 
 func get_editor_summary() -> String:
 	var line1 = "Reset Scope:"
@@ -25,7 +25,7 @@ func get_editor_summary() -> String:
 		line2 = "[WARN]No Target!"
 	else:
 		line2 = "'%s'" % target_scope_id
-	
+
 	return "%s\n%s" % [line1, line2]
 
 func get_description() -> String:

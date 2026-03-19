@@ -24,13 +24,13 @@ var ease_type: Tween.EaseType = Tween.EASE_IN_OUT
 func _process_custom_fx(char_fx: CharFXTransform) -> bool:
 	var char_start_time = stagger * char_fx.relative_index
 	var char_end_time = char_start_time + duration
-	
+
 	var char_progress = remap(elapsed_time, char_start_time, char_end_time, 0.0, 1.0)
 	char_progress = clamp(char_progress, 0.0, 1.0)
-	
+
 	# We now call our own helper function instead of the incorrect global `ease()`.
 	var eased_progress = _apply_ease(char_progress, ease_type)
-	
+
 	match preset:
 		ShowUIMessageNodeResource.AnimationPreset.FADE:
 			char_fx.color.a = eased_progress
@@ -46,9 +46,9 @@ func _process_custom_fx(char_fx: CharFXTransform) -> bool:
 			char_fx.transform = Transform2D().scaled(Vector2(scale_val, scale_val)); char_fx.color.a = eased_progress
 		ShowUIMessageNodeResource.AnimationPreset.SLIDE_ROTATED:
 			char_fx.color.a = eased_progress; char_fx.offset.x = lerp(-20.0, 0.0, eased_progress); char_fx.rotation = lerp(-0.5, 0.0, eased_progress)
-		_: 
+		_:
 			char_fx.color.a = eased_progress
-			
+
 	return true
 
 # --- NEW HELPER FUNCTION ---

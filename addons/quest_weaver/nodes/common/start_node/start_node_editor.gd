@@ -11,7 +11,7 @@ func _ready() -> void:
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is StartNodeResource: return
-	
+
 	category_edit.text = node_data.graph_category
 	category_edit.placeholder_text = "e.g. Act 1, Side Quests..."
 

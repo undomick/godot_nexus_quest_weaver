@@ -26,7 +26,7 @@ func _ready() -> void:
 
 func queue_presentation(data: Dictionary) -> void:
 	_queue.append(data)
-	
+
 	if not _is_displaying:
 		_show_next_in_queue()
 
@@ -66,20 +66,20 @@ func _show_next_in_queue() -> void:
 	_is_displaying = true
 	var data = _queue.pop_front()
 	_current_request_id = StringName(str(data.get("_node_id", "")))
-	
+
 	var presentation_type = data.get("type", "Default")
 	var template: UIPanelTemplateResource = _registry.entries.get(presentation_type)
 	if not is_instance_valid(template):
 		push_warning("PresentationManager: No template found for type '%s'. Skipping presentation." % presentation_type)
 		_on_panel_completed()
 		return
-	
+
 	var scene_path = template.panel_scene_path
-	
+
 	if not ResourceLoader.exists(scene_path):
 		_on_panel_completed()
 		return
-	
+
 	var panel_scene: PackedScene = _panel_scene_cache.get(scene_path)
 	if panel_scene == null:
 		panel_scene = load(scene_path) as PackedScene
@@ -91,11 +91,11 @@ func _show_next_in_queue() -> void:
 
 	var panel_instance: BaseUIPanel = panel_scene.instantiate()
 	_current_panel_instance = panel_instance
-	
+
 	if not is_instance_valid(panel_instance):
 		_on_panel_completed()
 		return
-	
+
 	get_tree().root.add_child(panel_instance)
 	panel_instance.presentation_completed.connect(_on_panel_completed_from_panel.bind(panel_instance), CONNECT_ONE_SHOT)
 	panel_instance.present(data)

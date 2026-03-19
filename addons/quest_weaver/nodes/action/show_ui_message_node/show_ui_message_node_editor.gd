@@ -34,22 +34,22 @@ var _spinbox_undo_values: Dictionary = {}
 func _ready() -> void:
 	_populate_animation_pickers()
 	_populate_ease_pickers()
-	
+
 	message_type_picker.item_selected.connect(_on_message_type_selected)
 	title_override_edit.focus_exited.connect(_on_title_override_confirmed)
 	message_override_edit.focus_exited.connect(_on_message_override_confirmed)
 	wait_checkbox.toggled.connect(_on_wait_toggled)
-	
+
 	anim_in_picker.item_selected.connect(_on_anim_in_selected)
 	ease_in_picker.item_selected.connect(_on_ease_in_selected)
 	per_character_in_checkbox.toggled.connect(_on_per_char_in_toggled)
-	
+
 	anim_out_picker.item_selected.connect(_on_anim_out_selected)
 	ease_out_picker.item_selected.connect(_on_ease_out_selected)
 	per_character_out_checkbox.toggled.connect(_on_per_char_out_toggled)
-	
+
 	terminal_checkbox.toggled.connect(_on_terminal_toggled)
-	
+
 	_connect_spinbox_signals(duration_in_spinbox, "duration_in")
 	_connect_spinbox_signals(duration_out_spinbox, "duration_out")
 	_connect_spinbox_signals(delay_title_message_spinbox, "delay_title_message")
@@ -65,7 +65,7 @@ func _connect_spinbox_signals(spinbox: SpinBox, property_name: String) -> void:
 			# Handle the one integer property specifically.
 			if property_name == "character_stagger_ms":
 				final_value = int(new_value)
-			
+
 			if edited_node_data.get(property_name) != final_value:
 				property_update_requested.emit(edited_node_data.id, property_name, final_value, null, {})
 	)
@@ -73,13 +73,13 @@ func _connect_spinbox_signals(spinbox: SpinBox, property_name: String) -> void:
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is ShowUIMessageNodeResource: return
-	
+
 	_populate_message_type_picker()
-	
+
 	var current_type_str = str(node_data.message_type)
 	var selection_index = _registry_keys.find(current_type_str)
 	message_type_picker.select(selection_index)
-	
+
 	title_override_edit.text = node_data.title_override
 	message_override_edit.text = node_data.message_override
 	wait_checkbox.button_pressed = node_data.wait_for_completion
@@ -95,7 +95,7 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 	hold_duration_spinbox.set_value_no_signal(node_data.hold_duration)
 	character_stagger_spinbox.set_value_no_signal(node_data.character_stagger_ms)
 	terminal_checkbox.button_pressed = node_data.is_terminal
-	
+
 	_update_ui_visibility()
 
 # --- Handlers for confirmed changes ---
@@ -153,7 +153,7 @@ func _on_per_char_out_toggled(is_pressed: bool) -> void:
 func _populate_message_type_picker():
 	message_type_picker.clear()
 	_registry_keys.clear()
-	
+
 	var settings: QuestWeaverSettings = QWConstants.get_settings()
 	if is_instance_valid(settings) and ResourceLoader.exists(settings.presentation_registry_path):
 		var registry = ResourceLoader.load(settings.presentation_registry_path)
@@ -199,7 +199,7 @@ func _update_ui_visibility():
 	duration_out_container.visible = has_out_animation
 	per_character_in_checkbox.visible = has_in_animation
 	per_character_out_checkbox.visible = has_out_animation
-	
+
 	var show_stagger = (per_char_in and has_in_animation) or (per_char_out and has_out_animation)
 	character_stagger_container.visible = show_stagger
 

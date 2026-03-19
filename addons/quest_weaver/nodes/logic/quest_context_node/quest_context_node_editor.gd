@@ -10,7 +10,7 @@ extends NodePropertyEditorBase
 @onready var log_on_start_edit: TabFocusTextEdit = %LogOnStartEdit
 
 # Rewards UI
-@onready var rewards_container: VBoxContainer = %RewardsContainer 
+@onready var rewards_container: VBoxContainer = %RewardsContainer
 @onready var reward_label: Label = %RewardLabel
 @onready var add_reward_button: Button = %AddRewardButton
 
@@ -19,25 +19,25 @@ var _is_setting_up := false
 func _ready() -> void:
 	quest_id_edit.text_submitted.connect(func(_t): quest_id_edit.release_focus())
 	quest_id_edit.focus_exited.connect(_on_quest_id_confirmed)
-	
+
 	quest_type_picker.item_selected.connect(_on_quest_type_changed)
-	
+
 	title_edit.text_submitted.connect(func(_t): title_edit.release_focus())
 	title_edit.focus_exited.connect(_on_title_confirmed)
-	
+
 	description_edit.focus_exited.connect(_on_description_confirmed)
 	log_on_start_edit.focus_exited.connect(_on_log_on_start_confirmed)
-	
+
 	add_reward_button.pressed.connect(_on_add_reward_pressed)
 
 func set_node_data(node_data: GraphNodeResource) -> void:
 	_is_setting_up = true
 	super.set_node_data(node_data)
-	
-	if not node_data is QuestContextNodeResource: 
+
+	if not node_data is QuestContextNodeResource:
 		_is_setting_up = false
 		return
-	
+
 	# Populate Core Fields
 	quest_id_edit.text = node_data.quest_id
 	title_edit.text = node_data.quest_title
@@ -48,36 +48,36 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 	for type_name in node_data.QuestType.keys():
 		quest_type_picker.add_item(type_name.capitalize())
 	quest_type_picker.select(node_data.quest_type)
-	
+
 	call_deferred(&"_safe_rebuild")
 	_is_setting_up = false
 
 func _safe_rebuild() -> void:
 	if not is_instance_valid(rewards_container) or not is_instance_valid(edited_node_data): return
-	
+
 	for child in rewards_container.get_children():
 		child.queue_free()
-	
+
 	var context_node = edited_node_data as QuestContextNodeResource
-	
+
 	var display_index = 0
-	
+
 	for i in range(context_node.rewards.size()):
 		var reward_dict = context_node.rewards[i]
 		if reward_dict is Dictionary:
 			var id_val = reward_dict.get("id", &"")
 			var is_temp = (id_val == &"")
-			
+
 			var entry = QWConstants.RewardEntryScene.instantiate()
 			rewards_container.add_child(entry)
 			entry.setup(reward_dict, display_index, is_temp)
 			entry.remove_requested.connect(_on_reward_delete_requested.bind(i))
-			
+
 			entry.data_changed.connect(_on_reward_entry_data_changed)
-			
+
 			if not is_temp:
 				display_index += 1
-			
+
 	if is_instance_valid(reward_label):
 		reward_label.visible = (context_node.rewards.size() > 0)
 

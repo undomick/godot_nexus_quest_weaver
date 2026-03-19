@@ -20,7 +20,7 @@ class PayloadEntry extends Resource:
 
 
 func _init() -> void:
-	category = "Action" 
+	category = "Action"
 	input_ports = ["In"]
 	_update_ports_from_data()
 
@@ -46,9 +46,9 @@ func get_runtime_payload() -> Dictionary:
 	var payload: Dictionary = {}
 	for entry in payload_entries:
 		if not is_instance_valid(entry) or entry.key.is_empty(): continue
-		
+
 		var parsed_value: Variant
-		
+
 		match entry.value_type:
 			PayloadEntry.Type.INT:
 				parsed_value = entry.value_string.to_int()
@@ -58,9 +58,9 @@ func get_runtime_payload() -> Dictionary:
 				parsed_value = entry.value_string.to_lower() == "true"
 			PayloadEntry.Type.STRING:
 				parsed_value = entry.value_string
-		
+
 		payload[entry.key] = parsed_value
-		
+
 	return payload
 
 # Serialization remains the same, but with new variable names.
@@ -71,7 +71,7 @@ func to_dictionary() -> Dictionary:
 	for entry in self.payload_entries:
 		if is_instance_valid(entry):
 			entries_data.append(entry.to_dictionary())
-			
+
 	data["payload_entries"] = entries_data
 	return data
 

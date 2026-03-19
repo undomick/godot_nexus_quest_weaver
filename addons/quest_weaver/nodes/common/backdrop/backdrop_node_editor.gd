@@ -24,7 +24,7 @@ func _ready() -> void:
 	title_edit.focus_exited.connect(_on_title_confirmed)
 	text_edit.focus_exited.connect(_on_text_confirmed)
 	color_picker.popup_closed.connect(_on_color_confirmed)
-	
+
 	# Connect slider signals for a robust undo/redo experience.
 	font_size_slider.value_changed.connect(_on_font_size_slider_value_changed)
 	font_size_slider.drag_started.connect(_on_font_size_drag_started)
@@ -37,11 +37,11 @@ func _ready() -> void:
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is BackdropNodeResource: return
-	
+
 	title_edit.text = node_data.title
 	text_edit.text = node_data.text
 	color_picker.color = node_data.color
-	
+
 	# Update the slider and its label with the data from the resource,
 	# without triggering their 'value_changed' signals during setup.
 	font_size_slider.set_value_no_signal(node_data.title_font_size)
@@ -87,12 +87,12 @@ func _on_font_size_drag_ended(value_was_changed: bool) -> void:
 	# Do nothing if the value didn't actually change.
 	if not value_was_changed:
 		return
-		
+
 	var final_size = int(font_size_slider.value)
 
 	# Before emitting the change, we revert the visual label to its original state.
 	# The history manager will then correctly set the new value upon command execution.
 	font_size_label.text = str(_font_size_undo_value)
-	
+
 	if is_instance_valid(edited_node_data) and _font_size_undo_value != final_size:
 		property_update_requested.emit(edited_node_data.id, "title_font_size", final_size, null, {})

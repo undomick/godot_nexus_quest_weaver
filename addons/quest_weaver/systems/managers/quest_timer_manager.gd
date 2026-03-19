@@ -9,7 +9,7 @@ extends RefCounted
 const TICK_INTERVAL := 1.0  ## Seconds between ticks; duration and ticks are 1:1
 
 # Map: StringName (NodeID) -> Timer (Physical Node)
-var _active_timer_nodes: Dictionary = {} 
+var _active_timer_nodes: Dictionary = {}
 var _controller_weak: WeakRef
 
 func _init(p_controller: QuestController):
@@ -31,18 +31,18 @@ func start_timer(node_def: TimerNodeResource, instance: QuestInstance) -> void:
 	timer.wait_time = TICK_INTERVAL
 	timer.one_shot = false
 	timer.timeout.connect(_on_timer_tick.bind(node_def.id))
-	
+
 	controller.add_child(timer)
 	_active_timer_nodes[node_def.id] = timer
-	
+
 	# Initialize state in Instance if not present (e.g. restoring)
 	var current_ticks = instance.get_node_data(node_def.id, &"ticks", -1)
 	if current_ticks == -1:
 		instance.set_node_data(node_def.id, &"ticks", 0)
-	
+
 	# Trigger "On Start" output immediately
 	controller._trigger_next_nodes_from_port(node_def, 0)
-	
+
 	timer.start()
 
 ## Stops and removes the physical timer.
@@ -72,7 +72,7 @@ func _on_timer_tick(node_id: StringName):
 
 	# 1. Resolve Instance
 	var instance: QuestInstance = controller.get_instance_for_node(node_id)
-	
+
 	# Safety check: If instance is gone, kill timer
 	if not instance:
 		remove_timer(node_id)
@@ -82,10 +82,10 @@ func _on_timer_tick(node_id: StringName):
 	var ticks = instance.get_node_data(node_id, &"ticks", 0)
 	ticks += 1
 	instance.set_node_data(node_id, &"ticks", ticks)
-	
+
 	# 3. Get Definition
 	var node_def = controller._node_definitions.get(node_id)
-	if not node_def: 
+	if not node_def:
 		remove_timer(node_id)
 		return
 
@@ -98,11 +98,11 @@ func _on_timer_tick(node_id: StringName):
 
 	if ticks >= node_def.duration:
 		if logger: logger.log("Flow", "  <- TimerNode '%s' finished." % node_id)
-		
+
 		controller._trigger_next_nodes_from_port(node_def, 2) # Port 2: "On Finish"
-		
+
 		remove_timer(node_id)
-		
+
 		# Complete the node in the controller
 		controller.complete_node(node_def)
 
@@ -112,7 +112,7 @@ func restore_timers_from_instances(active_instances: Dictionary) -> void:
 	clear_all_timers()
 	var controller = _get_controller()
 	if not controller: return
-	
+
 	for instance: QuestInstance in active_instances.values():
 		# Scan this instance for active nodes that are timers
 		for node_id in instance.active_node_ids:

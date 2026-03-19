@@ -13,7 +13,7 @@ var _is_initialized := false
 func find(item_id: String) -> QWItemDefinition:
 	if not _is_initialized:
 		_build_lookup_dict()
-		
+
 	return _definitions_dict.get(item_id)
 
 # This function builds the fast lookup dictionary from the array.

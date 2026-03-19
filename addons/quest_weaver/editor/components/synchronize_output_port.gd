@@ -26,21 +26,21 @@ func to_dictionary() -> Dictionary:
 		"port_name": port_name,
 		"patterns": patterns
 	}
-	
+
 	if is_instance_valid(condition):
 		data["condition"] = condition.to_dictionary()
-		
+
 	return data
 
 func from_dictionary(data: Dictionary) -> void:
 	port_name = StringName(data.get("port_name", &"Out"))
-	
+
 	var pat_data = data.get("patterns", [])
 	if pat_data is Array:
 		# JSON numbers come as floats often, force int
 		patterns.clear()
 		for val in pat_data: patterns.append(int(val))
-	
+
 	var condition_data: Variant = data.get("condition")
 	if condition_data is Dictionary:
 		var new_cond = GraphNodeResource.new_condition_from_path(condition_data.get("@script_path"))

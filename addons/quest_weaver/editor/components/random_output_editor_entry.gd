@@ -18,10 +18,10 @@ func _ready() -> void:
 	port_name_edit.focus_entered.connect(func(): _port_name_undo_value = port_name_edit.text)
 	port_name_edit.text_submitted.connect(func(_text): _on_port_name_confirmed())
 	port_name_edit.focus_exited.connect(_on_port_name_confirmed)
-	
+
 	weight_spinbox.focus_entered.connect(_on_weight_edit_started)
 	weight_spinbox.focus_exited.connect(_on_weight_edit_finished)
-	
+
 	remove_button.pressed.connect(remove_requested.emit)
 
 func display_data(output_port: RandomOutputPort) -> void:

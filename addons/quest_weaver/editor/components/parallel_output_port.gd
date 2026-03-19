@@ -22,15 +22,15 @@ func to_dictionary() -> Dictionary:
 		"@script_path": get_script().resource_path,
 		"port_name": port_name
 		}
-	
+
 	if is_instance_valid(condition):
 		data["condition"] = condition.to_dictionary()
-		
+
 	return data
 
 func from_dictionary(data: Dictionary) -> void:
 	port_name = StringName(data.get("port_name", &"Out"))
-	
+
 	var condition_data: Variant = data.get("condition")
 	if condition_data is Dictionary:
 		var new_cond = GraphNodeResource.new_condition_from_path(condition_data.get("@script_path"))

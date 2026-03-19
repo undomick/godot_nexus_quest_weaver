@@ -16,13 +16,13 @@ func _ready() -> void:
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is JumpNodeResource: return
-	
+
 	target_edit.text = node_data.target_anchor_name
-	
+
 	paste_name_button.icon = get_theme_icon("Bucket", "EditorIcons")
 	paste_name_button.tooltip_text = "Paste Name from Clipboard"
 	paste_name_button.flat = true
-	copy_name_button.icon = get_theme_icon("Duplicate", "EditorIcons") 
+	copy_name_button.icon = get_theme_icon("Duplicate", "EditorIcons")
 	copy_name_button.tooltip_text = "Copy Name to Clipboard"
 	copy_name_button.flat = true
 

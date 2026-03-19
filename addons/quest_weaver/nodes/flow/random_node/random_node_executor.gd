@@ -6,16 +6,16 @@ extends NodeExecutor
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var random_node = node as RandomNodeResource
 	if not is_instance_valid(random_node): return
-	
+
 	instance.set_node_active(random_node.id, false)
 	var controller = context.quest_controller
-	
+
 	if random_node.outputs.is_empty(): return
 
 	var total_weight = 0
 	for port in random_node.outputs: total_weight += port.weight
 	if total_weight <= 0: return
-		
+
 	var pick = randi_range(1, total_weight)
 	var chosen_index = 0
 	var current = 0
@@ -24,7 +24,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		if pick <= current:
 			chosen_index = i
 			break
-	
+
 	var connections = controller._node_connections.get(random_node.id, [])
 	for connection in connections:
 		if connection.from_port == chosen_index:

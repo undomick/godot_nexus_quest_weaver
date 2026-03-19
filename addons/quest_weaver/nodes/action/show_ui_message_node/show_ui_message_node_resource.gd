@@ -3,12 +3,12 @@
 class_name ShowUIMessageNodeResource
 extends GraphNodeResource
 
-enum AnimationPreset { 
-	NONE, 
-	FADE, 
-	SLIDE_UP, 
-	SLIDE_DOWN, 
-	SCALE_UP, 
+enum AnimationPreset {
+	NONE,
+	FADE,
+	SLIDE_UP,
+	SLIDE_DOWN,
+	SCALE_UP,
 	SCALE_DOWN,
 	SLIDE_ROTATED
 }

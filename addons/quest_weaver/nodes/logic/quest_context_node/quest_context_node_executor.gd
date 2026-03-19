@@ -8,8 +8,8 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	if not is_instance_valid(context_node):
 		context.quest_controller.complete_node(node)
 		return
-	
+
 	context.quest_controller.start_quest(context_node)
-	
+
 	# After updating the state, we continue the flow.
 	context.quest_controller.complete_node(node)

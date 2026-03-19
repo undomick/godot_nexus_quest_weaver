@@ -9,13 +9,13 @@ extends GraphNodeResource
 func _init():
 	category = "Flow"
 	input_ports = ["In"]
-	
+
 	if id.is_empty() and outputs.is_empty():
 		var out1 = ParallelOutputPort.new(); out1.port_name = "Out 1"
 		var out2 = ParallelOutputPort.new(); out2.port_name = "Out 2"
 		outputs.append(out1)
 		outputs.append(out2)
-	
+
 	_update_ports_from_data()
 
 func get_description() -> String:
@@ -63,7 +63,7 @@ func _update_ports_from_data():
 		if is_instance_valid(output_info):
 			var port_text = output_info.port_name
 			var condition: ConditionResource = output_info.condition
-			
+
 			if is_instance_valid(condition) and not (condition.type == ConditionResource.ConditionType.BOOL and condition.is_true):
 				var hint_text = ""
 				match condition.type:
@@ -78,7 +78,7 @@ func _update_ports_from_data():
 
 				if not hint_text.is_empty():
 					port_text += " (%s)" % hint_text
-			
+
 			output_ports.append(port_text)
 
 func to_dictionary() -> Dictionary:

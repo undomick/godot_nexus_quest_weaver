@@ -10,7 +10,7 @@ func _ready() -> void:
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is CommentNodeResource: return
-	
+
 	text_edit.text = node_data.text
 
 func _on_text_confirmed() -> void:

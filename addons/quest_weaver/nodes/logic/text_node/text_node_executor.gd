@@ -16,5 +16,5 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 			context.quest_controller.add_quest_log_entry(text_node.id, final_text)
 		TextNodeResource.TextTarget.SET_QUEST_DESCRIPTION:
 			context.quest_controller.set_quest_description(text_node.id, final_text)
-	
+
 	context.quest_controller.complete_node(node)

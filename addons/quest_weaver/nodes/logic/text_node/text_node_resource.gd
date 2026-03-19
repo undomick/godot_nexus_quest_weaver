@@ -22,15 +22,15 @@ func get_editor_summary() -> String:
 		category_text = "[LOG]\n"
 	else:
 		category_text = "[DESCRIPTION]\n"
-	
+
 	if text_content.is_empty():
 		return "%s (Empty Text)" % category_text
-		
+
 	# Replace manual line breaks with spaces to allow our custom drawing logic
 	# in QWGraphNode to handle word wrapping cleanly based on node width.
 	var single_line_text = text_content.replace("\n", " ").strip_edges()
-	
-	# The [TRUNCATE] prefix signals QWGraphNode to use the 
+
+	# The [TRUNCATE] prefix signals QWGraphNode to use the
 	# intelligent wrapping and truncation logic.
 	return "[TRUNCATE]" + category_text + single_line_text
 
@@ -59,8 +59,8 @@ func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: i
 
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
-	
+
 	if text_content.is_empty():
 		results.append(ValidationResult.new(ValidationResult.Severity.INFO, "Quest Text: Text content is empty.", id))
-		
+
 	return results

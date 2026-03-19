@@ -21,17 +21,17 @@ func add_node(node_data: GraphNodeResource) -> void:
 	if not is_instance_valid(node_data) or node_data.id == &"":
 		push_error("QuestGraphResource: Attempted to add invalid node data (ID missing).")
 		return
-	
+
 	if nodes.has(node_data.id):
 		push_warning("QuestGraphResource: Node with ID '%s' already exists. Overwriting." % node_data.id)
-	
+
 	nodes[node_data.id] = node_data
 
 ## Removes a node and all connections referencing it.
 func remove_node(node_id: StringName) -> void:
 	if nodes.has(node_id):
 		nodes.erase(node_id)
-	
+
 	# Filter connections ensuring we compare StringNames. Use .get() for robust access when keys are from JSON.
 	connections = connections.filter(func(c: Dictionary) -> bool:
 		if not c or not c.has("from_node") or not c.has("to_node"):
@@ -47,11 +47,11 @@ func add_connection(from_node: StringName, from_port: int, to_node: StringName, 
 		if c.from_node == from_node and c.from_port == from_port and \
 		   c.to_node == to_node and c.to_port == to_port:
 			return
-	
+
 	connections.append({
-		"from_node": from_node, 
+		"from_node": from_node,
 		"from_port": from_port,
-		"to_node": to_node, 
+		"to_node": to_node,
 		"to_port": to_port
 	})
 
@@ -62,7 +62,7 @@ func remove_connection(from_node: StringName, from_port: int, to_node: StringNam
 		if c.from_node == from_node and c.from_port == from_port and \
 		   c.to_node == to_node and c.to_port == to_port:
 			connections.remove_at(i)
-			return 
+			return
 
 ## Removes all connections from the given output port.
 func remove_connection_from_output(from_node: StringName, from_port: int) -> void:
@@ -80,14 +80,14 @@ func to_dictionary() -> Dictionary:
 		"editor_scroll_offset": self.editor_scroll_offset,
 		"editor_zoom": self.editor_zoom
 	}
-	
+
 	for node_id in self.nodes:
 		var node_resource = self.nodes[node_id]
 		if is_instance_valid(node_resource):
 			# Node ID is automatically serialized as String by Godot's JSON logic mostly,
 			# but internal Dictionary keys remain StringName if stored via store_var.
 			data.nodes[node_id] = node_resource.to_dictionary()
-	
+
 	return data
 
 ## Deserializes the graph from a Dictionary. Clears existing nodes and connections.
@@ -97,7 +97,7 @@ func from_dictionary(data: Dictionary) -> void:
 		return
 	self.editor_scroll_offset = data.get("editor_scroll_offset", Vector2.ZERO)
 	self.editor_zoom = data.get("editor_zoom", 1.0)
-	
+
 	# 1. Clean Connections & Ensure StringName Types
 	self.connections.clear()
 	var raw_connections = data.get("connections", [])
@@ -112,11 +112,11 @@ func from_dictionary(data: Dictionary) -> void:
 			"to_port": int(conn.get("to_port", 0))
 		}
 		self.connections.append(clean_conn)
-	
+
 	# 2. Load Nodes & Ensure Keys are StringName
 	self.nodes.clear()
 	var nodes_data = data.get("nodes", {})
-	
+
 	for key in nodes_data:
 		var node_id = StringName(key)
 		var node_dict = nodes_data[key]

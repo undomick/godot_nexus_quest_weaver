@@ -34,30 +34,30 @@ func _ready() -> void:
 	validate_all_button.icon = get_theme_icon("Search", "EditorIcons")
 	validate_button.icon = get_theme_icon("Search", "EditorIcons")
 	validate_side_panel_button.icon = get_theme_icon("Search", "EditorIcons")
-	
+
 	# Configure the results tree columns: Severity, Quest, Message, NodeID
 	results_tree.set_column_title(0, "Severity")
 	results_tree.set_column_title(1, "Quest")
 	results_tree.set_column_title(2, "Message")
 	results_tree.set_column_title(3, "NodeID")
-	
+
 	results_tree.set_column_expand(0, false)
 	results_tree.set_column_expand(1, true)
 	results_tree.set_column_expand(2, true)
 	results_tree.set_column_expand(3, false)
 	results_tree.set_column_expand_ratio(1, 1)   # Quest: 33%
 	results_tree.set_column_expand_ratio(2, 2)   # Message: 66%
-	
+
 	results_tree.set_column_custom_minimum_width(0, 150)
 	results_tree.set_column_custom_minimum_width(1, 130)
 	results_tree.set_column_custom_minimum_width(2, 180)
 	results_tree.set_column_custom_minimum_width(3, 150)
-	
+
 	validate_button.pressed.connect(_on_validate_button_pressed)
 	validate_side_panel_button.pressed.connect(_on_validate_side_panel_pressed)
 	validate_all_button.pressed.connect(_on_validate_all_button_pressed)
 	results_tree.item_selected.connect(_on_results_tree_item_selected)
-	
+
 	# --- Load settings and build the debug UI ---
 	_load_debug_settings()
 	_build_debug_ui()
@@ -66,17 +66,17 @@ func _ready() -> void:
 func display_results(results: Array[ValidationResult]) -> void:
 	results_tree.clear()
 	var root = results_tree.create_item()
-	
+
 	if results.is_empty():
 		var item = results_tree.create_item(root)
 		item.set_text(2, "Validation successful: No issues found.")
 		item.set_icon(0, get_theme_icon("StatusSuccess", "EditorIcons"))
 		return
-	
+
 	var error_icon = get_theme_icon("Error", "EditorIcons")
 	var warning_icon = get_theme_icon("Warning", "EditorIcons")
 	var info_icon = get_theme_icon("Info", "EditorIcons")
-	
+
 	for result in results:
 		var item = results_tree.create_item(root)
 		var quest_name: String = result.source_quest_path.get_file().get_basename() if not result.source_quest_path.is_empty() else ""
@@ -85,7 +85,7 @@ func display_results(results: Array[ValidationResult]) -> void:
 		item.set_text(3, result.node_id)
 		var meta = {"node_id": result.node_id, "source_path": result.source_quest_path}
 		item.set_metadata(0, meta)
-		
+
 		match result.severity:
 			ValidationResult.Severity.ERROR:
 				item.set_icon(0, error_icon)
@@ -96,7 +96,7 @@ func display_results(results: Array[ValidationResult]) -> void:
 			ValidationResult.Severity.INFO:
 				item.set_icon(0, info_icon)
 				item.set_text(0, "Info")
-		
+
 		# Enable text wrapping for columns when space is limited
 		for col in range(4):
 			item.set_autowrap_mode(col, TextServer.AUTOWRAP_WORD_SMART)
@@ -138,7 +138,7 @@ func _on_validate_all_button_pressed() -> void:
 func _on_results_tree_item_selected() -> void:
 	var selected_item = results_tree.get_selected()
 	if not selected_item: return
-	
+
 	var meta = selected_item.get_metadata(0)
 	var node_id: StringName = &""
 	var source_path: String = ""
@@ -168,7 +168,7 @@ func _load_debug_settings() -> void:
 		if not _debug_settings.active_categories.has(category):
 			_debug_settings.active_categories[category] = true # Default new categories to 'on'.
 			settings_changed = true
-	
+
 	if settings_changed:
 		ResourceSaver.save(_debug_settings, QWConstants.DEBUG_SETTINGS_PATH)
 
@@ -188,7 +188,7 @@ func _build_debug_ui() -> void:
 # Called when any checkbox is toggled by the user.
 func _on_debug_category_toggled(is_pressed: bool, category: String) -> void:
 	if not is_instance_valid(_debug_settings): return
-	
+
 	# Update the value in our settings resource...
 	_debug_settings.active_categories[category] = is_pressed
 	# ...and save the change back to the .tres file immediately.

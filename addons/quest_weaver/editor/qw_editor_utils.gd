@@ -103,18 +103,18 @@ static func _load_item_registry_data() -> void:
 	if not is_instance_valid(settings) or settings.item_registry_path.is_empty():
 		_cached_item_ids.append("!Error: Item Registry path not set!")
 		return
-		
+
 	var item_registry = ResourceLoader.load(settings.item_registry_path)
 	if not is_instance_valid(item_registry):
 		_cached_item_ids.append("!Error: Could not load Item Registry!")
 		return
-		
+
 	var all_ids: Array[String] = []
 	if "item_definitions" in item_registry and item_registry.item_definitions is Array:
 		for definition in item_registry.item_definitions:
 			if is_instance_valid(definition) and not definition.id.is_empty():
 				all_ids.append(definition.id)
-	
+
 	if all_ids.is_empty():
 		_cached_item_ids.append("(Registry is empty)")
 	else:
@@ -130,9 +130,9 @@ static func _load_quest_registry_data() -> void:
 	if not is_instance_valid(settings) or settings.quest_registry_path.is_empty() or not ResourceLoader.exists(settings.quest_registry_path):
 		_cached_quest_ids.append("!Error: Quest Registry path not set!")
 		return
-	
+
 	var registry: QuestRegistry = ResourceLoader.load(settings.quest_registry_path, "QuestRegistry", ResourceLoader.CACHE_MODE_REPLACE)
-	
+
 	if is_instance_valid(registry):
 		if registry.quest_path_map.is_empty():
 			_cached_quest_ids.append("(No Quests found. Save a graph with an ID)")

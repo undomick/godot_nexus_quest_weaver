@@ -34,4 +34,3 @@ func undo() -> void:
 		_graph.remove_connection(_from_node, _from_port, _to_node, _to_port)
 	else:
 		_graph.add_connection(_from_node, _from_port, _to_node, _to_port)
-		

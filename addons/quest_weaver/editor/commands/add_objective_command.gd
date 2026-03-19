@@ -17,7 +17,7 @@ func execute() -> void:
 		_objective_to_add = ObjectiveResource.new()
 		_objective_to_add.id = "objective_%d" % Time.get_unix_time_from_system()
 		_objective_to_add.description = "New Objective"
-	
+
 	_task_node.objectives.append(_objective_to_add)
 
 func undo() -> void:

@@ -11,14 +11,14 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	var controller = context.quest_controller
 	var logger = context.logger
 	var root = controller.get_tree().get_root()
-	
+
 	if not root:
 		controller._trigger_next_nodes_from_port(cutscene_node, 1)
 		controller.complete_node(cutscene_node)
 		return
 
 	var anim_player: AnimationPlayer = root.get_node_or_null(cutscene_node.animation_player_path)
-	
+
 	if not is_instance_valid(anim_player):
 		push_error("PlayCutsceneNode '%s': AnimationPlayer at path '%s' not found." % [cutscene_node.id, cutscene_node.animation_player_path])
 		controller._trigger_next_nodes_from_port(cutscene_node, 1)
@@ -46,14 +46,14 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 
 	if cutscene_node.wait_for_completion:
 		await anim_player.animation_finished
-		
+
 		# --- GLOBAL LOCK END ---
 		var global_bus = controller.get_tree().root.get_node_or_null("QuestWeaverGlobal")
 		if is_instance_valid(global_bus):
 			global_bus.unlock_interaction(cutscene_node.id)
-		
+
 		if is_instance_valid(logger): logger.log("Executor", "  - Cutscene finished.")
-		
+
 		# Only complete if still active in instance
 		if instance.is_node_active(cutscene_node.id):
 			controller._trigger_next_nodes_from_port(cutscene_node, 1) # Port 1: "On Finish"

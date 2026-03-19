@@ -13,19 +13,19 @@ func execute() -> void:
 	if not is_instance_valid(_new_port_data):
 		_new_port_data = SynchronizeInputPort.new()
 		_new_port_data.port_name = "In %d" % (_node_data.inputs.size() + 1)
-	
+
 	_node_data.inputs.append(_new_port_data)
-	
+
 	for out in _node_data.outputs:
 		out.patterns.append(0) # 0 = IGNORE
-		
+
 	_node_data._update_ports_from_data()
 
 func undo() -> void:
 	_node_data.inputs.erase(_new_port_data)
-	
+
 	for out in _node_data.outputs:
 		if not out.patterns.is_empty():
 			out.patterns.pop_back()
-			
+
 	_node_data._update_ports_from_data()

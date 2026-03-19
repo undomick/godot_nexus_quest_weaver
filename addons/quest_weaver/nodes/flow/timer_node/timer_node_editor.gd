@@ -13,7 +13,7 @@ func _ready() -> void:
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is TimerNodeResource: return
-	
+
 	duration_edit.text = str(node_data.duration)
 
 func _on_duration_edit_started() -> void:

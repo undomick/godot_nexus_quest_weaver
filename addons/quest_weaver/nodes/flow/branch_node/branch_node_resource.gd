@@ -8,7 +8,7 @@ enum LogicOperator { AND, OR, NAND, NOR }
 @export var conditions: Array[ConditionResource] = []
 
 func _init() -> void:
-	category = "Flow" 
+	category = "Flow"
 	input_ports = ["In"]
 	output_ports = ["True", "False"]
 
@@ -25,7 +25,7 @@ func check_all_conditions(context: ExecutionContext, instance: QuestInstance) ->
 				if not is_instance_valid(condition) or not condition.check(context, instance):
 					return false
 			return true
-			
+
 		LogicOperator.OR:
 			for condition in conditions:
 				if is_instance_valid(condition) and condition.check(context, instance):
@@ -37,37 +37,37 @@ func check_all_conditions(context: ExecutionContext, instance: QuestInstance) ->
 				if not is_instance_valid(condition) or not condition.check(context, instance):
 					return true
 			return false
-			
+
 		LogicOperator.NOR: # Not OR
 			for condition in conditions:
 				if is_instance_valid(condition) and condition.check(context, instance):
 					return false
 			return true
-			
-	return false 
+
+	return false
 
 func get_editor_summary() -> String:
 	if conditions.is_empty():
 		return "[NO CONDITIONS!]"
-		
+
 	var summary_lines: Array[String] = []
-	
+
 	var operator_name = LogicOperator.keys()[operator]
 	summary_lines.append(operator_name)
-	
+
 	if conditions.size() >= 1:
 		var condition1_summary = _format_condition_summary(conditions[0])
 		summary_lines.append("1) %s" % condition1_summary)
-		
+
 	if conditions.size() >= 2:
 		var condition2_summary = _format_condition_summary(conditions[1])
 		summary_lines.append("2) %s" % condition2_summary)
-	
+
 	if conditions.size() > 2:
 		var remaining_count = conditions.size() - 2
 		var plural_s = "s" if remaining_count > 1 else ""
 		summary_lines.append("... and %d more Condition%s" % [remaining_count, plural_s])
-	
+
 	return "\n".join(summary_lines)
 
 func get_description() -> String:
@@ -128,7 +128,7 @@ func add_condition(payload: Dictionary) -> void:
 			else:
 				conditions.append(condition_instance)
 			return
-	
+
 	var new_condition = ConditionResource.new()
 	conditions.append(new_condition)
 
@@ -156,7 +156,7 @@ func to_dictionary() -> Dictionary:
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
 	self.operator = _defensive_load(data, "operator", LogicOperator.keys(), LogicOperator.AND)
-	
+
 	self.conditions.clear()
 	for c_data in data.get("conditions", []):
 		var new_c = GraphNodeResource.new_condition_from_path(c_data.get("@script_path"))

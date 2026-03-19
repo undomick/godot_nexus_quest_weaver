@@ -13,7 +13,7 @@ func execute() -> void:
 	# If this is the first execution (not a redo), create a new condition.
 	if not is_instance_valid(_condition_to_add):
 		_condition_to_add = ConditionResource.new()
-	
+
 	_branch_node.conditions.append(_condition_to_add)
 
 func undo() -> void:

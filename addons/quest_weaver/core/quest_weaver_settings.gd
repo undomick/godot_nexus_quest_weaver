@@ -6,8 +6,8 @@ extends Resource
 ## This resource holds all external paths and settings for the Quest Weaver editor.
 
 @export_group("Integration")
-## Quest Objectives might need Inventory Logic. The Inventory Adapter provides a way to let 
-## your Inventory talk with Quest Weaver, without rewriting Quest Weaver itself. 
+## Quest Objectives might need Inventory Logic. The Inventory Adapter provides a way to let
+## your Inventory talk with Quest Weaver, without rewriting Quest Weaver itself.
 ## Your Adapter has to extend 'QuestInventoryAdapterBase'!
 @export_file("*.gd") var inventory_adapter_script: String
 
@@ -15,7 +15,7 @@ extends Resource
 ## Your Adapter has to extend 'QuestKillAdapterBase'!
 @export_file("*.gd") var kill_adapter_script: String
 
-## Path to the PresentationRegistry resource. 
+## Path to the PresentationRegistry resource.
 ## This defines which UI templates (popup styles) are available for the 'Show UI Message' node.
 @export_file("*.tres", "res://") var presentation_registry_path: String
 
@@ -24,7 +24,7 @@ extends Resource
 @export_file("*.tres", "res://") var item_registry_path: String
 
 @export_group("Automation")
-## The folder where you store your '.quest' files. 
+## The folder where you store your '.quest' files.
 ## Quest Weaver scans this folder to auto-detect Quest IDs for the 'Quest Registry'.
 @export_dir var quest_scan_folder: String
 

@@ -154,11 +154,11 @@ func validate_graph(graph: QuestGraphResource) -> Array[ValidationResult]:
 	results.append_array(_check_start_node_count(graph))
 
 	var port_connected_map = _build_port_connection_map(graph)
-	
+
 	# PRE-PASS: Collect valid targets (Anchors and Scopes)
 	var valid_anchors: Dictionary = {}
 	var valid_scopes: Dictionary = {}
-	
+
 	for node_id in graph.nodes:
 		var node = graph.nodes[node_id]
 		if node is AnchorNodeResource and not node.anchor_name.is_empty():
@@ -169,29 +169,29 @@ func validate_graph(graph: QuestGraphResource) -> Array[ValidationResult]:
 	# MAIN PASS
 	for node_id in graph.nodes:
 		var node: GraphNodeResource = graph.nodes[node_id]
-		
+
 		if node is BackdropNodeResource or node is CommentNodeResource: continue
-			
+
 		results.append_array(_validate_node_connections(node, graph, port_connected_map))
 		results.append_array(_validate_node_properties(node))
-		
+
 		# --- NODE SPECIFIC LOGIC ---
-		
+
 		if node is BranchNodeResource:
 			for condition in node.conditions:
 				results.append_array(_validate_condition(condition, node))
-		
+
 		# Validate Conditions in EventListeners too
 		elif node is EventListenerNodeResource:
 			if not node.use_simple_conditions and is_instance_valid(node.payload_condition):
 				results.append_array(_validate_condition(node.payload_condition, node))
-		
+
 		# Check Jump Targets
 		elif node is JumpNodeResource:
 			if not node.target_anchor_name.is_empty():
 				if not valid_anchors.has(node.target_anchor_name):
 					results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Jump Target '%s' does not exist in this graph." % node.target_anchor_name, str(node_id), "", _get_node_type_name(node)))
-		
+
 		# Check Reset Targets
 		elif node is ResetProgressNodeResource:
 			if not node.target_scope_id.is_empty():
@@ -202,7 +202,7 @@ func validate_graph(graph: QuestGraphResource) -> Array[ValidationResult]:
 			if not node.target_scope_id.is_empty():
 				if not valid_scopes.has(node.target_scope_id):
 					results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Target Scope '%s' not found (StartScopeNode missing?)." % node.target_scope_id, str(node_id), "", _get_node_type_name(node)))
-	
+
 	return results
 
 
@@ -219,7 +219,7 @@ func _validate_node_properties(node: GraphNodeResource) -> Array[ValidationResul
 		"item_registry": _item_registry,
 		"quest_registry": _quest_registry
 	}
-	
+
 	# Delegate the validation logic to the node resource itself.
 	var results = node._validate(context)
 	var type_name := _get_node_type_name(node)
@@ -242,7 +242,7 @@ func _validate_condition(condition: ConditionResource, node: GraphNodeResource) 
 			var item_id = condition.item_id
 			if item_id == &"":
 				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Check Item Condition: No Item ID specified.", node_id_str, "", type_name))
-			
+
 			elif is_instance_valid(_item_registry):
 				if _item_registry.has_method(&"find"):
 					if not _item_registry.find(str(item_id)):
@@ -252,11 +252,11 @@ func _validate_condition(condition: ConditionResource, node: GraphNodeResource) 
 			var target_id = condition.quest_id
 			if target_id == &"":
 				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Check Quest Status: No target Quest ID specified.", node_id_str, "", type_name))
-			
+
 			elif is_instance_valid(_quest_registry) and not _quest_registry.quest_path_map.has(target_id):
 				results.append(ValidationResult.new(
 					ValidationResult.Severity.WARNING, "Check Quest Status: Target Quest ID '%s' not found in Quest Registry." % target_id, node_id_str, "", type_name))
-		
+
 		ConditionResource.ConditionType.CHECK_OBJECTIVE_STATUS:
 			if condition.objective_id == &"":
 				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Check Objective Status: No Objective ID specified.", node_id_str, "", type_name))
@@ -274,7 +274,7 @@ func _validate_condition(condition: ConditionResource, node: GraphNodeResource) 
 						results.append_array(_validate_condition(sub_condition, node))
 					else:
 						results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Compound Condition contains an invalid entry.", node_id_str, "", type_name))
-		
+
 		_:
 			pass
 
@@ -291,7 +291,7 @@ func _build_port_connection_map(graph: QuestGraphResource) -> Dictionary:
 
 func _validate_node_connections(node: GraphNodeResource, graph: QuestGraphResource, port_connected_map: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
-	
+
 	if node is BranchNodeResource:
 		var true_connected = port_connected_map.get("%s|%d" % [node.id, 0], false)
 		var false_connected = port_connected_map.get("%s|%d" % [node.id, 1], false)
@@ -317,7 +317,7 @@ func _validate_node_connections(node: GraphNodeResource, graph: QuestGraphResour
 				"Output port '%s' is unconnected. Flow stops here." % port_name,
 				str(node.id), "", _get_node_type_name(node)
 			))
-			
+
 	return results
 
 # --- GRAPH STRUCTURE RULES ---
@@ -349,22 +349,22 @@ func _check_for_orphan_nodes(graph: QuestGraphResource) -> Array[ValidationResul
 
 	for node_id in graph.nodes:
 		var node = graph.nodes[node_id]
-		
+
 		# If the node has an incoming connection, it is reachable.
 		if all_target_nodes.has(node_id):
 			continue
 
 		# --- EXCEPTIONS: Nodes that are allowed to be orphans ---
-		
+
 		# 1. Entry Points: Nodes that start execution logic
 		if node is StartNodeResource or node is QuestContextNodeResource:
 			continue
-			
+
 		# 2. Visual Helpers: Nodes that don't participate in logic flow
 		if node is BackdropNodeResource or node is CommentNodeResource:
 			continue
-			
-		# 3. Generic Check: If a node physically has no input ports, 
+
+		# 3. Generic Check: If a node physically has no input ports,
 		#    it cannot receive a connection, so warning is redundant.
 		if node.input_ports.is_empty():
 			continue
@@ -375,7 +375,7 @@ func _check_for_orphan_nodes(graph: QuestGraphResource) -> Array[ValidationResul
 			"This node is unreachable (no incoming connection).",
 			str(node_id), "", _get_node_type_name(node)
 		))
-				
+
 	return results
 
 func _load_resource(path: String) -> Resource:
@@ -442,4 +442,3 @@ func _is_cyclic_iterative(start_node_id: StringName, visited: Dictionary, recurs
 			stack.pop_back()
 
 	return false
-

@@ -23,21 +23,21 @@ func _on_quest_id_focus_entered() -> void:
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is QuestNodeResource: return
-	
+
 	QWEditorUtils.populate_quest_id_completer(target_quest_id_edit)
 	target_quest_id_edit.text = node_data.target_quest_id
-	
+
 	action_picker.clear()
 	for action_name in node_data.QuestAction.keys():
 		action_picker.add_item(action_name.capitalize().replace("_", " "))
 	action_picker.select(node_data.action)
-	
+
 	_populate_pool_picker()
 	pool_picker_row.visible = node_data.action == QuestNodeResource.QuestAction.MOVE_TO_CUSTOM_POOL
 	var pool_ids = QWEditorUtils.get_custom_pool_ids_from_settings()
 	var idx = pool_ids.find(node_data.custom_pool_id)
 	pool_picker.select(maxi(0, idx) if idx >= 0 else 0)
-	
+
 	terminal_checkbox.button_pressed = node_data.is_terminal
 
 func _on_id_confirmed(new_text: String):

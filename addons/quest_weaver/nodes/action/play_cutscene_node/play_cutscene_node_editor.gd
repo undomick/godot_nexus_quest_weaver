@@ -9,16 +9,16 @@ extends NodePropertyEditorBase
 func _ready() -> void:
 	path_edit.text_submitted.connect(func(_text): _on_path_confirmed())
 	path_edit.focus_exited.connect(_on_path_confirmed)
-	
+
 	name_edit.text_submitted.connect(func(_text): _on_name_confirmed())
 	name_edit.focus_exited.connect(_on_name_confirmed)
-	
+
 	wait_checkbox.toggled.connect(_on_wait_toggled)
 
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is PlayCutsceneNodeResource: return
-	
+
 	path_edit.text = str(node_data.animation_player_path)
 	name_edit.text = str(node_data.animation_name)
 	wait_checkbox.button_pressed = node_data.wait_for_completion

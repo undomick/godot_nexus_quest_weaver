@@ -8,7 +8,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	if not is_instance_valid(listener_node): return
 
 	var controller = context.quest_controller
-	
+
 	# Read entry port from instance meta (set by Controller)
 	var activated_on_port = instance.get_node_data(node.id, "_entry_port", 0)
 
@@ -17,7 +17,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		# Currently EventManager stores node_id. Controller resolves instance from node_id.
 		# So this works without change in signature here, but Manager needs update later.
 		controller._event_manager.register_listener(listener_node)
-	
+
 	elif activated_on_port == 1:
 		# Cancel
 		controller._event_manager.unregister_listener(listener_node)

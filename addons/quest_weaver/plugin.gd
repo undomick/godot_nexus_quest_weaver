@@ -23,7 +23,7 @@ func _enable_plugin() -> void:
 	var global_path = base_path + "/core/quest_weaver_global.gd"
 	var services_path = base_path + "/core/quest_weaver_services.gd"
 	var gamestate_path = base_path + "/core/quest_weaver_game_state.gd"
-	
+
 	add_autoload_singleton("QuestWeaverGlobal", global_path)
 	add_autoload_singleton("QuestWeaverServices", services_path)
 	add_autoload_singleton("QuestWeaverGameState", gamestate_path)
@@ -101,7 +101,7 @@ func _enter_tree() -> void:
 		ResourceSaver.add_resource_format_saver(saver)
 
 		add_custom_type(QWConstants.RESOURCE_TYPE_NAME, "Resource", QuestGraphResource, _PLUGIN_ICON)
-		
+
 		var base_control = EditorInterface.get_base_control()
 		validator_dock = base_control.find_child(QWConstants.VALIDATOR_DOCK_NAME, true, false)
 
@@ -109,12 +109,12 @@ func _enter_tree() -> void:
 			validator_dock = QWConstants.ValidatorDockScene.instantiate()
 			validator_dock.name = QWConstants.VALIDATOR_DOCK_NAME
 			add_control_to_bottom_panel(validator_dock, "Quest Validator")
-		
+
 		var inspector_script = load("res://addons/quest_weaver/editor/inspector/qw_registry_inspector.gd")
 		if inspector_script:
 			registry_inspector = inspector_script.new()
 			add_inspector_plugin(registry_inspector)
-		
+
 		debugger_node = QuestWeaverDebugger.new()
 		debugger_node.name = "QuestWeaverDebuggerHost"
 		add_child(debugger_node)
@@ -136,7 +136,7 @@ func _exit_tree() -> void:
 		_disconnect_signals()
 		# Teardown is idempotent; order of _disable_plugin vs _exit_tree is undefined
 		_tear_down_main_view()
-		
+
 		var base_control = EditorInterface.get_base_control()
 		if is_instance_valid(base_control):
 			var dock_to_remove = base_control.find_child(QWConstants.VALIDATOR_DOCK_NAME, true, false)
@@ -195,7 +195,7 @@ func _make_visible(visible: bool):
 	if not visible:
 		if is_instance_valid(main_view):
 			main_view.cancel_any_active_drags()
-			
+
 			main_view.visible = false
 			if is_instance_valid(main_view.properties_panel):
 				main_view.properties_panel.hide()
@@ -205,18 +205,18 @@ func _make_visible(visible: bool):
 		editor_data = _load_editor_data()
 		main_view = QWConstants.MainViewScene.instantiate()
 		EditorInterface.get_editor_main_screen().add_child(main_view)
-		
+
 		_connect_signals()
-		
+
 		# Get the EditorInterface instance
 		var editor_interface = get_editor_interface()
-		
+
 		# Pass the editor_interface instance to the initialize function
 		main_view.call_deferred(&"initialize", self, editor_data, editor_interface)
-		
+
 		if editor_interface:
 			main_view.set_editor_scale(editor_interface.get_editor_scale())
-		
+
 	main_view.visible = true
 
 func _handles(object: Object) -> bool:
@@ -226,10 +226,10 @@ func _build() -> bool:
 	if not Engine.is_editor_hint(): return true # Runtime protection
 	if is_instance_valid(main_view) and main_view.is_node_ready():
 		var action_handler = main_view.get_action_handler()
-		
+
 		if is_instance_valid(action_handler):
 			action_handler.save_all_modified_graphs()
-	
+
 	return true
 
 func _edit(object: Object) -> void:
@@ -243,8 +243,8 @@ func _connect_filesystem_signals() -> void:
 	var editor_interface = get_editor_interface()
 	if editor_interface:
 		var fs = editor_interface.get_resource_filesystem()
-		if not fs: return 
-		
+		if not fs: return
+
 		if not fs.filesystem_changed.is_connected(_on_filesystem_changed):
 			fs.filesystem_changed.connect(_on_filesystem_changed)
 
@@ -258,7 +258,7 @@ func _connect_signals() -> void:
 			validator_dock.result_selected.connect(main_view._on_validation_result_selected)
 		if not main_view.validation_finished.is_connected(validator_dock.display_results):
 			main_view.validation_finished.connect(validator_dock.display_results)
-			
+
 	if is_instance_valid(debugger_node) and is_instance_valid(main_view):
 		if not debugger_node.session_started.is_connected(main_view._on_debug_session_started):
 			debugger_node.session_started.connect(main_view._on_debug_session_started)
@@ -275,15 +275,15 @@ func _connect_signals() -> void:
 			debugger_node.instance_updated.connect(main_view._on_debug_instance_updated)
 
 func _disconnect_signals() -> void:
-	if not Engine.is_editor_hint(): return 
+	if not Engine.is_editor_hint(): return
 	var editor_interface = get_editor_interface()
-	
+
 	if is_instance_valid(editor_interface):
 		var fs = editor_interface.get_resource_filesystem()
 		if is_instance_valid(fs):
 			if fs.is_connected("filesystem_changed", _on_filesystem_changed):
 				fs.filesystem_changed.disconnect(_on_filesystem_changed)
-			
+
 	if is_instance_valid(validator_dock) and is_instance_valid(main_view):
 		if validator_dock.is_connected("validation_requested", main_view._on_validation_requested):
 			validator_dock.validation_requested.disconnect(main_view._on_validation_requested)
@@ -291,7 +291,7 @@ func _disconnect_signals() -> void:
 			validator_dock.result_selected.disconnect(main_view._on_validation_result_selected)
 		if main_view.is_connected("validation_finished", validator_dock.display_results):
 			main_view.validation_finished.disconnect(validator_dock.display_results)
-	
+
 	if is_instance_valid(debugger_node) and is_instance_valid(main_view):
 		if debugger_node.session_started.is_connected(main_view._on_debug_session_started):
 			debugger_node.session_started.disconnect(main_view._on_debug_session_started)
@@ -307,8 +307,8 @@ func _disconnect_signals() -> void:
 			debugger_node.instance_updated.disconnect(main_view._on_debug_instance_updated)
 
 func _on_filesystem_changed() -> void:
-	if not Engine.is_editor_hint(): return 
-	
+	if not Engine.is_editor_hint(): return
+
 	if is_instance_valid(main_view) and main_view.has_method("validate_open_files_exist"):
 		main_view.call_deferred(&"validate_open_files_exist")
 
@@ -329,7 +329,7 @@ func load_setting(key: String, default_value: Variant) -> Variant:
 	if not Engine.is_editor_hint(): return # Runtime protection
 	var setting_key = "plugins/quest_weaver/%s" % key
 	var editor_settings = get_editor_interface().get_editor_settings()
-	
+
 	if editor_settings.has_setting(setting_key):
 		return editor_settings.get_setting(setting_key)
 	else:

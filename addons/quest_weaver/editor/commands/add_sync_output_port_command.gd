@@ -13,11 +13,11 @@ func execute() -> void:
 	if not is_instance_valid(_new_port_data):
 		_new_port_data = SynchronizeOutputPort.new()
 		_new_port_data.port_name = "Out %d" % (_node_data.outputs.size() + 1)
-		
+
 		var input_count = _node_data.inputs.size()
 		_new_port_data.patterns.resize(input_count)
 		_new_port_data.patterns.fill(0) # Fill with IGNORE
-	
+
 	_node_data.outputs.append(_new_port_data)
 	_node_data._update_ports_from_data()
 

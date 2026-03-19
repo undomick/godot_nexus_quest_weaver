@@ -8,13 +8,13 @@ extends GraphNodeResource
 
 func _init():
 	category = "Action"
-	
+
 	if id.is_empty() and objectives.is_empty():
 		var new_objective = ObjectiveResource.new()
 		new_objective.id = "objective_%d" % Time.get_unix_time_from_system()
 		new_objective.description = "New Objective"
 		objectives.append(new_objective)
-	
+
 	input_ports = ["In"]
 	_update_ports_from_data()
 
@@ -27,24 +27,24 @@ func _update_ports_from_data() -> void:
 func get_editor_summary() -> String:
 	if objectives.is_empty():
 		return "(No Objectives!)"
-	
+
 	var summary_lines: Array[String] = []
-	
+
 	for i in range(min(objectives.size(), 3)):
 		var objective: ObjectiveResource = objectives[i]
 		if not is_instance_valid(objective):
 			continue
-			
+
 		var trigger_type_name = ObjectiveResource.TriggerType.keys()[objective.trigger_type].replace("_", " ").capitalize()
 		var description_preview: String
-		var warning_prefix = "" 
-		
+		var warning_prefix = ""
+
 		if objective.description.is_empty():
-			description_preview = "Missing Objective Title" 
-			warning_prefix = "[WARN]" 
+			description_preview = "Missing Objective Title"
+			warning_prefix = "[WARN]"
 		else:
 			description_preview = objective.description.left(30) + ("..." if objective.description.length() > 30 else "")
-		
+
 		var objective_summary = "%s%d) %s:\n   %s" % [warning_prefix, i + 1, description_preview, trigger_type_name]
 		summary_lines.append(objective_summary)
 
@@ -52,7 +52,7 @@ func get_editor_summary() -> String:
 		var remaining_count = objectives.size() - 3
 		var plural_s = "s" if remaining_count > 1 else ""
 		summary_lines.append("... and %d more Objective%s" % [remaining_count, plural_s])
-	
+
 	return "\n".join(summary_lines)
 
 func get_description() -> String:
@@ -67,7 +67,7 @@ func add_objective(payload: Dictionary):
 		if is_instance_valid(objective_instance):
 			objectives.append(objective_instance)
 			return
-	
+
 	var new_objective = ObjectiveResource.new()
 	new_objective.id = "objective_%d" % Time.get_unix_time_from_system()
 	new_objective.description = "New Objective"
@@ -92,7 +92,7 @@ func update_objective_trigger_type(payload: Dictionary):
 			return
 
 		objective.trigger_type = new_type
-		
+
 		match new_type:
 			ObjectiveResource.TriggerType.MANUAL, \
 			ObjectiveResource.TriggerType.INTERACT, \
@@ -104,7 +104,7 @@ func update_objective_trigger_param(payload: Dictionary):
 		var objective: ObjectiveResource = payload["objective"]
 		var param_name = payload["param_name"]
 		var param_value = payload["param_value"]
-		
+
 		objective.trigger_params[param_name] = param_value
 
 func update_objective_id(payload: Dictionary):
@@ -120,18 +120,18 @@ func update_objective_requirements(payload: Dictionary):
 
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
-	
+
 	var objectives_data = []
 	for objective in self.objectives:
 		if is_instance_valid(objective):
 			objectives_data.append(objective.to_dictionary())
-	
+
 	data["objectives"] = objectives_data
 	return data
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	
+
 	self.objectives.clear()
 	var objectives_data = data.get("objectives", [])
 	for objective_dict in objectives_data:
@@ -142,13 +142,13 @@ func from_dictionary(data: Dictionary):
 				var new_objective = script.new()
 				new_objective.from_dictionary(objective_dict)
 				self.objectives.append(new_objective)
-	
+
 	_update_ports_from_data()
 
 func _validate(context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	var item_registry = context.get("item_registry")
-	
+
 	if objectives.is_empty():
 		results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Task Node has no objectives and will complete immediately.", id))
 	else:
@@ -156,7 +156,7 @@ func _validate(context: Dictionary) -> Array[ValidationResult]:
 			if not is_instance_valid(objective):
 				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Task Node contains an invalid/empty Objective.", id))
 				continue
-				
+
 			if objective.id.is_empty():
 				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Objective has no ID.", id))
 
@@ -177,11 +177,11 @@ func _validate(context: Dictionary) -> Array[ValidationResult]:
 				ObjectiveResource.TriggerType.INTERACT:
 					if objective.trigger_params.get("target_path", "").is_empty():
 						results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Objective 'Interact': No Target Path specified.", id))
-				
+
 				ObjectiveResource.TriggerType.LOCATION_ENTER:
 					if objective.trigger_params.get("location_id", "").is_empty():
 						results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Objective 'Location Enter': No Location ID specified.", id))
-	
+
 	return results
 
 func determine_default_size() -> QWNodeSizes.Size:

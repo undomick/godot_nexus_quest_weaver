@@ -192,10 +192,10 @@ func get_variable(key: StringName, default: Variant = null) -> Variant:
 func resolve_text(text: String, context_obj: Resource = null) -> String:
 	if text.is_empty() or not "{" in text:
 		return text
-		
+
 	if _resolver_regex == null:
 		_resolver_regex = RegEx.new()
-		_resolver_regex.compile("\\{(.*?)\\}") 
+		_resolver_regex.compile("\\{(.*?)\\}")
 
 	# 1. Prepare Context
 	var main_loop = Engine.get_main_loop()
@@ -203,20 +203,20 @@ func resolve_text(text: String, context_obj: Resource = null) -> String:
 		return text
 	var global_qw = main_loop.root.get_node_or_null("QuestWeaverGlobal")
 	var context_wrapper = QWTextContext.new(global_qw, self, context_obj)
-	
+
 	var result = text
 	var matches = _resolver_regex.search_all(text)
-	
-	# Iterate matches in reverse to handle replacement without messing up indices, 
-	# OR just replace strings. Since we replace unique full strings, simple replace is fine 
+
+	# Iterate matches in reverse to handle replacement without messing up indices,
+	# OR just replace strings. Since we replace unique full strings, simple replace is fine
 	# unless identical placeholders exist (which resolves same anyway).
-	
+
 	for regex_match in matches:
 		var full_placeholder = regex_match.get_string(0) # "{...}"
 		var content = regex_match.get_string(1).strip_edges() # "..."
-		
+
 		var replacement_value = full_placeholder # Default: Keep original if fail
-		
+
 		# Fast path: Simple variable (no ., (, [, space) - avoid Expression entirely
 		var is_simple_var = not content.contains(".") and not content.contains("(") and not content.contains("[") and not content.contains(" ")
 		if is_simple_var:
@@ -245,7 +245,7 @@ func resolve_text(text: String, context_obj: Resource = null) -> String:
 					if simple_lookup != null:
 						replacement_value = str(simple_lookup)
 					expr = null
-			
+
 			if expr != null:
 				var exec_result = expr.execute([], context_wrapper, true)
 				if not expr.has_execute_failed():
@@ -261,7 +261,7 @@ func resolve_text(text: String, context_obj: Resource = null) -> String:
 		# Apply replacement
 		if replacement_value != full_placeholder:
 			result = result.replace(full_placeholder, replacement_value)
-			
+
 	return result
 
 # --- REWARD FORMATTING HELPERS ---
@@ -282,11 +282,11 @@ func _get_remote_rewards_string(target_quest_id: StringName, index: int, global_
 
 func _format_rewards_dict(dict: Dictionary, index: int) -> String:
 	if dict.is_empty(): return ""
-	
+
 	# 1. Sort Keys (Alphabetical) to match Editor view
 	var keys = dict.keys()
 	keys.sort_custom(func(a, b): return str(a) < str(b))
-	
+
 	# 2. Case: Index Access
 	if index >= 0:
 		if index < keys.size():
@@ -295,17 +295,17 @@ func _format_rewards_dict(dict: Dictionary, index: int) -> String:
 			return _format_single_reward(key, val)
 		else:
 			return "" # Index out of bounds -> empty string
-	
+
 	# 3. Case: Full List
 	var list_strings: PackedStringArray = []
 	for key in keys:
 		list_strings.append(_format_single_reward(key, dict[key]))
-	
+
 	# Join with commas (e.g. "100 Gold, 1 Sword")
 	return ", ".join(list_strings)
 
 func _format_single_reward(key: Variant, val: Variant) -> String:
-	# Heuristic: 
+	# Heuristic:
 	# If Value is 1, maybe just show Key? -> "Sword" instead of "1 Sword"
 	# Or always "Amount Key"? -> "1 Sword". Let's stick to "Amount Key" for consistency.
 	# But if key is "Gold" and val is 100 -> "100 Gold".
@@ -360,18 +360,18 @@ func load_save_data(data: Dictionary) -> void:
 	self.current_status = int(data.get("status", QWEnums.QuestState.UNAVAILABLE))
 	self.custom_pool_id = StringName(data.get("custom_pool_id", &""))
 	self.rejected_by_player = data.get("rejected_by_player", false)
-	self.variables = data.get("variables", {}).duplicate() 
-	
+	self.variables = data.get("variables", {}).duplicate()
+
 	self.active_node_ids = {}
 	var loaded_active = data.get("active_node_ids", {})
 	for k in loaded_active:
 		self.active_node_ids[StringName(k)] = loaded_active[k]
-	
+
 	self.node_states = {}
 	var loaded_states = data.get("node_states", {})
 	for k in loaded_states:
 		self.node_states[StringName(k)] = loaded_states[k].duplicate(true)
-	
+
 	self.objective_states = {}
 	var loaded_objs = data.get("objective_states", {})
 	for k in loaded_objs:

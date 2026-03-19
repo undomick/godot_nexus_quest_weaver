@@ -26,7 +26,7 @@ func execute() -> void:
 
 	var deleted_ids_str = _node_ids.map(func(id): return String(id))
 	_deleted_connections_data = _graph.connections.filter(func(c): return deleted_ids_str.has(c.from_node) or deleted_ids_str.has(c.to_node))
-	
+
 	for node_data in _deleted_nodes_data:
 		_graph.remove_node(node_data.id)
 
@@ -34,6 +34,6 @@ func execute() -> void:
 func undo() -> void:
 	for node_data in _deleted_nodes_data:
 		_graph.add_node(node_data)
-		
+
 	for conn in _deleted_connections_data:
 		_graph.add_connection(conn.from_node, conn.from_port, conn.to_node, conn.to_port)

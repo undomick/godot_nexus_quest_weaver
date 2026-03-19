@@ -13,11 +13,11 @@ var summary_text: String = "":
 func _draw():
 	if summary_text.is_empty():
 		return
-	
+
 	var font = get_theme_font("title_font")
 	var font_size = get_theme_font_size("title_font_size") - 2
-	
-	var margin_left = 60.0  
+
+	var margin_left = 60.0
 	var margin_right = 20.0
 	var available_width = size.x - (margin_left + margin_right)
 	var final_lines: PackedStringArray = []
@@ -27,7 +27,7 @@ func _draw():
 	if summary_text.begins_with("[TRUNCATE]"):
 		var text_to_process = summary_text.trim_prefix("[TRUNCATE]")
 		var remaining_text = text_to_process.replace("\n", " ") # Flatten text for preview
-		
+
 		var processed_lines: Array[String] = []
 		while not remaining_text.is_empty() and processed_lines.size() < 2:
 			# Check if the rest fits in one line
@@ -35,7 +35,7 @@ func _draw():
 				processed_lines.append(remaining_text)
 				remaining_text = ""
 				break
-			
+
 			# Binary search for wrap point: find largest substring that fits
 			var wrap_index = _find_wrap_index(remaining_text, font, font_size, available_width)
 			if wrap_index > 0:
@@ -50,7 +50,7 @@ func _draw():
 
 		if not remaining_text.is_empty():
 			processed_lines.append("...")
-			
+
 		final_lines = PackedStringArray(processed_lines)
 
 	# --- CASE 2: FULL TEXT MODE (e.g. CommentNode) ---
@@ -58,19 +58,19 @@ func _draw():
 		final_lines = _wrap_text_smart(summary_text, font, font_size, available_width)
 
 	# --- DRAWING & POSITIONING ---
-	
+
 	var header_height = 32.0 # Default fallback
 	var titlebar = get_titlebar_hbox()
 	if is_instance_valid(titlebar):
 		header_height = titlebar.size.y
-	
+
 	var line_spacing = font.get_height(font_size) + 2
 	var total_text_height = final_lines.size() * line_spacing
-	
+
 	# Vertical Positioning: Center text in the BODY (ignoring header height)
 	var available_body_height = size.y - header_height
 	var start_y = header_height + (available_body_height - total_text_height) / 2.0 + font.get_ascent(font_size)
-	
+
 	# Safety Clamp: Prevent text from rendering inside the header when resized too small
 	start_y = max(start_y, header_height + font.get_ascent(font_size) + 4)
 
@@ -79,7 +79,7 @@ func _draw():
 	for line in final_lines:
 		var color = Color.WHITE.darkened(0.1)
 		var text_to_draw = line
-		
+
 		# Highlight warning lines
 		if text_to_draw.begins_with("[WARN]"):
 			color = Color.ORANGE_RED
@@ -109,38 +109,38 @@ func _find_wrap_index(text: String, font: Font, font_size: int, max_width: float
 # --- HELPER FOR SMART WRAPPING ---
 func _wrap_text_smart(text: String, font: Font, font_size: int, max_width: float) -> PackedStringArray:
 	var result_lines: PackedStringArray = []
-	
+
 	# 1. Respect manual line breaks (Enter key)
 	var paragraphs = text.split("\n")
-	
+
 	for paragraph in paragraphs:
 		if paragraph.is_empty():
 			result_lines.append("")
 			continue
-			
+
 		if font.get_string_size(paragraph, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x <= max_width:
 			result_lines.append(paragraph)
 			continue
-		
+
 		# 2. Auto-wrap long paragraphs word by word
 		var words = paragraph.split(" ")
 		var current_line = ""
-		
+
 		for word in words:
 			var test_line = word if current_line.is_empty() else current_line + " " + word
-			
+
 			if font.get_string_size(test_line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x <= max_width:
 				current_line = test_line
 			else:
 				if not current_line.is_empty():
 					result_lines.append(current_line)
 				current_line = word
-				
+
 				# Edge Case: Single word wider than node (Hard Break) - intentionally clipped/ignored here
 				if font.get_string_size(current_line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x > max_width:
-					pass 
-		
+					pass
+
 		if not current_line.is_empty():
 			result_lines.append(current_line)
-			
+
 	return result_lines

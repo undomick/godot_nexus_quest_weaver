@@ -17,15 +17,15 @@ func _ready() -> void:
 	filter_edit.text_submitted.connect(_on_text_submitted)
 	# Forward navigation keys from text field to the list
 	filter_edit.gui_input.connect(_on_filter_gui_input)
-	
+
 	node_list.item_activated.connect(_on_list_item_activated)
-	
+
 	# Fix: Only trigger selection on left click to allow scrolling with the mouse wheel
 	node_list.item_clicked.connect(func(index, _at_pos, mouse_btn_index):
 		if mouse_btn_index == MOUSE_BUTTON_LEFT:
 			_on_list_item_activated(index)
 	)
-	
+
 	about_to_popup.connect(_on_about_to_popup)
 
 func set_available_nodes(node_types: Array[NodeTypeInfo]) -> void:
@@ -45,7 +45,7 @@ func _refresh_list(filter: String) -> void:
 
 	var filter_lower = filter.to_lower()
 	var category_resource = QWConstants.get_graph_node_category()
-	var icon_size = Vector2i(16, 16) 
+	var icon_size = Vector2i(16, 16)
 
 	for i in range(_all_node_types.size()):
 		var info = _all_node_types[i]
@@ -55,7 +55,7 @@ func _refresh_list(filter: String) -> void:
 			continue
 
 		var display_text = info.node_name
-		
+
 		# 1. Determine category color
 		var category_color = Color.GRAY # Standard fallback
 		if category_resource and category_resource.categories.has(info.category):
@@ -76,12 +76,12 @@ func _refresh_list(filter: String) -> void:
 			use_modulate = false # Do not tint again
 
 		var item_idx = node_list.add_item(display_text, item_icon)
-		
+
 		# 3. Apply color tint
 		if use_modulate:
 			# Slightly brighten the color for better visibility against dark editor backgrounds
 			node_list.set_item_icon_modulate(item_idx, category_color + Color(0.2, 0.2, 0.2))
-		
+
 		# 4. Tooltip
 		if not info.description.is_empty():
 			node_list.set_item_tooltip(item_idx, info.description)
@@ -120,13 +120,13 @@ func _on_filter_gui_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.is_pressed():
 		var selected = node_list.get_selected_items()
 		var current_selection = selected[0] if selected.size() > 0 else 0
-			
+
 		if event.keycode == KEY_DOWN:
 			if current_selection < node_list.item_count - 1:
 				node_list.select(current_selection + 1)
 				node_list.ensure_current_is_visible()
 			get_viewport().set_input_as_handled()
-			
+
 		elif event.keycode == KEY_UP:
 			if current_selection > 0:
 				node_list.select(current_selection - 1)

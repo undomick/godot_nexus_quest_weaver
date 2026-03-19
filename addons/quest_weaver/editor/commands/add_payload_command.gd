@@ -12,7 +12,7 @@ func _init(p_event_node: EventNodeResource):
 func execute() -> void:
 	if not is_instance_valid(_entry_to_add):
 		_entry_to_add = EventNodeResource.PayloadEntry.new()
-	
+
 	_event_node.payload_entries.append(_entry_to_add)
 
 func undo() -> void:

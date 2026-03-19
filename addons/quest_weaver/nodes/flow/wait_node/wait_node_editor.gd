@@ -13,7 +13,7 @@ func _ready() -> void:
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is WaitNodeResource: return
-	
+
 	wait_duration_edit.text = str(node_data.wait_duration)
 
 func _on_edit_started() -> void:

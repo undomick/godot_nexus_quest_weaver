@@ -47,13 +47,13 @@ func _ready() -> void:
 	old_man_kill_button.visible = false
 	lady_spare_button.visible = false
 	mq_vbox_container_2.visible = false
-	
+
 	# button logic
 	old_man_talk_button.pressed.connect(_on_old_man_talked)
 	old_man_kill_button.pressed.connect(_on_kill_nestor)
 	lady_talk_button.pressed.connect(_on_lady_talked)
 	lady_kill_button.pressed.connect(_on_kill_lydia)
-	
+
 	# Listen to the global quest weaver events.
 	# We use a safe lookup here to prevent errors during plugin installation.
 	# In your own game, you can simply write: QuestWeaverGlobal.quest_event_fired.connect(...)
@@ -87,25 +87,25 @@ func _on_kill_nestor() -> void:
 	if qw_global && !qw_global.is_locked:
 		print("Demo: Nestor was killed!")
 		qw_global.enemy_was_killed.emit("nestor")
-	
+
 	old_man_talk_button.disabled = true
 	old_man_kill_button.disabled = true
 	lady_kill_button.disabled = true
 	lady_spare_button.disabled = true
-	
+
 	if mq_vbox_container:
 		mq_vbox_container.modulate = Color(0.0, 0.0, 0.0, 0.25)
 
-func _on_kill_lydia() -> void:	
+func _on_kill_lydia() -> void:
 	if qw_global && !qw_global.is_locked:
 		print("Demo: Lydia was killed")
 		qw_global.enemy_was_killed.emit("lydia")
-	
+
 	old_man_kill_button.disabled = true
 	lady_kill_button.disabled = true
 	lady_spare_button.disabled = true
 	lady_talk_button.disabled = true
-	
+
 	if mq_vbox_container_2:
 		mq_vbox_container_2.modulate = Color(0.0, 0.0, 0.0, 0.25)
 

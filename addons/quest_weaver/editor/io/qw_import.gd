@@ -53,7 +53,7 @@ func _import(source_file: String, save_path: String, options: Dictionary, platfo
 		return ERR_PARSE_ERROR
 
 	var full_save_path = "%s.%s" % [save_path, _get_save_extension()]
-	
+
 	var err = ResourceSaver.save(quest_graph_resource, full_save_path)
 	if err != OK:
 		push_error("QuestWeaver Importer: Was unable to store resource under '%s'." % full_save_path)

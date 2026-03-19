@@ -23,13 +23,13 @@ func _update_ports_from_data() -> void:
 
 func get_editor_summary() -> String:
 	var action_text = Action.keys()[action].capitalize()
-	
+
 	var line2: String
 	if target_objective_id.is_empty():
 		line2 = "[WARN]Target: (Not Set)"
 	else:
 		line2 = "'%s'" % String(target_objective_id)
-	
+
 	return "%s:\n%s" % [action_text, line2]
 
 func get_display_name() -> String:
@@ -65,7 +65,7 @@ func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	if target_objective_id.is_empty():
 		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Set Objective: Target Objective ID is not set.", id))
-		
+
 	return results
 
 func determine_default_size() -> QWNodeSizes.Size:

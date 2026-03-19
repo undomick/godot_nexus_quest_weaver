@@ -10,7 +10,7 @@ extends GraphNodeResource
 
 
 func _init():
-	category = "Flow" 
+	category = "Flow"
 	input_ports = ["In"]
 	output_ports = ["On Start", "On Tick", "On Finish"]
 

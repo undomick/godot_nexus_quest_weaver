@@ -15,7 +15,7 @@ func _ready() -> void:
 	port_name_edit.focus_entered.connect(func(): _port_name_undo_value = port_name_edit.text)
 	port_name_edit.text_submitted.connect(func(_text): _on_port_name_confirmed())
 	port_name_edit.focus_exited.connect(_on_port_name_confirmed)
-	
+
 	remove_button.pressed.connect(remove_requested.emit)
 
 func set_input_port(input_port: SynchronizeInputPort) -> void:

@@ -19,7 +19,7 @@ func execute() -> void:
 	_key_existed = _target_dictionary.has(_key)
 	if _key_existed:
 		_old_value = _target_dictionary.get(_key)
-	
+
 	_target_dictionary[_key] = _new_value
 
 func undo() -> void:

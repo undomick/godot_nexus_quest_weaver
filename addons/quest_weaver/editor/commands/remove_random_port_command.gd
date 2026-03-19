@@ -14,7 +14,7 @@ var _removed_connections_data: Array[Dictionary] = []
 func _init(p_graph: QuestGraphResource, p_node_data: RandomNodeResource, p_index: int):
 	self._graph = p_graph
 	self._node_data = p_node_data
-	
+
 	if p_index >= 0 and p_index < p_node_data.outputs.size():
 		self._port_to_remove = p_node_data.outputs[p_index]
 		self._original_index = p_index
@@ -35,14 +35,14 @@ func execute() -> void:
 	for conn in _graph.connections:
 		if conn.from_node == _node_data.id and conn.from_port > _original_index:
 			conn.from_port -= 1
-			
+
 	# Step 3: Remove the port DATA from the node resource itself.
 	_node_data.outputs.erase(_port_to_remove)
 	_node_data._update_ports_from_data()
 
 func undo() -> void:
 	if not is_instance_valid(_port_to_remove) or _original_index == -1: return
-		
+
 	# Step 1: Re-insert the port DATA into the node resource.
 	_node_data.outputs.insert(_original_index, _port_to_remove)
 
@@ -50,7 +50,7 @@ func undo() -> void:
 	for conn in _graph.connections:
 		if conn.from_node == _node_data.id and conn.from_port >= _original_index:
 			conn.from_port += 1
-	
+
 	# Step 3: Restore the connection DATA to the main graph.
 	_graph.connections.append_array(_removed_connections_data)
 	_node_data._update_ports_from_data()

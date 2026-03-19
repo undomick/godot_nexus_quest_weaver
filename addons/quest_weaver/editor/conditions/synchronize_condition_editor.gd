@@ -16,9 +16,9 @@ func _ready() -> void:
 	check_type_picker.clear()
 	for type_name in ConditionResource.CheckType.keys():
 		check_type_picker.add_item(type_name.replace("_", " ").capitalize())
-	
+
 	check_type_picker.item_selected.connect(_on_check_type_selected)
-	
+
 	# Use the robust focus-based logic for the SpinBox
 	value_spinbox.focus_entered.connect(_on_value_spinbox_focus_entered)
 	value_spinbox.focus_exited.connect(_on_value_spinbox_focus_exited)
@@ -34,7 +34,7 @@ func edit_condition(condition_res: ConditionResource) -> void:
 	## property_changed to avoid Undo noise. Callers use this editor only for sync conditions.
 	if edited_condition.type != ConditionResource.ConditionType.CHECK_SYNCHRONIZER:
 		edited_condition.type = ConditionResource.ConditionType.CHECK_SYNCHRONIZER
-	
+
 	check_type_picker.select(edited_condition.check_type)
 	value_spinbox.min_value = 0
 	value_spinbox.max_value = 100
@@ -51,7 +51,7 @@ func _on_value_spinbox_focus_entered() -> void:
 
 func _on_value_spinbox_focus_exited() -> void:
 	if not is_instance_valid(edited_condition): return
-	
+
 	var new_value = int(value_spinbox.value)
 	if _value_undo_value != new_value:
 		property_changed.emit("sync_value", new_value)

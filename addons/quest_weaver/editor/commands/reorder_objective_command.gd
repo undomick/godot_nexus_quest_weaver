@@ -22,9 +22,9 @@ func undo() -> void:
 func _swap() -> void:
 	var current_index = _task_node.objectives.find(_objective)
 	if current_index == -1: return
-	
+
 	var new_index = current_index + _direction
-	
+
 	# Bounds check
 	if new_index >= 0 and new_index < _task_node.objectives.size():
 		var other_obj = _task_node.objectives[new_index]

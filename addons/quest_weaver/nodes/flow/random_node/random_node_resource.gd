@@ -8,19 +8,19 @@ extends GraphNodeResource
 func _init():
 	category = "Flow"
 	input_ports = ["In"]
-	
+
 	# Initialize with default outputs if none exist
 	if id.is_empty() and outputs.is_empty():
 		var out1 = RandomOutputPort.new(); out1.port_name = "Choice A"; out1.weight = 50
 		var out2 = RandomOutputPort.new(); out2.port_name = "Choice B"; out2.weight = 50
 		outputs.append(out1); outputs.append(out2)
-	
+
 	_update_ports_from_data()
 
 func _update_ports_from_data():
 	output_ports.clear()
 	var total_weight = _get_total_weight()
-	
+
 	for output_port_info in outputs:
 		if is_instance_valid(output_port_info):
 			if total_weight > 0:

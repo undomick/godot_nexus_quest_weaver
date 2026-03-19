@@ -10,24 +10,24 @@ extends NodePropertyEditorBase
 func _ready():
 	target_id_edit.text_submitted.connect(func(_new_text): _on_id_confirmed())
 	target_id_edit.focus_exited.connect(_on_id_confirmed)
-	
+
 	if action_picker:
 		action_picker.item_selected.connect(_on_action_changed)
-	
+
 	terminal_checkbox.toggled.connect(_on_terminal_toggled)
 
 func set_node_data(node_data: GraphNodeResource):
 	super.set_node_data(node_data)
 	if not node_data is ObjectiveNodeResource: return
-	
+
 	target_id_edit.text = node_data.target_objective_id
-	
+
 	if action_picker:
 		action_picker.clear()
 		for action_name in node_data.Action.keys():
 			action_picker.add_item(action_name.capitalize())
 		action_picker.select(node_data.action)
-	
+
 	terminal_checkbox.button_pressed = node_data.is_terminal
 
 func _on_id_confirmed():

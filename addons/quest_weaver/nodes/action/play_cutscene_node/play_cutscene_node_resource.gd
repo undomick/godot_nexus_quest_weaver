@@ -6,7 +6,7 @@ extends GraphNodeResource
 ## Plays an animation on an AnimationPlayer within the scene.
 
 @export var animation_player_path: NodePath
-@export var animation_name: StringName 
+@export var animation_name: StringName
 @export var wait_for_completion: bool = true
 
 

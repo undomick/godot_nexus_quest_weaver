@@ -14,7 +14,7 @@ func _ready() -> void:
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is EndScopeNodeResource: return
-	
+
 	scope_id_edit.text = node_data.scope_id
 	terminal_checkbox.button_pressed = node_data.is_terminal
 

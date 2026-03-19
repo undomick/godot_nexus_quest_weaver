@@ -22,7 +22,7 @@ func execute() -> void:
 	for node_data in _pasted_nodes:
 		_graph.add_node(node_data)
 		_graph_controller.select_visual_node(node_data.id)
-		
+
 	for conn in _pasted_connections:
 		_graph.add_connection(conn.from_node, conn.from_port, conn.to_node, conn.to_port)
 

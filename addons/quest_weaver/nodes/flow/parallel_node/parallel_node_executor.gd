@@ -19,14 +19,14 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 
 	var controller = context.quest_controller
 	var connections = controller._node_connections.get(parallel_node.id, [])
-	
+
 	for i in range(parallel_node.outputs.size()):
 		var output_info: ParallelOutputPort = parallel_node.outputs[i]
 		var should_fire = true
-		
+
 		if is_instance_valid(output_info.condition):
 			should_fire = output_info.condition.check(context, instance)
-		
+
 		if should_fire:
 			for connection in connections:
 				if connection.from_port == i:

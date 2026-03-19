@@ -18,7 +18,7 @@ func execute_command(command: EditorCommand) -> void:
 	command.execute()
 	_undo_stack.push_back(command)
 	_redo_stack.clear()
-	
+
 	if not command is QWActionHandler.MoveNodesCommand:
 		version_changed.emit()
 
@@ -26,7 +26,7 @@ func execute_command(command: EditorCommand) -> void:
 func undo() -> void:
 	if _undo_stack.is_empty():
 		return
-		
+
 	var command: EditorCommand = _undo_stack.pop_back()
 	command.undo()
 	_redo_stack.push_back(command)
@@ -36,7 +36,7 @@ func undo() -> void:
 func redo() -> void:
 	if _redo_stack.is_empty():
 		return
-	
+
 	var command: EditorCommand = _redo_stack.pop_back()
 	command.execute()
 	_undo_stack.push_back(command)
@@ -56,5 +56,4 @@ func cleanup() -> void:
 	_undo_stack.clear()
 	_redo_stack.clear()
 	_editor = null
-
 

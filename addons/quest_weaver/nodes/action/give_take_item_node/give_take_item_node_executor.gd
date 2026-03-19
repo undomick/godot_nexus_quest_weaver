@@ -6,24 +6,24 @@ extends NodeExecutor
 
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var item_node = node as GiveTakeItemNodeResource
-	if not is_instance_valid(item_node): 
+	if not is_instance_valid(item_node):
 		context.quest_controller.complete_node(node)
 		return
 
 	# Ensure output_ports are in sync at runtime (handles any load/deserialization edge cases)
 	if item_node.has_method("_update_ports_from_data"):
 		item_node._update_ports_from_data()
-	
+
 	var logger = context.logger
 	var controller = context.quest_controller
 	var adapter = context.inventory_adapter
-	
+
 	if not is_instance_valid(adapter):
 		if is_instance_valid(logger):
 			logger.error("Inventory", "No inventory adapter configured. Activating 'Failure' path.")
-		controller._trigger_next_nodes_from_port(item_node, 1) 
+		controller._trigger_next_nodes_from_port(item_node, 1)
 		controller._mark_node_as_logically_complete(item_node)
-		return 
+		return
 
 	# ==========================================================================
 	# MODE: REWARD FROM QUEST
@@ -62,10 +62,10 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 			controller._trigger_next_nodes_from_port(item_node, 1)
 			controller._mark_node_as_logically_complete(item_node)
 			return
-		
+
 		var dynamic_requirements = {}
 		var is_already_done = true
-		
+
 		for item_key in obj_res.requirements:
 			var target = obj_res.requirements[item_key]
 			var current = instance.get_objective_progress_by_key(obj_res.id, item_key)
@@ -74,7 +74,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 			if needed > 0:
 				dynamic_requirements[item_key] = needed
 				is_already_done = false
-		
+
 		if is_already_done:
 			if is_instance_valid(logger): logger.log("Inventory", "Objective '%s' already fulfilled. Taking nothing." % obj_res.id)
 			if item_node.complete_objective_on_success:
@@ -84,7 +84,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 			return
 
 		var result = _process_take_logic(adapter, dynamic_requirements, item_node.allow_partial_deposit, instance, obj_res.id, logger, controller)
-		
+
 		var port = _take_result_to_port(result, item_node)
 		var port_name = item_node.output_ports[port] if port < item_node.output_ports.size() else str(port)
 		if is_instance_valid(logger): logger.log("Inventory", "GiveTakeItem '%s' (objective '%s') -> %s (port %d)" % [item_node.id, item_node.target_objective_id, port_name, port])
@@ -97,7 +97,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	# ==========================================================================
 	# MODE: GIVE / TAKE (Standard List)
 	# ==========================================================================
-	
+
 	if item_node.items.is_empty():
 		if is_instance_valid(logger): logger.warn("Inventory", "Item list is empty. Nothing happened.")
 		controller._trigger_next_nodes_from_port(item_node, 0)
@@ -109,14 +109,14 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 			var amount = item_node.items[item_id]
 			adapter.give_item(item_id, amount)
 			if is_instance_valid(logger): logger.log("Inventory", "  - Gave %d x %s" % [amount, item_id])
-			
+
 		controller._trigger_next_nodes_from_port(item_node, 0)
 		controller._mark_node_as_logically_complete(item_node)
 		return
 
 	elif item_node.action == item_node.Action.TAKE:
 		var result = _process_take_logic(adapter, item_node.items, item_node.allow_partial_deposit, instance, &"", logger, controller)
-		
+
 		var port = _take_result_to_port(result, item_node)
 		if is_instance_valid(logger):
 			var port_name = item_node.output_ports[port] if port < item_node.output_ports.size() else str(port)
@@ -146,13 +146,13 @@ func _process_take_logic(adapter: QuestInventoryAdapterBase, requirements: Dicti
 	for item_id in requirements:
 		var needed = requirements[item_id]
 		var have = adapter.count_item(item_id)
-		
+
 		var to_take = 0
 		if partial:
 			to_take = min(needed, have)
 		else:
-			to_take = needed 
-		
+			to_take = needed
+
 		# Requirement not fully met (including when we took nothing of this item)
 		if to_take < needed:
 			all_requirements_met = false
@@ -168,11 +168,11 @@ func _process_take_logic(adapter: QuestInventoryAdapterBase, requirements: Dicti
 				var old_prog = instance.get_objective_progress_by_key(update_obj_id, item_id)
 				instance.set_objective_progress_by_key(update_obj_id, item_id, old_prog + to_take)
 				updates_made = true
-	
+
 	# 3. NOTIFY CHANGES
 	if updates_made:
 		var signal_id = instance.quest_id if instance.quest_id != &"" else instance.file_id
-		
+
 		if is_instance_valid(controller):
 			controller.quest_data_changed.emit(signal_id)
 

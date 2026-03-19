@@ -12,24 +12,24 @@ func initialize() -> void:
 	# We use Engine.get_main_loop() instead of the Singleton to avoid static dependency issues
 	# during the initial plugin loading phase.
 	var tree := Engine.get_main_loop() as SceneTree
-	
+
 	if not is_instance_valid(tree):
 		push_error("QuestWeaver (SimpleInventoryAdapter): Could not get SceneTree access. Adapter will not function.")
 		return
-		
+
 	# This adapter expects a node in the scene that belongs to the "inventory_controller" group.
 	_inventory_controller = tree.get_first_node_in_group("inventory_controller")
-	
+
 	if not is_instance_valid(_inventory_controller):
 		push_warning("QuestWeaver (SimpleInventoryAdapter): No node in group 'inventory_controller' found. Add a node to this group for Give/Take/Check Item nodes to work.")
 		return
-	
+
 	# Connect to the controller's signal to propagate the update.
 	if not _inventory_controller.is_connected(&"inventory_changed", Callable(self, "_on_inventory_changed")):
 		_inventory_controller.inventory_changed.connect(_on_inventory_changed)
-	
+
 	_is_initialized_successfully = true
-	
+
 	# Attempt to log via QuestWeaverServices only if available (dynamic lookup)
 	var services = tree.root.get_node_or_null("QuestWeaverServices")
 	if is_instance_valid(services) and services.logger:

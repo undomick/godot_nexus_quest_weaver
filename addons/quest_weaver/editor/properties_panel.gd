@@ -50,15 +50,15 @@ func inspect_node(node_data: GraphNodeResource) -> void:
 	if is_instance_valid(current_editor_instance):
 		current_editor_instance.queue_free()
 		current_editor_instance = null
-	
+
 	for child in editor_host.get_children():
 		child.queue_free()
 
 	var node_script = node_data.get_script()
 	node_type_label.text = node_registry.get_name_for_script(node_script)
-	
+
 	var editor_path = node_registry.get_editor_path_for_script(node_script)
-	
+
 	if not editor_path.is_empty() and ResourceLoader.exists(editor_path):
 		if not _editor_scene_cache.has(editor_path):
 			var loaded = load(editor_path)
@@ -68,9 +68,9 @@ func inspect_node(node_data: GraphNodeResource) -> void:
 		if not is_instance_valid(editor_scene):
 			return
 		current_editor_instance = editor_scene.instantiate()
-		
+
 		if current_editor_instance.has_signal(&"property_update_requested"):
-			current_editor_instance.connect(&"property_update_requested", 
+			current_editor_instance.connect(&"property_update_requested",
 				func(id: StringName, prop: String, val: Variant, sub_res: Resource, extra: Dictionary):
 					property_update_requested.emit(id, prop, val, sub_res, extra)
 			)
@@ -87,7 +87,7 @@ func inspect_node(node_data: GraphNodeResource) -> void:
 			current_editor_instance.ports_need_refresh.connect(
 				func(id): node_ports_changed.emit(id)
 			)
-		
+
 		editor_host.add_child(current_editor_instance)
 		current_editor_instance.call_deferred(&"set_node_data", node_data)
 	else:
@@ -121,10 +121,10 @@ func get_inspected_node_id() -> StringName:
 # --- Helper ---
 func _update_visibility() -> void:
 	var has_target = is_instance_valid(_inspected_node_data)
-	
+
 	if is_instance_valid(editor_host):
 		editor_host.visible = has_target
-	
+
 	if is_instance_valid(node_type_label):
 		node_type_label.visible = has_target
 

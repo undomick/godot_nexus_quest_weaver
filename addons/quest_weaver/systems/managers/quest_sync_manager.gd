@@ -112,25 +112,25 @@ func process_pending(node_id: StringName, instance: QuestInstance) -> void:
 
 func _does_pattern_match(pattern: Array, current_inputs: Array) -> bool:
 	var limit = min(pattern.size(), current_inputs.size())
-	
+
 	for i in range(limit):
 		var requirement = pattern[i]
 		var is_active = current_inputs[i]
-		
+
 		match requirement:
 			SynchronizeNodeResource.InputState.REQUIRED:
 				if not is_active: return false
 			SynchronizeNodeResource.InputState.FORBIDDEN:
 				if is_active: return false
 			SynchronizeNodeResource.InputState.IGNORE:
-				pass 
-				
+				pass
+
 	return true
 
 func _fire_output(node_def: SynchronizeNodeResource, instance: QuestInstance, output_index: int, inputs_state: Array, controller: QuestController) -> void:
 	var connections = controller._node_connections.get(node_def.id, [])
 	var output_port = node_def.outputs[output_index]
-	
+
 	# Check Output Condition (if any)
 	if is_instance_valid(output_port.condition):
 		var check_context = { "sync_inputs_received_array": inputs_state }

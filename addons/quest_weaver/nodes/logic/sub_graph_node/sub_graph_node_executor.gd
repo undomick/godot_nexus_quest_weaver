@@ -22,7 +22,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, _instance: Ques
 	if subgraph_node.wait_for_completion:
 		# Pushing to call stack allows the controller to return here later
 		controller.push_to_call_stack(subgraph_node.id)
-	
+
 	controller.start_sub_graph(graph_path)
 
 	# If NOT waiting, we complete immediately and the sub-graph runs in parallel/detached

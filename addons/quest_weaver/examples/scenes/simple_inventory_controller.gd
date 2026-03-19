@@ -37,7 +37,7 @@ func give_item(item_id: String, amount: int) -> void:
 func take_item(item_id: String, amount: int) -> bool:
 	if not check_item(item_id, amount):
 		return false
-	
+
 	_inventory[item_id] -= amount
 	inventory_changed.emit()
 	return true

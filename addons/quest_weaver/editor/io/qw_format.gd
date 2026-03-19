@@ -19,9 +19,9 @@ class QuestGraphFormatSaver extends ResourceFormatSaver:
 
 		# Saves the Dictionary via store_var (binary Variant format).
 		file.store_var(data_to_save, true)
-		
+
 		if file.get_error() != OK:
 			return FAILED
-			
+
 		file.close()
 		return OK

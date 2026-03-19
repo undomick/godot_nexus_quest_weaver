@@ -20,7 +20,7 @@ func set_active_graph(path: String) -> void:
 		return
 
 	_active_graph_path = path
-	
+
 	if path.is_empty():
 		active_graph_changed.emit(null)
 	else:
@@ -49,18 +49,18 @@ func update_view_state(path: String, scroll: Vector2, zoom: float) -> void:
 
 func make_active_graph_editable() -> QuestGraphResource:
 	if _active_graph_path.is_empty(): return null
-	
+
 	if _dirty_instances.has(_active_graph_path):
 		return _dirty_instances[_active_graph_path]
-		
+
 	var clean_instance = _clean_instances.get(_active_graph_path)
 	if not is_instance_valid(clean_instance): return null
-		
+
 	var shadow_copy: QuestGraphResource = clean_instance.duplicate(true)
 	_dirty_instances[_active_graph_path] = shadow_copy
-	
+
 	graph_dirty_status_changed.emit(_active_graph_path, true)
-	
+
 	return shadow_copy
 
 func save_active_graph() -> bool:

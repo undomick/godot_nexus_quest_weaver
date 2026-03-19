@@ -38,21 +38,21 @@ func _on_keep_listening_toggled(pressed: bool) -> void:
 func _rebuild_outputs_list():
 	for child in outputs_container.get_children():
 		child.queue_free()
-		
+
 	var parallel_node: ParallelNodeResource = edited_node_data
 	if not is_instance_valid(parallel_node): return
 
 	for i in range(parallel_node.outputs.size()):
 		var output_info = parallel_node.outputs[i]
 		var entry: ParallelOutputEditorEntry = QWConstants.OutputEntryScene.instantiate()
-		
+
 		entry.remove_requested.connect(_on_remove_output_pressed.bind(i))
 		entry.name_changed.connect(_on_output_name_changed.bind(i))
-		
+
 		entry.property_changed.connect(_make_parallel_condition_property_handler(i))
-		
+
 		entry.rebuild_requested.connect(_rebuild_outputs_list)
-		
+
 		outputs_container.add_child(entry)
 		entry.display_data(output_info)
 

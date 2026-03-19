@@ -13,17 +13,17 @@ enum LogicMode { EXCLUSIVE, PARALLEL }
 
 func _init():
 	category = "Flow"
-	
+
 	if id.is_empty():
 		if inputs.is_empty():
 			var in1 = SynchronizeInputPort.new(); in1.port_name = "In 1"
 			var in2 = SynchronizeInputPort.new(); in2.port_name = "In 2"
 			inputs.append(in1); inputs.append(in2)
-			
+
 		if outputs.is_empty():
 			var out1 = SynchronizeOutputPort.new(); out1.port_name = "Out"
 			outputs.append(out1)
-		
+
 	_ensure_pattern_integrity()
 	_update_ports_from_data()
 
@@ -48,22 +48,22 @@ func add_sync_input(_payload: Dictionary):
 	var new_input = SynchronizeInputPort.new()
 	new_input.port_name = "In %d" % (inputs.size() + 1)
 	inputs.append(new_input)
-	
+
 	# Add a default IGNORE state for this new input to all existing outputs
 	for out in outputs:
 		out.patterns.append(InputState.IGNORE)
-		
+
 	_update_ports_from_data()
 
 func remove_sync_input(payload: Dictionary):
 	if payload.has("index") and payload.index >= 0 and payload.index < inputs.size():
 		inputs.remove_at(payload.index)
-		
+
 		# Remove the corresponding pattern column from all outputs
 		for out in outputs:
 			if payload.index < out.patterns.size():
 				out.patterns.remove_at(payload.index)
-				
+
 		_update_ports_from_data()
 
 func update_sync_input_name(payload: Dictionary):
@@ -78,11 +78,11 @@ func update_sync_input_name(payload: Dictionary):
 func add_sync_output(_payload: Dictionary):
 	var new_output = SynchronizeOutputPort.new()
 	new_output.port_name = "Out %d" % (outputs.size() + 1)
-	
+
 	# Initialize pattern with IGNORE for current input count
 	new_output.patterns.resize(inputs.size())
 	new_output.patterns.fill(InputState.IGNORE)
-	
+
 	outputs.append(new_output)
 	_update_ports_from_data()
 
@@ -105,7 +105,7 @@ func update_sync_pattern(payload: Dictionary):
 		var out_idx = payload.output_index
 		var in_idx = payload.input_index
 		var state = payload.state
-		
+
 		if out_idx >= 0 and out_idx < outputs.size():
 			var out = outputs[out_idx]
 			# Ensure array size safety
@@ -125,12 +125,12 @@ func to_dictionary() -> Dictionary:
 	for i in self.inputs:
 		if is_instance_valid(i): inputs_data.append(i.to_dictionary())
 	data["inputs"] = inputs_data
-	
+
 	var outputs_data = []
 	for o in self.outputs:
 		if is_instance_valid(o): outputs_data.append(o.to_dictionary())
 	data["outputs"] = outputs_data
-	
+
 	return data
 
 func from_dictionary(data: Dictionary):
@@ -145,7 +145,7 @@ func from_dictionary(data: Dictionary):
 			var new_i = script.new()
 			new_i.from_dictionary(i_data)
 			self.inputs.append(new_i)
-			
+
 	self.outputs.clear()
 	for o_data in data.get("outputs", []):
 		var script = GraphNodeResource.get_script_cached(o_data.get("@script_path"))
@@ -153,7 +153,7 @@ func from_dictionary(data: Dictionary):
 			var new_o = script.new()
 			new_o.from_dictionary(o_data)
 			self.outputs.append(new_o)
-	
+
 	_ensure_pattern_integrity()
 
 # --- PRIVATE HELPER FUNCTIONS ---
@@ -165,7 +165,7 @@ func _ensure_pattern_integrity():
 			var old = out.patterns.duplicate()
 			out.patterns.resize(needed_size)
 			out.patterns.fill(InputState.IGNORE)
-			
+
 			# Restore what fits
 			for i in range(min(old.size(), needed_size)):
 				out.patterns[i] = old[i]
@@ -176,7 +176,7 @@ func _update_ports_from_data():
 	for port in inputs:
 		if is_instance_valid(port):
 			input_ports.append(port.port_name)
-	
+
 	output_ports.clear()
 	for port in outputs:
 		if is_instance_valid(port):

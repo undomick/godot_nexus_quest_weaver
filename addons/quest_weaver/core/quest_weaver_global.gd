@@ -99,7 +99,7 @@ func get_quest_rewards(quest_id: StringName) -> Dictionary:
 func is_objective_completed(objective_id: StringName) -> bool:
 	var controller = _get_controller_safe()
 	if not controller: return false
-	
+
 	# Mapping directly to ObjectiveResource.Status for clarity
 	return controller.get_objective_status(objective_id) == ObjectiveResource.Status.COMPLETED
 
@@ -382,7 +382,7 @@ func quit_game() -> void:
 	var controller = _get_controller_safe()
 	if is_instance_valid(controller) and controller.has_method("shutdown"):
 		controller.shutdown()
-	
+
 	await get_tree().process_frame
 	get_tree().quit()
 

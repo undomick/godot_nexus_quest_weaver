@@ -15,7 +15,7 @@ func _ready() -> void:
 
 	for op_name in EventListenerNodeResource.SimpleOperator.keys():
 		op_picker.add_item(op_name)
-	
+
 	key_edit.text_submitted.connect(func(_text): _on_value_changed())
 	key_edit.focus_exited.connect(_on_value_changed)
 	op_picker.item_selected.connect(func(_index): _on_value_changed())
@@ -34,5 +34,5 @@ func _on_value_changed() -> void:
 		"op": op_picker.selected,
 		"value": value_edit.text
 	}
-	
+
 	changed.emit(new_data)

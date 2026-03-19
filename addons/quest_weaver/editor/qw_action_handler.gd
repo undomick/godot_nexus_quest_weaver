@@ -63,10 +63,10 @@ func initialize(p_editor: QuestWeaverEditor, p_history: QWEditorHistory, p_data_
 func on_node_property_update_requested(node_id: StringName, property_name: String, new_value: Variant, sub_resource: Resource = null, extra: Dictionary = {}) -> void:
 	var editable_graph = _data_manager.make_active_graph_editable()
 	if not is_instance_valid(editable_graph): return
-		
+
 	var target_resource: Resource
 	var editable_node = editable_graph.nodes.get(node_id)
-	
+
 	# PayloadEntry changes: sub_resource can come from the clean instance.
 	if extra.has("payload_condition"): # EventListenerNode: Single payload_condition
 		if is_instance_valid(editable_node) and "payload_condition" in editable_node:
@@ -107,7 +107,7 @@ func on_node_property_update_requested(node_id: StringName, property_name: Strin
 				target_resource = editable_node.cases[idx]
 	else:
 		target_resource = sub_resource if is_instance_valid(sub_resource) else editable_graph.nodes.get(node_id)
-	
+
 	if not is_instance_valid(target_resource): return
 
 	if property_name == "is_terminal" and new_value == true and sub_resource == null:
@@ -116,7 +116,7 @@ func on_node_property_update_requested(node_id: StringName, property_name: Strin
 
 	var command = ChangePropertyCommand.new(target_resource, property_name, new_value)
 	_history.execute_command(command)
-	
+
 	node_data_changed.emit(node_id, property_name)
 	_graph_controller.call_deferred(&"grab_focus")
 
@@ -125,12 +125,12 @@ func on_node_property_update_requested(node_id: StringName, property_name: Strin
 func on_complex_action_requested(node_id: StringName, action: String, payload: Dictionary) -> void:
 	var editable_graph = _data_manager.make_active_graph_editable()
 	if not is_instance_valid(editable_graph): return
-	
+
 	var node_data = editable_graph.nodes.get(node_id)
 	if not is_instance_valid(node_data): return
 
 	var command: EditorCommand
-	
+
 	match action:
 		"add_objective":
 			if node_data is TaskNodeResource: command = AddObjectiveCommand.new(node_data)
@@ -240,14 +240,14 @@ func on_complex_action_requested(node_id: StringName, action: String, payload: D
 
 	if is_instance_valid(command):
 		_history.execute_command(command)
-	
+
 	node_data_changed.emit(node_id, action)
 
 
 func on_begin_node_move() -> void:
 	var current_graph = _data_manager.get_active_graph()
 	if not is_instance_valid(current_graph): return
-	
+
 	_drag_start_positions.clear()
 	for node in _graph_controller.get_children():
 		if (node is GraphNode or node is GraphFrame) and node.selected:
@@ -269,7 +269,7 @@ func on_end_node_move() -> void:
 	var current_graph_instance = _data_manager.get_active_graph()
 	if not is_instance_valid(current_graph_instance) or _drag_start_positions.is_empty():
 		return
-	
+
 	var end_positions = {}
 	for node_id_sname in _drag_start_positions:
 		var visual_node = _graph_controller.get_node_or_null(NodePath(node_id_sname))
@@ -286,7 +286,7 @@ func on_connection_request(from_node: StringName, from_port: int, to_node: Strin
 	if from_node == to_node: return
 	var editable_graph = _data_manager.make_active_graph_editable()
 	if not is_instance_valid(editable_graph): return
-	
+
 	var command = ConnectionCommand.new(_editor, editable_graph, from_node, from_port, to_node, to_port, true)
 	_history.execute_command(command)
 
@@ -294,7 +294,7 @@ func on_connection_request(from_node: StringName, from_port: int, to_node: Strin
 func on_disconnection_request(from_node: StringName, from_port: int, to_node: StringName, to_port: int) -> void:
 	var editable_graph = _data_manager.make_active_graph_editable()
 	if not is_instance_valid(editable_graph): return
-	
+
 	var command = ConnectionCommand.new(_editor, editable_graph, from_node, from_port, to_node, to_port, false)
 	_history.execute_command(command)
 
@@ -302,25 +302,25 @@ func on_disconnection_request(from_node: StringName, from_port: int, to_node: St
 func on_nodes_deleted(node_ids: Array[StringName]) -> void:
 	var editable_graph = _data_manager.make_active_graph_editable()
 	if not is_instance_valid(editable_graph): return
-	
+
 	# --- SECURITY CHECK ---
 	var filtered_ids: Array[StringName] = []
-	
+
 	for id_name in node_ids:
 		var id_str = String(id_name)
 		var node_data = editable_graph.nodes.get(id_str)
-		
+
 		# Check if the node is protected (StartNode)
 		if node_data is StartNodeResource:
 			push_warning("QuestWeaver: Cannot delete the Start Node.")
 			continue
-			
+
 		filtered_ids.append(id_name)
-	
+
 	if filtered_ids.is_empty():
 		return
 	# ----------------------
-		
+
 	var command = DeleteNodesCommand.new(_editor, editable_graph, filtered_ids)
 	_history.execute_command(command)
 
@@ -346,14 +346,14 @@ func paste_from_clipboard() -> void:
 	var editable_graph = _data_manager.make_active_graph_editable()
 	if not is_instance_valid(editable_graph) or _clipboard.is_empty():
 		return
-	
+
 	var graph_zoom = _graph_controller.zoom if _graph_controller.zoom > 0 else 1.0
 	var paste_center_position = _graph_controller.scroll_offset + (_graph_controller.get_local_mouse_position() / graph_zoom)
-	
+
 	var paste_data = _clipboard.get_paste_data(paste_center_position)
 	if paste_data.is_empty():
 		return
-	
+
 	var command = PasteNodesCommand.new(_editor, editable_graph, _graph_controller, paste_data)
 	_history.execute_command(command)
 
@@ -362,7 +362,7 @@ func save_all_modified_graphs() -> void:
 	var unsaved_paths = _data_manager.get_all_unsaved_paths()
 	if unsaved_paths.is_empty():
 		return
-		
+
 	for path in unsaved_paths:
 		_editor.save_single_file(path)
 
@@ -373,13 +373,13 @@ func _handle_terminal_toggle(graph: QuestGraphResource, node_id: StringName, nod
 	for conn in graph.connections:
 		if conn.from_node == node_id:
 			connections_to_remove.append(conn)
-	
+
 	for conn in connections_to_remove:
 		# is_connect_action = false (Disconnect)
 		var disconnect_cmd = ConnectionCommand.new(
-			_editor, graph, 
-			conn.from_node, conn.from_port, 
-			conn.to_node, conn.to_port, 
+			_editor, graph,
+			conn.from_node, conn.from_port,
+			conn.to_node, conn.to_port,
 			false
 		)
 		composite.add_command(disconnect_cmd)
@@ -402,18 +402,18 @@ class SyncPatternCommand extends EditorCommand:
 	var in_idx: int
 	var new_state: int
 	var old_state: int
-	
+
 	func _init(p_node, p_out, p_in, p_state):
 		node = p_node
 		out_idx = p_out
 		in_idx = p_in
 		new_state = p_state
-	
+
 	func execute():
 		if out_idx < node.outputs.size() and in_idx < node.outputs[out_idx].patterns.size():
 			old_state = node.outputs[out_idx].patterns[in_idx]
 			node.outputs[out_idx].patterns[in_idx] = new_state
-			
+
 	func undo():
 		if out_idx < node.outputs.size() and in_idx < node.outputs[out_idx].patterns.size():
 			node.outputs[out_idx].patterns[in_idx] = old_state

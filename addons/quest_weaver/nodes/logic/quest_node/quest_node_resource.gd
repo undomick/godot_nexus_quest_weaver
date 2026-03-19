@@ -72,7 +72,7 @@ func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: i
 func _validate(context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	var quest_registry = context.get("quest_registry")
-	
+
 	if target_quest_id == &"":
 		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Quest Node: Target Quest ID is not set.", id))
 	elif is_instance_valid(quest_registry) and not quest_registry.quest_path_map.has(target_quest_id):

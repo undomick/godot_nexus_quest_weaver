@@ -3,8 +3,8 @@
 class_name QWNodeFactory
 extends Node
 
-# Signal to request backdrop creation. 
-# This logic involves reading the selection from the GraphController, 
+# Signal to request backdrop creation.
+# This logic involves reading the selection from the GraphController,
 # which is handled by the main editor logic.
 signal create_backdrop_requested
 
@@ -30,7 +30,7 @@ func initialize(p_editor: QuestWeaverEditor, p_registry: NodeTypeRegistry, p_dat
 	self._history = p_history
 	self._graph_controller = p_graph_controller
 	self._add_node_menu = p_menu
-	
+
 	if not _add_node_menu.is_connected("node_selected", _on_node_selected_from_menu):
 		_add_node_menu.node_selected.connect(_on_node_selected_from_menu)
 
@@ -39,7 +39,7 @@ func show_add_node_menu(graph_position: Vector2, connect_from_data: Dictionary =
 	if not _is_initialized:
 		_add_node_menu.set_available_nodes(_node_registry.node_types)
 		_is_initialized = true
-	
+
 	_pending_node_creation_pos = graph_position
 	_pending_connection_data = connect_from_data
 	# Snapshot selection now; right-click may have already cleared it, so fall back to last stored selection.
@@ -51,7 +51,7 @@ func show_add_node_menu(graph_position: Vector2, connect_from_data: Dictionary =
 		for node in _graph_controller.get_last_selected_visual_nodes():
 			if is_instance_valid(node) and is_instance_valid(node.get_parent()) and node.get_parent() == _graph_controller:
 				_pending_selected_visual_nodes.append(node)
-	
+
 	_add_node_menu.popup(Rect2i(get_viewport().get_mouse_position(), Vector2.ZERO))
 
 

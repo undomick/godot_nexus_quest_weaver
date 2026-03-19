@@ -21,7 +21,7 @@ func _ready() -> void:
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
 	if not node_data is SubGraphNodeResource: return
-	
+
 	path_edit.text = node_data.quest_graph_path
 	wait_checkbox.button_pressed = node_data.wait_for_completion
 	terminal_checkbox.button_pressed = node_data.is_terminal
@@ -55,7 +55,7 @@ func _on_path_confirmed(new_path: String = ""):
 
 	# Visually update the text edit immediately for responsiveness
 	path_edit.text = new_path
-	
+
 	if is_instance_valid(edited_node_data) and edited_node_data.quest_graph_path != new_path:
 		property_update_requested.emit(edited_node_data.id, "quest_graph_path", new_path, null, {})
 
