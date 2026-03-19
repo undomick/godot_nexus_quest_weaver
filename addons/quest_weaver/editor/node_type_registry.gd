@@ -179,6 +179,10 @@ const DEFINITIONS = [
 # 2. RUNTIME LOOKUP (Fast & Robust)
 # ==============================================================================
 
+# Array<NodeTypeInfo>
+# Cached list for the Editor UI
+var node_types: Array[NodeTypeInfo] = []
+
 # Dictionary<Script(Resource), Script(Executor)>
 # Maps the Resource Script directly to the Executor Script/Instance
 var _resource_to_executor_map: Dictionary = {}
@@ -190,10 +194,6 @@ var _resource_to_info_map: Dictionary = {}
 # Dictionary<String(NodeName), Script(Resource)>
 # Used by the Editor "Add Node" menu to spawn nodes by name
 var _name_to_resource_map: Dictionary = {}
-
-# Array<NodeTypeInfo>
-# Cached list for the Editor UI
-var node_types: Array[NodeTypeInfo] = []
 
 var _is_initialized: bool = false
 

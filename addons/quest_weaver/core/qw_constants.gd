@@ -6,37 +6,6 @@ extends RefCounted
 ## Call clear_static_references() before plugin shutdown.
 
 # ==============================================================================
-# Settings & Resources
-# ==============================================================================
-static var _settings: QuestWeaverSettings = null
-static var _graph_node_category: GraphNodeCategory = null
-static var _is_shutting_down: bool = false
-
-## Returns QuestWeaverSettings resource. Returns null if settings file is missing or during shutdown. Callers must use is_instance_valid().
-static func get_settings() -> QuestWeaverSettings:
-	if _is_shutting_down: return null
-	if not is_instance_valid(_settings):
-		_settings = ResourceLoader.load("res://addons/quest_weaver/quest_weaver_settings.tres") as QuestWeaverSettings
-		if not is_instance_valid(_settings):
-			push_warning("QWConstants: Could not load quest_weaver_settings.tres.")
-	return _settings
-
-## Returns GraphNodeCategory resource. Returns null if file is missing or during shutdown. Callers must use is_instance_valid().
-static func get_graph_node_category() -> GraphNodeCategory:
-	if _is_shutting_down: return null
-	if not is_instance_valid(_graph_node_category):
-		_graph_node_category = ResourceLoader.load("res://addons/quest_weaver/assets/graph_node_category.tres") as GraphNodeCategory
-		if not is_instance_valid(_graph_node_category):
-			push_warning("QWConstants: Could not load graph_node_category.tres.")
-	return _graph_node_category
-
-static func clear_static_references():
-	# Explicitly set to null to drop the static reference count
-	_is_shutting_down = true
-	_settings = null
-	_graph_node_category = null
-
-# ==============================================================================
 # UI Scenes (.tscn) - Preloaded for instantiation
 # ==============================================================================
 const MainViewScene = preload("../editor/quest_weaver_editor.tscn")
@@ -76,3 +45,34 @@ const TRANSLATABLE_FIELDS = {
 	"objective_resource": ["description"],
 	"show_ui_message_node_resource": ["title_override", "message_override"]
 }
+
+# ==============================================================================
+# Settings & Resources
+# ==============================================================================
+static var _settings: QuestWeaverSettings = null
+static var _graph_node_category: GraphNodeCategory = null
+static var _is_shutting_down: bool = false
+
+## Returns QuestWeaverSettings resource. Returns null if settings file is missing or during shutdown. Callers must use is_instance_valid().
+static func get_settings() -> QuestWeaverSettings:
+	if _is_shutting_down: return null
+	if not is_instance_valid(_settings):
+		_settings = ResourceLoader.load("res://addons/quest_weaver/quest_weaver_settings.tres") as QuestWeaverSettings
+		if not is_instance_valid(_settings):
+			push_warning("QWConstants: Could not load quest_weaver_settings.tres.")
+	return _settings
+
+## Returns GraphNodeCategory resource. Returns null if file is missing or during shutdown. Callers must use is_instance_valid().
+static func get_graph_node_category() -> GraphNodeCategory:
+	if _is_shutting_down: return null
+	if not is_instance_valid(_graph_node_category):
+		_graph_node_category = ResourceLoader.load("res://addons/quest_weaver/assets/graph_node_category.tres") as GraphNodeCategory
+		if not is_instance_valid(_graph_node_category):
+			push_warning("QWConstants: Could not load graph_node_category.tres.")
+	return _graph_node_category
+
+static func clear_static_references():
+	# Explicitly set to null to drop the static reference count
+	_is_shutting_down = true
+	_settings = null
+	_graph_node_category = null

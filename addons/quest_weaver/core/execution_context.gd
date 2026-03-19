@@ -7,8 +7,6 @@ extends RefCounted
 
 var game_state: Node
 var services: Node
-var _controller_weak: WeakRef
-
 var logger: QWLogger:
 	get:
 		if is_instance_valid(services) and services.logger:
@@ -41,6 +39,8 @@ var kill_objective_listeners: Dictionary = {}
 var interact_objective_listeners: Dictionary = {}
 ## Listeners for location objective completion callbacks.
 var location_objective_listeners: Dictionary = {}
+
+var _controller_weak: WeakRef
 
 func _init(p_controller: QuestController, p_game_state: Node, p_logger: QWLogger, p_services: Node) -> void:
 	self._controller_weak = weakref(p_controller)

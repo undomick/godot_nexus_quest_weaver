@@ -5,29 +5,19 @@ extends Control
 
 signal validation_finished(results: Array[ValidationResult])
 
-@onready var graph_controller: QuestWeaverGraphController = %GraphEdit
-@onready var properties_panel: PanelContainer = %PropertiesPanel
-@onready var side_panel: VBoxContainer = %SidePanel
-@onready var add_node_menu: NodeSelectionMenu = %AddNodeMenu
-@onready var version_label: Label = %VersionLabel
-@onready var data_manager: QWGraphData = %DataManager
-
 var node_registry: NodeTypeRegistry
 var editor_plugin_instance
 var editor_session_data: QuestEditorData
 var validator: QuestValidator
+
 var _input_handler: QWInputHandler
 var _history: QWEditorHistory
 var _clipboard: QWClipboard
 var _action_handler: QWActionHandler
 var _node_factory: QWNodeFactory
 var _editor_interface
-
-# State variables for node creation context
 var _pending_node_creation_pos: Vector2
 var _pending_connection_data: Dictionary
-
-# State variables for live debugging
 var _live_debugging_active := false
 var _live_node_ids: Dictionary = {}
 var _active_debug_nodes: Dictionary = {}
@@ -36,6 +26,13 @@ var _failed_node_ids: Dictionary = {}    # { "node_id": true }
 var _live_stylebox: StyleBoxFlat
 var _completed_stylebox: StyleBoxFlat
 var _failed_stylebox: StyleBoxFlat
+
+@onready var graph_controller: QuestWeaverGraphController = %GraphEdit
+@onready var properties_panel: PanelContainer = %PropertiesPanel
+@onready var side_panel: VBoxContainer = %SidePanel
+@onready var add_node_menu: NodeSelectionMenu = %AddNodeMenu
+@onready var version_label: Label = %VersionLabel
+@onready var data_manager: QWGraphData = %DataManager
 
 
 func initialize(plugin, p_session_data: QuestEditorData, p_editor_interface) -> void:
