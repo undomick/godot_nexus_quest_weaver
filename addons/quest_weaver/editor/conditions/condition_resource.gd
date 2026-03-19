@@ -70,105 +70,106 @@ enum LogicOperator { AND, OR }
 
 func check(context: Variant, instance: QuestInstance = null) -> bool:
 	var controller = _get_controller_safely(context)
+	var result := false
 
 	match type:
 		ConditionType.BOOL:
-			return is_true
+			result = is_true
 
 		ConditionType.CHANCE:
-			return randf() < (chance_percentage / 100.0)
+			result = randf() < (chance_percentage / 100.0)
 
 		ConditionType.CHECK_ITEM:
-			if not is_instance_valid(controller): return false
-			var adapter = controller.get_inventory_adapter()
-			if not is_instance_valid(adapter) or item_id.is_empty():
-				return false
-			return adapter.check_item(item_id, amount)
+			if is_instance_valid(controller):
+				var adapter = controller.get_inventory_adapter()
+				if is_instance_valid(adapter) and not item_id.is_empty():
+					result = adapter.check_item(item_id, amount)
 
 		ConditionType.CHECK_QUEST_STATUS:
-			if not is_instance_valid(controller): return false
-			var current_status = controller.get_quest_state(quest_id)
-			if expected_status == QWEnums.QuestState.CUSTOM and not expected_custom_pool_id.is_empty():
-				return controller.get_quests_in_pool(expected_custom_pool_id).has(quest_id)
-			return current_status == expected_status
+			if is_instance_valid(controller):
+				var current_status = controller.get_quest_state(quest_id)
+				if expected_status == QWEnums.QuestState.CUSTOM and not expected_custom_pool_id.is_empty():
+					result = controller.get_quests_in_pool(expected_custom_pool_id).has(quest_id)
+				else:
+					result = current_status == expected_status
 
 		ConditionType.CHECK_VARIABLE:
 			var actual_value = null
-
 			if instance and instance.variables.has(variable_name):
 				actual_value = instance.get_variable(variable_name)
-			else:
-				if context is RefCounted and context.get("game_state"):
-					if is_instance_valid(context.game_state):
-						actual_value = context.game_state.get_variable(variable_name)
-
+			elif context is RefCounted and context.get("game_state"):
+				if is_instance_valid(context.game_state):
+					actual_value = context.game_state.get_variable(variable_name)
 			var expected_value = QWConditionLogic.parse_string_to_variant(expected_value_string)
-			return QWConditionLogic.compare(actual_value, expected_value, operator)
+			result = QWConditionLogic.compare(actual_value, expected_value, operator)
 
 		ConditionType.CHECK_OBJECTIVE_STATUS:
-			if not is_instance_valid(controller): return false
-			if objective_id.is_empty(): return false
-			return controller.get_objective_status(objective_id) == expected_objective_status
+			if is_instance_valid(controller) and not objective_id.is_empty():
+				result = controller.get_objective_status(objective_id) == expected_objective_status
 
 		ConditionType.CHECK_OBJECTIVE_REQUIREMENT:
-			if not is_instance_valid(controller): return false
-			if objective_id.is_empty(): return false
-			if not instance: return false
-
-			var objective_def = controller.get_objective_resource(objective_id)
-			if not objective_def: return false
-
-			var inventory_adapter = controller.get_inventory_adapter()
-
-			if has_any_progress:
-				# Pass when player has any progress (potential > 0) for at least one requirement
-				for req_item_id in objective_def.requirements:
-					var current_progress = instance.get_objective_progress_by_key(objective_id, req_item_id)
-					var potential = current_progress
-					if include_inventory_holdings and is_instance_valid(inventory_adapter):
-						potential += inventory_adapter.count_item(req_item_id)
-					if potential > 0:
-						return true
-				return false
-
-			var all_met = true
-			for req_item_id in objective_def.requirements:
-				var target_amount = objective_def.requirements[req_item_id]
-				var current_progress = instance.get_objective_progress_by_key(objective_id, req_item_id)
-				var potential = current_progress
-				if include_inventory_holdings and is_instance_valid(inventory_adapter):
-					potential += inventory_adapter.count_item(req_item_id)
-				if potential < target_amount:
-					all_met = false
-					break
-			return all_met
+			if is_instance_valid(controller) and not objective_id.is_empty() and instance:
+				var objective_def = controller.get_objective_resource(objective_id)
+				if objective_def:
+					var inventory_adapter = controller.get_inventory_adapter()
+					if has_any_progress:
+						for req_item_id in objective_def.requirements:
+							var current_progress = instance.get_objective_progress_by_key(objective_id, req_item_id)
+							var potential = current_progress
+							if include_inventory_holdings and is_instance_valid(inventory_adapter):
+								potential += inventory_adapter.count_item(req_item_id)
+							if potential > 0:
+								result = true
+								break
+					else:
+						result = true
+						for req_item_id in objective_def.requirements:
+							var target_amount = objective_def.requirements[req_item_id]
+							var current_progress = instance.get_objective_progress_by_key(objective_id, req_item_id)
+							var potential = current_progress
+							if include_inventory_holdings and is_instance_valid(inventory_adapter):
+								potential += inventory_adapter.count_item(req_item_id)
+							if potential < target_amount:
+								result = false
+								break
 
 		ConditionType.CHECK_SYNCHRONIZER:
 			if context is Dictionary and context.has("sync_inputs_received_array"):
 				var received_array: Array = context["sync_inputs_received_array"]
 				match check_type:
 					CheckType.RECEIVED_N_INPUTS:
-						return received_array.count(true) >= sync_value
+						result = received_array.count(true) >= sync_value
 					CheckType.RECEIVED_SPECIFIC_INPUT:
-						return sync_value >= 0 and sync_value < received_array.size() and received_array[sync_value]
-			return false
+						result = sync_value >= 0 and sync_value < received_array.size() and received_array[sync_value]
+					_:
+						result = false
+			else:
+				result = false
 
 		ConditionType.COMPOUND:
-			if sub_conditions.is_empty(): return logic_operator == LogicOperator.AND
-			match logic_operator:
-				LogicOperator.AND:
-					for condition in sub_conditions:
-						if not is_instance_valid(condition) or not condition.check(context, instance): return false
-					return true
-				LogicOperator.OR:
-					for condition in sub_conditions:
-						if is_instance_valid(condition) and condition.check(context, instance): return true
-					return false
-				_:
-					return false
+			if sub_conditions.is_empty():
+				result = logic_operator == LogicOperator.AND
+			else:
+				match logic_operator:
+					LogicOperator.AND:
+						result = true
+						for condition in sub_conditions:
+							if not is_instance_valid(condition) or not condition.check(context, instance):
+								result = false
+								break
+					LogicOperator.OR:
+						result = false
+						for condition in sub_conditions:
+							if is_instance_valid(condition) and condition.check(context, instance):
+								result = true
+								break
+					_:
+						result = false
 		_:
 			push_error("ConditionResource: Unhandled ConditionType %s" % type)
-			return false
+			result = false
+
+	return result
 
 
 func _get_controller_safely(context: Variant) -> Node:

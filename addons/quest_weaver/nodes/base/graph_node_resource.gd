@@ -76,7 +76,7 @@ func from_dictionary(data: Dictionary):
 ## Virtual method for validation.
 ## 'context' contains references to 'item_registry' and 'quest_registry'.
 ## Override this in specific node resources to add custom checks.
-func _validate(context: Dictionary) -> Array[ValidationResult]:
+func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	return [] # By default, a node is considered valid.
 
 

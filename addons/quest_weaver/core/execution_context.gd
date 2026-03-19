@@ -42,7 +42,7 @@ var location_objective_listeners: Dictionary = {}
 
 var _controller_weak: WeakRef
 
-func _init(p_controller: QuestController, p_game_state: Node, p_logger: QWLogger, p_services: Node) -> void:
+func _init(p_controller: QuestController, p_game_state: Node, _p_logger: QWLogger, p_services: Node) -> void:
 	self._controller_weak = weakref(p_controller)
 	self.game_state = p_game_state
 	self.services = p_services

@@ -1,7 +1,7 @@
 class_name EventNodeExecutor
 extends NodeExecutor
 
-func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
+func execute(context: ExecutionContext, node: GraphNodeResource, _instance: QuestInstance) -> void:
 	var event_node = node as EventNodeResource
 	if not is_instance_valid(event_node): return
 

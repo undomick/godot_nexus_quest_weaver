@@ -21,7 +21,7 @@ func _get_controller() -> QuestController:
 func dump_state(quest_id: StringName) -> void:
 	var c = _get_controller()
 	if c:
-		c.debug_dump_quest_state(quest_id)
+		c._debug_dump_quest_state(quest_id)
 	else:
 		push_warning("[QuestDebugProxy] Controller not available. Cannot dump state for '%s'." % quest_id)
 
@@ -29,7 +29,7 @@ func dump_state(quest_id: StringName) -> void:
 func complete_active_tasks(quest_id: StringName) -> void:
 	var c = _get_controller()
 	if c:
-		c.debug_complete_active_tasks(quest_id)
+		c._debug_complete_active_tasks(quest_id)
 	else:
 		push_warning("[QuestDebugProxy] Controller not available. Cannot complete tasks for '%s'." % quest_id)
 
@@ -37,7 +37,7 @@ func complete_active_tasks(quest_id: StringName) -> void:
 func set_var(quest_id: StringName, key: StringName, value: Variant) -> void:
 	var c = _get_controller()
 	if c:
-		c.debug_set_variable(quest_id, key, value)
+		c._debug_set_variable(quest_id, key, value)
 	else:
 		push_warning("[QuestDebugProxy] Controller not available. Cannot set variable for '%s'." % quest_id)
 
@@ -53,7 +53,7 @@ func jump_to_node(node_id: StringName) -> void:
 func list_quests() -> void:
 	var c = _get_controller()
 	if c:
-		c.debug_list_quests()
+		c._debug_list_quests()
 	else:
 		push_warning("[QuestDebugProxy] Controller not available. Cannot list quests.")
 
@@ -61,6 +61,6 @@ func list_quests() -> void:
 func list_active_instances() -> void:
 	var c = _get_controller()
 	if c:
-		c.debug_list_active_instances()
+		c._debug_list_active_instances()
 	else:
 		push_warning("[QuestDebugProxy] Controller not available. Cannot list active instances.")

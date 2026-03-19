@@ -80,43 +80,45 @@ func _format_condition_summary(condition: ConditionResource) -> String:
 	if not is_instance_valid(condition):
 		return "Invalid Condition"
 
+	var result := ""
 	match condition.type:
 		ConditionResource.ConditionType.BOOL:
-			return "BOOL is %s" % str(condition.is_true).capitalize()
+			result = "BOOL is %s" % str(condition.is_true).capitalize()
 		ConditionResource.ConditionType.CHANCE:
-			return "CHANCE: %s%%" % condition.chance_percentage
+			result = "CHANCE: %s%%" % condition.chance_percentage
 		ConditionResource.ConditionType.CHECK_ITEM:
 			if condition.item_id.is_empty():
-				return "CHECK_ITEM:\n(ID missing)"
-			return "CHECK_ITEM:\n%d x '%s'" % [condition.amount, condition.item_id.get_file()]
+				result = "CHECK_ITEM:\n(ID missing)"
+			else:
+				result = "CHECK_ITEM:\n%d x '%s'" % [condition.amount, condition.item_id.get_file()]
 		ConditionResource.ConditionType.CHECK_QUEST_STATUS:
 			var status_name: String
 			if condition.expected_status == QWEnums.QuestState.CUSTOM and not condition.expected_custom_pool_id.is_empty():
 				status_name = str(condition.expected_custom_pool_id)
 			else:
 				status_name = QWEnums.QuestState.keys()[condition.expected_status].capitalize()
-			return "QUEST_CHECK:\n'%s' is %s" % [condition.quest_id, status_name]
+			result = "QUEST_CHECK:\n'%s' is %s" % [condition.quest_id, status_name]
 		ConditionResource.ConditionType.CHECK_VARIABLE:
 			var op_keys = ["==", "!=", ">", "<", ">=", "<="]
 			var op_symbol = op_keys[condition.operator]
-			return "VAR:\n%s %s %s" % [condition.variable_name, op_symbol, condition.expected_value_string]
+			result = "VAR:\n%s %s %s" % [condition.variable_name, op_symbol, condition.expected_value_string]
 		ConditionResource.ConditionType.CHECK_OBJECTIVE_STATUS:
 			var status_name = ObjectiveResource.Status.keys()[condition.expected_objective_status].capitalize()
-			return "OBJECTIVE:\n...%s is %s" % [condition.objective_id.right(4), status_name]
+			result = "OBJECTIVE:\n...%s is %s" % [condition.objective_id.right(4), status_name]
 		ConditionResource.ConditionType.COMPOUND:
 			var op_name = condition.LogicOperator.keys()[condition.logic_operator]
-			return "COMPOUND:\n%s (%d sub)" % [op_name, condition.sub_conditions.size()]
+			result = "COMPOUND:\n%s (%d sub)" % [op_name, condition.sub_conditions.size()]
 		ConditionResource.ConditionType.CHECK_SYNCHRONIZER:
 			var check_name = condition.CheckType.keys()[condition.check_type].replace("_", " ").capitalize()
-			return "SYNC:\n%s" % check_name
-		# FIX: Added formatting for the new Requirement Type
+			result = "SYNC:\n%s" % check_name
 		ConditionResource.ConditionType.CHECK_OBJECTIVE_REQUIREMENT:
 			var id_text = condition.objective_id if not condition.objective_id.is_empty() else "(Missing ID)"
 			var inv_hint = " (+Inv)" if condition.include_inventory_holdings else ""
 			var any_hint = " (any)" if condition.has_any_progress else ""
-			return "REQ MET:\n'%s'%s%s" % [id_text, inv_hint, any_hint]
+			result = "REQ MET:\n'%s'%s%s" % [id_text, inv_hint, any_hint]
 		_:
-			return "Unknown Condition"
+			result = "Unknown Condition"
+	return result
 
 func add_condition(payload: Dictionary) -> void:
 	if payload.has("condition_instance"):

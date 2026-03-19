@@ -202,7 +202,7 @@ func _on_graph_editor_gui_input(event: InputEvent) -> void:
 		_node_factory.show_add_node_menu(graph_pos)
 		get_viewport().set_input_as_handled()
 
-func _on_connection_to_empty(from_node: StringName, from_port: int, release_position: Vector2) -> void:
+func _on_connection_to_empty(from_node: StringName, from_port: int, _release_position: Vector2) -> void:
 	var connect_data = {"from_node": from_node, "from_port": from_port}
 	var graph_pos = graph_controller.get_mouse_position_in_graph()
 

@@ -23,7 +23,14 @@ var _is_initialized := false # Flag to check if the node factory is initialized
 var _pending_selected_visual_nodes: Array[GraphElement] = [] # Selection at menu open (right-click); used for Backdrop so selection isn't lost when menu gets focus.
 
 
-func initialize(p_editor: QuestWeaverEditor, p_registry: NodeTypeRegistry, p_data_manager: QWGraphData, p_history: QWEditorHistory, p_graph_controller: QuestWeaverGraphController, p_menu: NodeSelectionMenu) -> void:
+func initialize(
+	p_editor: QuestWeaverEditor,
+	p_registry: NodeTypeRegistry,
+	p_data_manager: QWGraphData,
+	p_history: QWEditorHistory,
+	p_graph_controller: QuestWeaverGraphController,
+	p_menu: NodeSelectionMenu
+) -> void:
 	self._editor = p_editor
 	self._node_registry = p_registry
 	self._data_manager = p_data_manager

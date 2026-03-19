@@ -92,6 +92,8 @@ var _call_stack: Array[Dictionary] = []
 
 var _node_registry: NodeTypeRegistry
 
+var _debug_helper: QuestControllerDebug
+
 ## Optional acceptance conditions per quest. Key: quest_id (StringName) -> Array[Callable].
 ## Each Callable must return bool. All must return true for can_accept_quest to pass.
 var _acceptance_conditions: Dictionary = {}
@@ -267,6 +269,7 @@ func _initialize_dependencies_and_start() -> void:
 
 func _initialize_managers() -> void:
 	_pool_registry = QuestPoolRegistry.new()
+	_debug_helper = QuestControllerDebug.new(self)
 	_persistence_manager = QuestStatePersistenceManager.new()
 	_timer_manager = QuestTimerManager.new(self)
 	_sync_manager = QuestSyncManager.new(self)
@@ -1372,7 +1375,7 @@ func _is_valid_quest_id(id: StringName) -> bool:
 	return true
 
 
-func _on_objective_in_node_changed(_new_status: int, node: TaskNodeResource, objective: ObjectiveResource) -> void:
+func _on_objective_in_node_changed(_new_status: int, node: TaskNodeResource, _objective: ObjectiveResource) -> void:
 	var file_id = _get_file_id_for_node(node.id)
 	var instance = _pool_registry.get_instance_by_file_id(file_id)
 
@@ -1945,79 +1948,21 @@ func shutdown() -> void:
 
 
 # --- DEBUG API (Developer Tools) ---
+# Delegated to QuestControllerDebug to reduce public method count and file size.
+# QuestDebugProxy calls these _debug_* methods.
 
-## Prints the full internal state of a quest instance to the console (JSON formatted).
+func _debug_dump_quest_state(query_id: StringName) -> void:
+	_debug_helper.dump_quest_state(query_id)
 
-func debug_dump_quest_state(query_id: StringName) -> void:
-	var file_id = _resolve_instance_file_id(query_id)
-	var instance = _pool_registry.get_instance_by_file_id(file_id)
-	if not instance:
-		print("[QW Debug] Quest '%s' not found or inactive." % query_id)
-		return
-	var data = instance.get_save_data()
-	print(JSON.stringify(data, "\t"))
+func _debug_complete_active_tasks(query_id: StringName) -> void:
+	_debug_helper.complete_active_tasks(query_id)
 
+func _debug_set_variable(query_id: StringName, key: StringName, value: Variant) -> void:
+	_debug_helper.set_variable(query_id, key, value)
 
-## Instantly completes all objectives of currently ACTIVE task nodes in a quest.
-func debug_complete_active_tasks(query_id: StringName) -> void:
-	var file_id = _resolve_instance_file_id(query_id)
-	var instance = _pool_registry.get_instance_by_file_id(file_id)
-	if not instance: return
-	var modified = false
+func _debug_list_quests() -> void:
+	_debug_helper.list_quests()
 
-	for node_id in instance.active_node_ids:
-		var node_def = _node_definitions.get(node_id)
-
-		if node_def is TaskNodeResource:
-			for objective in node_def.objectives:
-				if instance.get_objective_status(objective.id) != ObjectiveResource.Status.COMPLETED:
-					instance.set_objective_status(objective.id, ObjectiveResource.Status.COMPLETED)
-					print("[QW Debug] Force completed objective '%s' in quest '%s'" % [objective.id, query_id])
-					modified = true
-
-	if modified:
-		var signal_id = _get_signal_id_for_instance(instance)
-		quest_data_changed.emit(signal_id)
-		_check_tasks_in_instance(instance)
-
-
-## Sets a quest variable directly (bypassing normal logic flow).
-func debug_set_variable(query_id: StringName, key: StringName, value: Variant) -> void:
-	var file_id = _resolve_instance_file_id(query_id)
-	var instance = _pool_registry.get_instance_by_file_id(file_id)
-	if instance:
-		instance.set_variable(key, value)
-		print("[QW Debug] Set variable '%s' = %s in quest '%s'" % [key, value, query_id])
-
-
-## Prints all registered quest IDs and their paths (and status if instance is active).
-func debug_list_quests() -> void:
-	print("[QW Debug] --- Registered Quests ---")
-	if _registry_map.is_empty():
-		print("  (none - registry not loaded or empty)")
-		return
-	for quest_id in _registry_map:
-		var path: String = _registry_map[quest_id]
-		var file_id = _resolve_instance_file_id(quest_id)
-		var instance = _pool_registry.get_instance_by_file_id(file_id)
-		var status_str := "not loaded"
-		if instance:
-			status_str = QWEnums.QuestState.keys()[instance.current_status] if instance.current_status >= 0 and instance.current_status < QWEnums.QuestState.size() else str(instance.current_status)
-		print("  %s -> %s [%s]" % [quest_id, path, status_str])
-
-
-## Prints all active quest instances (file_id, quest_id, status, active nodes) to the console.
-func debug_list_active_instances() -> void:
-	print("[QW Debug] --- Active Instances ---")
-	var all_instances = _pool_registry.get_all_instances()
-	if all_instances.is_empty():
-		print("  (none)")
-		return
-	for instance in all_instances:
-		var file_id = instance.file_id
-		var status_str = QWEnums.QuestState.keys()[instance.current_status] if instance.current_status >= 0 and instance.current_status < QWEnums.QuestState.size() else str(instance.current_status)
-		var active_keys: Array = []
-		for k in instance.active_node_ids:
-			active_keys.append(str(k))
-		print("  file_id=%s quest_id=%s status=%s active_nodes=%s" % [file_id, instance.quest_id, status_str, active_keys])
+func _debug_list_active_instances() -> void:
+	_debug_helper.list_active_instances()
 

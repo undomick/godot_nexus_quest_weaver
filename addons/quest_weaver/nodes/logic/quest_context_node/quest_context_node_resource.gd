@@ -135,7 +135,7 @@ func _validate(context: Dictionary) -> Array[ValidationResult]:
 		var check_item_exists = func(item_id: String) -> bool:
 			if item_registry.has_method("find"):
 				return item_registry.find(item_id) != null
-			elif "item_definitions" in item_registry:
+			if "item_definitions" in item_registry:
 				# Fallback for simple array based registries
 				for def in item_registry.item_definitions:
 					if def.id == item_id: return true

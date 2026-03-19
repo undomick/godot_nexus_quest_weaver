@@ -303,7 +303,7 @@ func _build_port_connection_map(graph: QuestGraphResource) -> Dictionary:
 	return map
 
 
-func _validate_node_connections(node: GraphNodeResource, graph: QuestGraphResource, port_connected_map: Dictionary) -> Array[ValidationResult]:
+func _validate_node_connections(node: GraphNodeResource, _graph: QuestGraphResource, port_connected_map: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 
 	if node is BranchNodeResource:

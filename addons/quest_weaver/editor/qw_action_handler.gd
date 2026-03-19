@@ -109,7 +109,14 @@ var _editor: QuestWeaverEditor
 # --- State ---
 var _drag_start_positions: Dictionary = {}
 
-func initialize(p_editor: QuestWeaverEditor, p_history: QWEditorHistory, p_data_manager: QWGraphData, p_properties_panel: PanelContainer, p_graph_controller: QuestWeaverGraphController, p_clipboard: QWClipboard) -> void:
+func initialize(
+	p_editor: QuestWeaverEditor,
+	p_history: QWEditorHistory,
+	p_data_manager: QWGraphData,
+	p_properties_panel: PanelContainer,
+	p_graph_controller: QuestWeaverGraphController,
+	p_clipboard: QWClipboard
+) -> void:
 	self._editor = p_editor
 	self._history = p_history
 	self._data_manager = p_data_manager

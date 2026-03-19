@@ -18,7 +18,7 @@ func _get_save_extension() -> String:
 func _get_resource_type() -> String:
 	return "Resource"
 
-func _get_resource_icon(path: String) -> Texture2D:
+func _get_resource_icon(_path: String) -> Texture2D:
 	return load(QWConstants.ICON_PATH)
 
 func _get_priority() -> float:
@@ -33,7 +33,7 @@ func _get_preset_count() -> int:
 func _get_import_options(_path: String, _preset_index: int) -> Array[Dictionary]:
 	return []
 
-func _import(source_file: String, save_path: String, options: Dictionary, platform_variants: Array[String], gen_files: Array[String]) -> Error:
+func _import(source_file: String, save_path: String, _options: Dictionary, _platform_variants: Array[String], _gen_files: Array[String]) -> Error:
 	var file = FileAccess.open(source_file, FileAccess.READ)
 	if file == null:
 		return FileAccess.get_open_error()

@@ -79,11 +79,10 @@ func _get_value_from_string(text: String, game_state, instance: QuestInstance) -
 			return instance.get_variable(var_name)
 
 		# Priority 2: Global GameState Variable
-		elif game_state.has_variable(var_name):
+		if game_state.has_variable(var_name):
 			return game_state.get_variable(var_name)
 
-		else:
-			return null
+		return null
 
 	# 2. Static Value Parsing
 	if text.is_valid_int(): return text.to_int()
