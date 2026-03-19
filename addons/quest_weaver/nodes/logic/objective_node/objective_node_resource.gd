@@ -28,7 +28,7 @@ func get_editor_summary() -> String:
 	if target_objective_id.is_empty():
 		line2 = "[WARN]Target: (Not Set)"
 	else:
-		line2 = "'%s'" % target_objective_id
+		line2 = "'%s'" % String(target_objective_id)
 	
 	return "%s:\n%s" % [action_text, line2]
 
@@ -48,10 +48,18 @@ func to_dictionary() -> Dictionary:
 	return data
 
 func from_dictionary(data: Dictionary):
+	if not data is Dictionary:
+		return
 	super.from_dictionary(data)
 	self.target_objective_id = StringName(data.get("target_objective_id", &""))
-	self.action = data.get("action", Action.COMPLETE)
+	self.action = _defensive_load(data, "action", Action.keys(), Action.COMPLETE)
 	_update_ports_from_data()
+
+func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
+	var val = data.get(prop, default_val)
+	if val is int and val >= 0 and val < keys.size():
+		return val
+	return default_val
 
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []

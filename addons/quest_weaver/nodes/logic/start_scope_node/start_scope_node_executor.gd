@@ -2,9 +2,16 @@
 class_name StartScopeNodeExecutor
 extends NodeExecutor
 
+## Uses QuestController internals (_scope_manager, _mark_node_as_logically_complete,
+## _trigger_next_nodes_from_port) by design. Scope flow requires tight integration.
+
+## Evaluates scope start: if under limit, completes via Port 0; if limit reached, exits via Port 1.
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var scope_node = node as StartScopeNodeResource
-	if not is_instance_valid(scope_node): return
+	if not is_instance_valid(scope_node):
+		push_error("StartScopeNodeExecutor expects a StartScopeNodeResource.")
+		context.quest_controller.complete_node(node)
+		return
 
 	var controller = context.quest_controller
 	var scope_manager = controller._scope_manager
@@ -13,7 +20,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	# Pass instance to manager so it can read/write execution counts there
 	var should_start = scope_manager.handle_start_scope(scope_node, instance)
 	
-	if logger:
+	if is_instance_valid(logger):
 		logger.log("Flow", "StartScopeNode '%s': Entering scope '%s'. Allowed? %s" % [scope_node.id, scope_node.scope_id, should_start])
 
 	if should_start:

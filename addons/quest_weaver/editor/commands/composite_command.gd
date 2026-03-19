@@ -6,7 +6,7 @@ extends EditorCommand
 var _commands: Array[EditorCommand] = []
 
 func add_command(command: EditorCommand) -> void:
-	if command:
+	if is_instance_valid(command):
 		_commands.append(command)
 
 func execute() -> void:

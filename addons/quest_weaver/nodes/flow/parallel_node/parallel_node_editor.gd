@@ -6,16 +6,34 @@ extends NodePropertyEditorBase
 signal ports_need_refresh
 signal connections_from_port_removal_requested(port_index: int)
 
+@onready var keep_listening_checkbox: CheckBox = %KeepListeningCheckbox
 @onready var outputs_container: VBoxContainer = %OutputsContainer
 @onready var add_output_button: Button = %AddOutputButton
 
+var _is_setting_up := false
+
 func _ready():
+	if is_instance_valid(keep_listening_checkbox):
+		keep_listening_checkbox.toggled.connect(_on_keep_listening_toggled)
 	add_output_button.pressed.connect(_on_add_output_pressed)
 
 func set_node_data(node_data: GraphNodeResource):
+	_is_setting_up = true
 	super.set_node_data(node_data)
-	if not node_data is ParallelNodeResource: return
+	if not node_data is ParallelNodeResource:
+		_is_setting_up = false
+		return
+	if is_instance_valid(keep_listening_checkbox):
+		keep_listening_checkbox.button_pressed = node_data.keep_listening
 	_rebuild_outputs_list()
+	_is_setting_up = false
+
+func _on_keep_listening_toggled(pressed: bool) -> void:
+	if _is_setting_up:
+		return
+	if is_instance_valid(edited_node_data) and edited_node_data is ParallelNodeResource:
+		if edited_node_data.keep_listening != pressed:
+			property_update_requested.emit(edited_node_data.id, "keep_listening", pressed, null, {})
 
 func _rebuild_outputs_list():
 	for child in outputs_container.get_children():
@@ -36,7 +54,7 @@ func _rebuild_outputs_list():
 		entry.rebuild_requested.connect(_rebuild_outputs_list)
 		
 		outputs_container.add_child(entry)
-		entry.set_output_info(output_info)
+		entry.display_data(output_info)
 
 func _make_parallel_condition_property_handler(output_index: int):
 	return func(prop: String, val: Variant, _target: Resource):

@@ -6,6 +6,7 @@ extends GraphNodeResource
 enum InputState { IGNORE = 0, REQUIRED = 1, FORBIDDEN = 2 }
 enum LogicMode { EXCLUSIVE, PARALLEL }
 
+@export var keep_listening: bool = true
 @export var inputs: Array[SynchronizeInputPort] = []
 @export var outputs: Array[SynchronizeOutputPort] = []
 @export var logic_mode: LogicMode = LogicMode.EXCLUSIVE
@@ -28,7 +29,8 @@ func _init():
 
 func get_editor_summary() -> String:
 	var mode_text = "Priority" if logic_mode == LogicMode.EXCLUSIVE else "Gateway"
-	return "Sync (%s)\n%d In -> %d Out" % [mode_text, inputs.size(), outputs.size()]
+	var loop_text = " [Loop]" if keep_listening else ""
+	return "Sync (%s)%s\n%d In -> %d Out" % [mode_text, loop_text, inputs.size(), outputs.size()]
 
 func get_description() -> String:
 	return "Pattern Matching Gate. \nExclusive: First matching output fires.\nParallel: All matching outputs fire."
@@ -116,8 +118,9 @@ func update_sync_pattern(payload: Dictionary):
 
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
+	data["keep_listening"] = keep_listening
 	data["logic_mode"] = self.logic_mode
-	
+
 	var inputs_data = []
 	for i in self.inputs:
 		if is_instance_valid(i): inputs_data.append(i.to_dictionary())
@@ -132,11 +135,12 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.logic_mode = data.get("logic_mode", LogicMode.EXCLUSIVE)
-	
+	keep_listening = data.get("keep_listening", true)
+	self.logic_mode = _defensive_load(data, "logic_mode", LogicMode.keys(), LogicMode.EXCLUSIVE)
+
 	self.inputs.clear()
 	for i_data in data.get("inputs", []):
-		var script = load(i_data.get("@script_path"))
+		var script = GraphNodeResource.get_script_cached(i_data.get("@script_path"))
 		if script:
 			var new_i = script.new()
 			new_i.from_dictionary(i_data)
@@ -144,7 +148,7 @@ func from_dictionary(data: Dictionary):
 			
 	self.outputs.clear()
 	for o_data in data.get("outputs", []):
-		var script = load(o_data.get("@script_path"))
+		var script = GraphNodeResource.get_script_cached(o_data.get("@script_path"))
 		if script:
 			var new_o = script.new()
 			new_o.from_dictionary(o_data)
@@ -177,6 +181,12 @@ func _update_ports_from_data():
 	for port in outputs:
 		if is_instance_valid(port):
 			output_ports.append(port.port_name)
+
+func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
+	var val = data.get(prop, default_val)
+	if val is int and val >= 0 and val < keys.size():
+		return val
+	return default_val
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.TOWER

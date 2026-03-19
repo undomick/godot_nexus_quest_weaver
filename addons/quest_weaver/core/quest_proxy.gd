@@ -2,8 +2,8 @@
 class_name QuestProxy
 extends RefCounted
 
-## A lightweight wrapper object that acts as a "Remote Control" for a specific quest.
-## Instantiated via QuestWeaverGlobal.quest("id").
+## A lightweight wrapper that acts as a "Remote Control" for a specific quest.
+## Instantiated via QuestWeaverGlobal.quest_id() or QuestWeaverGlobal.quest_file().
 
 var _id: StringName
 var _controller_weak: WeakRef
@@ -23,6 +23,7 @@ func _get(property: StringName) -> Variant:
 # STATE ACTIONS
 # ==============================================================================
 
+## Starts the quest (by ID or file depending on proxy type).
 func start() -> void:
 	var c = _get_controller()
 	if not c: return
@@ -32,6 +33,7 @@ func start() -> void:
 	else:
 		c.start_quest_id(_id)
 
+## Starts the quest with template parameters.
 func start_with_params(params: Dictionary) -> void:
 	var c = _get_controller()
 	if not c: return
@@ -40,6 +42,7 @@ func start_with_params(params: Dictionary) -> void:
 	# We pass the ID we have.
 	c.start_quest_with_parameters(_id, params)
 
+## Marks the quest as completed (success).
 func complete() -> void:
 	var c = _get_controller()
 	if not c: return
@@ -49,6 +52,7 @@ func complete() -> void:
 	else:
 		c.complete_quest_id(_id, true)
 
+## Marks the quest as failed.
 func fail() -> void:
 	var c = _get_controller()
 	if not c: return
@@ -58,6 +62,7 @@ func fail() -> void:
 	else:
 		c.complete_quest_id(_id, false)
 
+## Restarts the quest (full reset).
 func restart() -> void:
 	var c = _get_controller()
 	if not c: return
@@ -71,26 +76,33 @@ func restart() -> void:
 # STATE QUERIES
 # ==============================================================================
 
+## Returns the raw quest state enum (QWEnums.QuestState).
 func get_state() -> int:
 	var c = _get_controller()
 	return c.get_quest_state(_id) if c else QWEnums.QuestState.UNAVAILABLE
 
+## Marks the quest as available (e.g. for Quest Board) without starting it.
 func make_available() -> void:
 	var c = _get_controller()
 	if c: c.set_quest_available(_id)
 
+## Returns true if the quest is unavailable.
 func is_unavailable() -> bool:
 	return get_state() == QWEnums.QuestState.UNAVAILABLE
 
+## Returns true if the quest is available.
 func is_available() -> bool:
 	return get_state() == QWEnums.QuestState.AVAILABLE
 
+## Returns true if the quest is active.
 func is_active() -> bool:
 	return get_state() == QWEnums.QuestState.ACTIVE
 
+## Returns true if the quest is completed.
 func is_completed() -> bool:
 	return get_state() == QWEnums.QuestState.COMPLETED
 
+## Returns true if the quest is failed.
 func is_failed() -> bool:
 	return get_state() == QWEnums.QuestState.FAILED
 
@@ -98,6 +110,7 @@ func is_failed() -> bool:
 # DATA ACCESS
 # ==============================================================================
 
+## Gets a runtime variable from this quest instance.
 func get_variable(key: StringName, default: Variant = null) -> Variant:
 	var c = _get_controller()
 	if c: return c.get_quest_variable(_id, key, default)

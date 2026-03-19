@@ -3,7 +3,7 @@
 class_name NodeSelectionMenu
 extends PopupPanel
 
-signal node_selected(type_name: String)
+signal node_selected(type_name: StringName)
 
 @onready var filter_edit: LineEdit = %FilterEdit
 @onready var node_list: ItemList = %NodeList
@@ -29,13 +29,14 @@ func _ready() -> void:
 	about_to_popup.connect(_on_about_to_popup)
 
 func set_available_nodes(node_types: Array[NodeTypeInfo]) -> void:
-	# Sort: Category first, then Name
-	node_types.sort_custom(func(a, b):
+	# Sort: Category first, then Name (duplicate to avoid mutating caller's array)
+	var sorted = node_types.duplicate()
+	sorted.sort_custom(func(a, b):
 		if a.category != b.category:
 			return a.category < b.category
 		return a.node_name < b.node_name
 	)
-	_all_node_types = node_types
+	_all_node_types = sorted
 	_refresh_list("")
 
 func _refresh_list(filter: String) -> void:
@@ -105,21 +106,20 @@ func _on_text_submitted(_text: String) -> void:
 func _on_list_item_activated(index: int) -> void:
 	var original_index = _filtered_indices[index]
 	var info = _all_node_types[original_index]
-	node_selected.emit(info.node_name)
+	node_selected.emit(StringName(info.node_name))
 	hide()
 
 func _on_about_to_popup() -> void:
 	filter_edit.clear()
 	_refresh_list("")
 	# Set focus to search field immediately
-	filter_edit.call_deferred("grab_focus")
+	filter_edit.call_deferred(&"grab_focus")
 
 func _on_filter_gui_input(event: InputEvent) -> void:
 	# Allows arrow key navigation in the list while typing in the text field
 	if event is InputEventKey and event.is_pressed():
-		var current_selection = 0
-		if node_list.get_selected_items().size() > 0:
-			current_selection = node_list.get_selected_items()[0]
+		var selected = node_list.get_selected_items()
+		var current_selection = selected[0] if selected.size() > 0 else 0
 			
 		if event.keycode == KEY_DOWN:
 			if current_selection < node_list.item_count - 1:

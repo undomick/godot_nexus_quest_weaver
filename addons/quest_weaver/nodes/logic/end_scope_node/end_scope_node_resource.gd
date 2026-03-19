@@ -18,7 +18,7 @@ func _update_ports_from_data() -> void:
 		output_ports = [&"Scope Completed"]
 
 func get_editor_summary() -> String:
-	var id_text = scope_id if not scope_id.is_empty() else "???"
+	var id_text = String(scope_id) if not scope_id.is_empty() else "???"
 	return "End Scope:\n'%s'" % id_text
 
 func get_description() -> String:
@@ -33,9 +33,17 @@ func to_dictionary() -> Dictionary:
 	return data
 
 func from_dictionary(data: Dictionary):
+	if not data is Dictionary:
+		return
 	super.from_dictionary(data)
 	self.scope_id = StringName(data.get("scope_id", &"my_scope_1"))
 	_update_ports_from_data()
+
+func _validate(_context: Dictionary) -> Array[ValidationResult]:
+	var results: Array[ValidationResult] = []
+	if scope_id.is_empty():
+		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "End Scope: Scope ID is not set.", id))
+	return results
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL

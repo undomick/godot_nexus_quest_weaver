@@ -5,7 +5,6 @@ extends RefCounted
 
 signal version_changed
 
-var _undo_redo: UndoRedo
 var _undo_stack: Array[EditorCommand] = []
 var _redo_stack: Array[EditorCommand] = []
 var _editor: QuestWeaverEditor
@@ -13,7 +12,6 @@ var _editor: QuestWeaverEditor
 
 func initialize(p_editor: QuestWeaverEditor) -> void:
 	self._editor = p_editor
-	self._undo_redo = UndoRedo.new()
 
 
 func execute_command(command: EditorCommand) -> void:
@@ -51,3 +49,12 @@ func has_undo() -> bool:
 
 func has_redo() -> bool:
 	return not _redo_stack.is_empty()
+
+
+## Call before shutdown to break refs and avoid UndoRedo leak on editor exit.
+func cleanup() -> void:
+	_undo_stack.clear()
+	_redo_stack.clear()
+	_editor = null
+
+

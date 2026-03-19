@@ -12,11 +12,11 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	var logger = context.logger
 
 	if task_node.objectives.is_empty():
-		if logger: logger.warn("Executor", "TaskNode '%s' has no objectives. Completing immediately." % task_node.id)
+		if is_instance_valid(logger): logger.warn("Executor", "TaskNode '%s' has no objectives. Completing immediately." % task_node.id)
 		controller.complete_node(task_node)
 		return
 	
-	if logger: 
+	if is_instance_valid(logger): 
 		logger.log("Executor", "TaskNode '%s': Activating %d objectives in instance '%s'." % [task_node.id, task_node.objectives.size(), instance.file_id])
 
 	# 1. Register global listeners
@@ -39,10 +39,10 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		if objective.trigger_type == ObjectiveResource.TriggerType.ITEM_COLLECT and \
 		   objective.track_progress_since_activation and is_instance_valid(inventory_adapter):
 			for item_id in objective.requirements:
-				var current_amount = inventory_adapter.count_item(str(item_id))
+				var current_amount = inventory_adapter.count_item(item_id)
 				var snapshot_key = StringName("start_amount_%s_%s" % [objective.id, item_id])
 				instance.set_node_data(task_node.id, snapshot_key, current_amount)
-				if logger:
+				if is_instance_valid(logger):
 					logger.log("Inventory", "  - Snapshot for '%s' in '%s': %d" % [item_id, objective.id, current_amount])
 		
 		# Snapshot for KILL (Track Progress Since Activation) – from adapter if available, else 0
@@ -50,12 +50,12 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 			for enemy_id in objective.requirements:
 				var current_count: int = 0
 				if is_instance_valid(kill_adapter):
-					current_count = kill_adapter.count_kill(str(enemy_id))
+					current_count = kill_adapter.count_kill(enemy_id)
 				else:
 					current_count = instance.get_objective_progress_by_key(objective.id, enemy_id)
 				var snapshot_key = StringName("start_amount_%s_%s" % [objective.id, enemy_id])
 				instance.set_node_data(task_node.id, snapshot_key, current_count)
-				if logger:
+				if is_instance_valid(logger):
 					logger.log("Flow", "  - Kill snapshot for '%s' in '%s': %d" % [enemy_id, objective.id, current_count])
 		
 	var signal_id = instance.quest_id if not instance.quest_id.is_empty() else instance.file_id
@@ -66,6 +66,8 @@ func cleanup_listeners(context: ExecutionContext, node: TaskNodeResource):
 	if not is_instance_valid(context): return
 	
 	for objective in node.objectives:
+		if is_instance_valid(context.quest_controller):
+			context.quest_controller._unregister_objective_instance(objective.id)
 		match objective.trigger_type:
 			ObjectiveResource.TriggerType.ITEM_COLLECT:
 				for item_id in objective.requirements:
@@ -91,6 +93,8 @@ static func register_listeners(context: ExecutionContext, node: TaskNodeResource
 	for objective in node.objectives:
 		if instance.get_objective_status(objective.id) == ObjectiveResource.Status.COMPLETED:
 			continue
+		if is_instance_valid(context.quest_controller):
+			context.quest_controller._register_objective_instance(objective.id, instance.file_id)
 		
 		# Wrapper Base Data
 		var wrapper = {

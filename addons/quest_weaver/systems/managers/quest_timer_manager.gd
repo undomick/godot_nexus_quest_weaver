@@ -2,8 +2,11 @@
 class_name QuestTimerManager
 extends RefCounted
 
-## Manages active TimerNode instances. 
+## Manages active TimerNode instances.
 ## Keeps track of physical Timer nodes, but stores state in the QuestInstance.
+## TimerNodeResource.duration is in seconds; ticks map 1:1 to seconds via TICK_INTERVAL.
+
+const TICK_INTERVAL := 1.0  ## Seconds between ticks; duration and ticks are 1:1
 
 # Map: StringName (NodeID) -> Timer (Physical Node)
 var _active_timer_nodes: Dictionary = {} 
@@ -16,7 +19,7 @@ func _get_controller() -> QuestController:
 	return _controller_weak.get_ref() as QuestController
 
 ## Starts a new timer. Called by TimerNodeExecutor.
-func start_timer(node_def: TimerNodeResource, instance: QuestInstance):
+func start_timer(node_def: TimerNodeResource, instance: QuestInstance) -> void:
 	var controller = _get_controller()
 	if not controller: return
 
@@ -25,7 +28,7 @@ func start_timer(node_def: TimerNodeResource, instance: QuestInstance):
 		remove_timer(node_def.id)
 
 	var timer = Timer.new()
-	timer.wait_time = 1.0
+	timer.wait_time = TICK_INTERVAL
 	timer.one_shot = false
 	timer.timeout.connect(_on_timer_tick.bind(node_def.id))
 	
@@ -54,7 +57,7 @@ func remove_timer(node_id: StringName) -> bool:
 	return false
 
 ## Cleans up all running timers (e.g. on game exit or reload).
-func clear_all_timers():
+func clear_all_timers() -> void:
 	for timer in _active_timer_nodes.values():
 		if is_instance_valid(timer):
 			timer.queue_free()
@@ -68,8 +71,7 @@ func _on_timer_tick(node_id: StringName):
 		return
 
 	# 1. Resolve Instance
-	var quest_id = controller.get_quest_id_for_node(node_id)
-	var instance: QuestInstance = controller._active_instances.get(quest_id)
+	var instance: QuestInstance = controller.get_instance_for_node(node_id)
 	
 	# Safety check: If instance is gone, kill timer
 	if not instance:
@@ -106,7 +108,7 @@ func _on_timer_tick(node_id: StringName):
 
 ## Reconstructs physical timers from loaded instance data.
 ## Called by PersistenceManager after loading QuestInstances.
-func restore_timers_from_instances(active_instances: Dictionary):
+func restore_timers_from_instances(active_instances: Dictionary) -> void:
 	clear_all_timers()
 	var controller = _get_controller()
 	if not controller: return

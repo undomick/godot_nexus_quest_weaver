@@ -3,6 +3,10 @@
 class_name QWGraphData
 extends Node
 
+## Central cache for Quest graph resources in the editor.
+## Manages clean/dirty instances, active graph selection, and persistence.
+## Call clear_all() before plugin shutdown to release references.
+
 signal graph_dirty_status_changed(path: String, is_dirty: bool)
 signal active_graph_changed(new_graph_resource: QuestGraphResource)
 signal graph_was_saved(path: String)
@@ -36,17 +40,12 @@ func get_graph(path: String) -> QuestGraphResource:
 	return _clean_instances.get(path)
 
 func update_view_state(path: String, scroll: Vector2, zoom: float) -> void:
-	if _clean_instances.has(path):
-		var clean_instance = _clean_instances[path]
-		if is_instance_valid(clean_instance):
-			clean_instance.editor_scroll_offset = scroll
-			clean_instance.editor_zoom = zoom
-
-	if _dirty_instances.has(path):
-		var dirty_instance = _dirty_instances[path]
-		if is_instance_valid(dirty_instance):
-			dirty_instance.editor_scroll_offset = scroll
-			dirty_instance.editor_zoom = zoom
+	for instances in [_clean_instances, _dirty_instances]:
+		if instances.has(path):
+			var instance = instances[path]
+			if is_instance_valid(instance):
+				instance.editor_scroll_offset = scroll
+				instance.editor_zoom = zoom
 
 func make_active_graph_editable() -> QuestGraphResource:
 	if _active_graph_path.is_empty(): return null
@@ -67,68 +66,19 @@ func make_active_graph_editable() -> QuestGraphResource:
 func save_active_graph() -> bool:
 	if _active_graph_path.is_empty():
 		return false
-		
 	if not has_unsaved_changes(_active_graph_path):
 		if _clean_instances.has(_active_graph_path):
-			var clean_graph = _clean_instances[_active_graph_path]
-			var data_to_save = clean_graph.to_dictionary()
-			var file = FileAccess.open(_active_graph_path, FileAccess.WRITE)
-			if file == null:
-				push_error("QWGraphData: Could not open '%s' for writing." % _active_graph_path)
-				return false
-			file.store_var(data_to_save, true)
-			file.close()
-			
+			# Emit to sync UI when graph is already clean.
 			graph_was_saved.emit(_active_graph_path)
-			
 			graph_dirty_status_changed.emit(_active_graph_path, false)
-			
 			return true
 		return false
-
-	var dirty_graph = _dirty_instances[_active_graph_path]
-	_validate_and_clean_graph_data(dirty_graph)
-	
-	var data_to_save = dirty_graph.to_dictionary()
-	var file = FileAccess.open(_active_graph_path, FileAccess.WRITE)
-	if file == null:
-		push_error("QWGraphData: Could not open '%s' for writing." % _active_graph_path)
-		return false
-	
-	file.store_var(data_to_save, true)
-	file.close()
-
-	_clean_instances[_active_graph_path] = dirty_graph
-	_dirty_instances.erase(_active_graph_path)
-	graph_dirty_status_changed.emit(_active_graph_path, false)
-	
-	graph_was_saved.emit(_active_graph_path)
-	
-	return true
+	return _save_graph_to_path(_active_graph_path)
 
 func save_graph(path: String) -> bool:
 	if path.is_empty() or not has_unsaved_changes(path):
 		return false
-
-	var dirty_graph = _dirty_instances[path]
-	_validate_and_clean_graph_data(dirty_graph)
-	
-	var data_to_save = dirty_graph.to_dictionary()
-	var file = FileAccess.open(path, FileAccess.WRITE)
-	if file == null:
-		push_error("QWGraphData: Could not open '%s' for writing." % path)
-		return false
-	
-	file.store_var(data_to_save, true)
-	file.close()
-
-	_clean_instances[path] = dirty_graph
-	_dirty_instances.erase(path)
-	graph_dirty_status_changed.emit(path, false)
-	
-	graph_was_saved.emit(path)
-	
-	return true
+	return _save_graph_to_path(path)
 
 func discard_changes(path: String) -> void:
 	if _dirty_instances.has(path):
@@ -142,6 +92,12 @@ func close_graph(path: String) -> void:
 	if _dirty_instances.has(path): _dirty_instances.erase(path)
 	if _active_graph_path == path: set_active_graph("")
 
+## Clears all cached graphs. Call before plugin shutdown to release references and avoid resource leaks.
+func clear_all() -> void:
+	_clean_instances.clear()
+	_dirty_instances.clear()
+	_active_graph_path = ""
+
 func has_unsaved_changes(path: String) -> bool:
 	return _dirty_instances.has(path)
 
@@ -153,10 +109,25 @@ func notify_dirty_status_if_unsaved() -> void:
 
 func get_all_unsaved_paths() -> Array[String]:
 	var typed_paths: Array[String] = []
-	if _dirty_instances != null:
-		for path in _dirty_instances.keys():
-			typed_paths.append(path)
+	for path in _dirty_instances.keys():
+		typed_paths.append(path)
 	return typed_paths
+
+func _save_graph_to_path(path: String) -> bool:
+	var dirty_graph = _dirty_instances[path]
+	_validate_and_clean_graph_data(dirty_graph)
+	var data_to_save = dirty_graph.to_dictionary()
+	var file = FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		push_error("QWGraphData: Could not open '%s' for writing." % path)
+		return false
+	file.store_var(data_to_save, true)
+	file.close()
+	_clean_instances[path] = dirty_graph
+	_dirty_instances.erase(path)
+	graph_dirty_status_changed.emit(path, false)
+	graph_was_saved.emit(path)
+	return true
 
 func _load_graph_from_disk(path: String) -> void:
 	if path.is_empty() or not FileAccess.file_exists(path): return
@@ -167,6 +138,10 @@ func _load_graph_from_disk(path: String) -> void:
 	if not data is Dictionary: return
 	var editable_instance = QuestGraphResource.new()
 	editable_instance.from_dictionary(data)
+	var nodes_data = data.get("nodes", {})
+	if nodes_data is Dictionary and nodes_data.size() > 0 and editable_instance.nodes.is_empty():
+		push_warning("QWGraphData: Loaded '%s' but nodes failed to load. Skipping." % path)
+		return
 	_clean_instances[path] = editable_instance
 
 func _validate_and_clean_graph_data(graph: QuestGraphResource) -> bool:

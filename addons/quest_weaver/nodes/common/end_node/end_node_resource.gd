@@ -18,5 +18,11 @@ func get_description() -> String:
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/stop.svg")
 
+func to_dictionary() -> Dictionary:
+	return super.to_dictionary()
+
+func from_dictionary(data: Dictionary):
+	super.from_dictionary(data)
+
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.TINY

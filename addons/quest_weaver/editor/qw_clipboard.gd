@@ -10,25 +10,30 @@ extends RefCounted
 var _clipboard_data: Dictionary = {}
 var _node_registry: NodeTypeRegistry
 
-func initialize(p_node_registry: NodeTypeRegistry):
+func initialize(p_node_registry: NodeTypeRegistry) -> void:
 	self._node_registry = p_node_registry
 
 func is_empty() -> bool:
 	return _clipboard_data.is_empty()
 
-func copy_selection_to_clipboard(selected_nodes_data: Array[GraphNodeResource], connections: Array[Dictionary]):
+## Clears clipboard. Call before shutdown to release references (e.g. ConditionResource) and avoid leaks.
+func clear() -> void:
+	_clipboard_data.clear()
+
+func copy_selection_to_clipboard(selected_nodes_data: Array[GraphNodeResource], connections: Array[Dictionary]) -> void:
 	if selected_nodes_data.is_empty():
 		_clipboard_data.clear()
 		return
 
-	var copied_node_ids: Array[String] = []
+	const DEFAULT_NODE_VISUAL_SIZE := Vector2(200, 100)
+	var copied_node_ids_set: Dictionary = {} # StringName -> true for O(1) lookup
 	var bounding_rect: Rect2
 	var first = true
 
 	for node_data in selected_nodes_data:
-		copied_node_ids.append(node_data.id)
-		# Consider a default node size for the bounding box calculation
-		var node_visual_rect = Rect2(node_data.graph_position, Vector2(200, 100)) 
+		copied_node_ids_set[node_data.id] = true
+		# Default node size for bounding box calculation
+		var node_visual_rect = Rect2(node_data.graph_position, DEFAULT_NODE_VISUAL_SIZE)
 		if first:
 			bounding_rect = node_visual_rect
 			first = false
@@ -38,7 +43,7 @@ func copy_selection_to_clipboard(selected_nodes_data: Array[GraphNodeResource], 
 	# Only copy connections that exist between the selected nodes
 	var copied_connections: Array[Dictionary] = []
 	for connection in connections:
-		if copied_node_ids.has(connection.from_node) and copied_node_ids.has(connection.to_node):
+		if copied_node_ids_set.has(connection.from_node) and copied_node_ids_set.has(connection.to_node):
 			copied_connections.append(connection)
 
 	_clipboard_data = {
@@ -49,6 +54,8 @@ func copy_selection_to_clipboard(selected_nodes_data: Array[GraphNodeResource], 
 
 func get_paste_data(paste_position: Vector2) -> Dictionary:
 	if is_empty():
+		return {}
+	if not is_instance_valid(_node_registry):
 		return {}
 
 	var original_nodes: Array[GraphNodeResource] = _clipboard_data.get("nodes", [])
@@ -61,6 +68,8 @@ func get_paste_data(paste_position: Vector2) -> Dictionary:
 	for original_node_data in original_nodes:
 		# Perform a deep copy to ensure sub-resources (Objectives, Conditions) are unique
 		var new_node: GraphNodeResource = _deep_duplicate_node_recursively(original_node_data)
+		if not is_instance_valid(new_node):
+			continue
 		var old_id = original_node_data.id
 		
 		# Generate a new unique ID for the pasted node
@@ -117,7 +126,9 @@ func _deep_duplicate_node_recursively(original_node: GraphNodeResource) -> Graph
 	elif new_node is BranchNodeResource:
 		var new_conditions: Array[ConditionResource] = []
 		for condition in new_node.conditions:
-			new_conditions.append(_deep_duplicate_condition_recursively(condition))
+			var dup = _deep_duplicate_condition_recursively(condition)
+			if is_instance_valid(dup):
+				new_conditions.append(dup)
 		new_node.conditions = new_conditions
 	
 	elif new_node is ParallelNodeResource:
@@ -165,7 +176,9 @@ func _deep_duplicate_condition_recursively(original_condition: ConditionResource
 	if new_condition.type == ConditionResource.ConditionType.COMPOUND:
 		var new_sub_conditions: Array[ConditionResource] = []
 		for sub_con in new_condition.sub_conditions:
-			new_sub_conditions.append(_deep_duplicate_condition_recursively(sub_con))
+			var dup = _deep_duplicate_condition_recursively(sub_con)
+			if is_instance_valid(dup):
+				new_sub_conditions.append(dup)
 		new_condition.sub_conditions = new_sub_conditions
 	
 	return new_condition

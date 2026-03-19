@@ -10,8 +10,6 @@ quest_path_map = {
 "questline": "res://addons/quest_weaver/examples/quests/main/questline.quest",
 "side_a_little_favor": "res://addons/quest_weaver/examples/quests/side/side_a_little_favor.quest",
 &"side_little_favor": "res://addons/quest_weaver/examples/quests/side/side_a_little_favor.quest",
-"start_first_task": "res://addons/quest_weaver/examples/quests/main/start_first_task.quest",
-"test": "res://addons/quest_weaver/examples/quests/test.quest",
-&"testQuest": "res://addons/quest_weaver/examples/quests/test.quest"
+"start_first_task": "res://addons/quest_weaver/examples/quests/main/start_first_task.quest"
 }
 metadata/_custom_type_script = "uid://c4a2r4gsgoabg"

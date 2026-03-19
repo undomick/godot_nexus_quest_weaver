@@ -5,6 +5,7 @@ extends NodePropertyEditorBase
 
 signal ports_need_refresh
 
+@onready var keep_listening_checkbox: CheckBox = %KeepListeningCheckbox
 @onready var add_input_button: Button = %AddInputButton
 @onready var add_output_button: Button = %AddOutputButton
 @onready var logic_option_button: OptionButton = %LogicOptionButton
@@ -13,6 +14,8 @@ signal ports_need_refresh
 var _is_setting_up := false
 
 func _ready():
+	if is_instance_valid(keep_listening_checkbox):
+		keep_listening_checkbox.toggled.connect(_on_keep_listening_toggled)
 	add_input_button.pressed.connect(_on_add_input_pressed)
 	add_output_button.pressed.connect(_on_add_output_pressed)
 	
@@ -22,16 +25,24 @@ func _ready():
 func set_node_data(node_data: GraphNodeResource):
 	_is_setting_up = true
 	super.set_node_data(node_data)
-	if not node_data is SynchronizeNodeResource: 
+	if not node_data is SynchronizeNodeResource:
 		_is_setting_up = false
 		return
-	
-	# Set Values
+
+	if is_instance_valid(keep_listening_checkbox):
+		keep_listening_checkbox.button_pressed = node_data.keep_listening
 	if is_instance_valid(logic_option_button):
 		logic_option_button.select(node_data.logic_mode)
-	
+
 	_rebuild_ui()
 	_is_setting_up = false
+
+func _on_keep_listening_toggled(pressed: bool) -> void:
+	if _is_setting_up:
+		return
+	if is_instance_valid(edited_node_data) and edited_node_data is SynchronizeNodeResource:
+		if edited_node_data.keep_listening != pressed:
+			property_update_requested.emit(edited_node_data.id, "keep_listening", pressed, null, {})
 
 func _on_logic_mode_changed(index: int) -> void:
 	if _is_setting_up: return

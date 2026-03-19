@@ -1,3 +1,5 @@
+## Uses QuestController internals (_event_manager, _trigger_next_nodes_from_port) by design.
+## Event listener registration and cancel flow require tight integration; these APIs are not exposed publicly.
 class_name EventListenerNodeExecutor
 extends NodeExecutor
 

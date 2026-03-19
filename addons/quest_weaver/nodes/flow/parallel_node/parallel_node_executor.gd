@@ -1,12 +1,22 @@
+## Uses QuestController internals (_node_connections, _node_definitions, _activate_node) by design.
+## Parallel branching requires direct connection lookup; these APIs are not exposed publicly.
+## When [param keep_listening] is false, fires only once and ignores subsequent activations.
 class_name ParallelNodeExecutor
 extends NodeExecutor
 
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var parallel_node = node as ParallelNodeResource
 	if not is_instance_valid(parallel_node): return
-	
+
+	if not parallel_node.keep_listening:
+		var has_fired: bool = instance.get_node_data(parallel_node.id, &"_parallel_fired", false)
+		if has_fired:
+			instance.set_node_active(parallel_node.id, false)
+			return
+		instance.set_node_data(parallel_node.id, &"_parallel_fired", true)
+
 	instance.set_node_active(parallel_node.id, false)
-	
+
 	var controller = context.quest_controller
 	var connections = controller._node_connections.get(parallel_node.id, [])
 	

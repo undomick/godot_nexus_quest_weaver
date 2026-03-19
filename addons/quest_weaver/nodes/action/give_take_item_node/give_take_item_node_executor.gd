@@ -1,4 +1,6 @@
 # res://addons/quest_weaver/nodes/action/give_take_item_node/give_take_item_node_executor.gd
+## Uses QuestController internals (_trigger_next_nodes_from_port, _mark_node_as_logically_complete,
+## _check_tasks_in_instance) by design. Item flow requires tight integration; these APIs are not exposed publicly.
 class_name GiveTakeItemNodeExecutor
 extends NodeExecutor
 
@@ -27,25 +29,36 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	# MODE: REWARD FROM QUEST
 	# ==========================================================================
 	if item_node.action == item_node.Action.REWARD_FROM_QUEST:
-		if true: # FORCE EMPTY for now until fully restored
-			if logger: logger.log("Inventory", "Rewards are currently disabled. Nothing given.")
-			controller._trigger_next_nodes_from_port(item_node, 0)
+		if item_node.target_quest_id.is_empty():
+			if is_instance_valid(logger): logger.warn("Inventory", "Reward from quest: No Target Quest ID specified.")
+			controller._trigger_next_nodes_from_port(item_node, 1)
 			controller._mark_node_as_logically_complete(item_node)
 			return
+
+		var rewards: Dictionary = controller.get_quest_rewards(item_node.target_quest_id)
+		for item_id in rewards:
+			var amount: int = rewards[item_id]
+			if amount > 0:
+				adapter.give_item(item_id, amount)
+				if is_instance_valid(logger): logger.log("Inventory", "  - Gave reward %d x %s (from quest '%s')" % [amount, item_id, item_node.target_quest_id])
+
+		controller._trigger_next_nodes_from_port(item_node, 0)
+		controller._mark_node_as_logically_complete(item_node)
+		return
 
 	# ==========================================================================
 	# MODE: ITEMS FROM OBJECTIVE (Deposit Logic)
 	# ==========================================================================
 	if item_node.action == item_node.Action.ITEMS_FROM_OBJECTIVE:
 		if item_node.target_objective_id == &"":
-			if logger: logger.warn("Inventory", "ItemsFromObjective has no Target Objective ID.")
+			if is_instance_valid(logger): logger.warn("Inventory", "ItemsFromObjective has no Target Objective ID.")
 			controller._trigger_next_nodes_from_port(item_node, 1)
 			controller._mark_node_as_logically_complete(item_node)
 			return
 
 		var obj_res = controller.get_objective_resource(item_node.target_objective_id)
 		if not obj_res or obj_res.requirements.is_empty():
-			if logger: logger.warn("Inventory", "Target Objective '%s' not found or has no requirements." % item_node.target_objective_id)
+			if is_instance_valid(logger): logger.warn("Inventory", "Target Objective '%s' not found or has no requirements." % item_node.target_objective_id)
 			controller._trigger_next_nodes_from_port(item_node, 1)
 			controller._mark_node_as_logically_complete(item_node)
 			return
@@ -57,13 +70,13 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 			var target = obj_res.requirements[item_key]
 			var current = instance.get_objective_progress_by_key(obj_res.id, item_key)
 			var needed = max(0, target - current)
-			if logger: logger.log("Inventory", "  - Snapshot for '%s' in '%s': current=%d target=%d needed=%d" % [item_key, obj_res.id, current, target, needed])
+			if is_instance_valid(logger): logger.log("Inventory", "  - Snapshot for '%s' in '%s': current=%d target=%d needed=%d" % [item_key, obj_res.id, current, target, needed])
 			if needed > 0:
 				dynamic_requirements[item_key] = needed
 				is_already_done = false
 		
 		if is_already_done:
-			if logger: logger.log("Inventory", "Objective '%s' already fulfilled. Taking nothing." % obj_res.id)
+			if is_instance_valid(logger): logger.log("Inventory", "Objective '%s' already fulfilled. Taking nothing." % obj_res.id)
 			if item_node.complete_objective_on_success:
 				_complete_objective_if_requested(controller, instance, item_node.target_objective_id)
 			controller._trigger_next_nodes_from_port(item_node, 0)
@@ -74,7 +87,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		
 		var port = _take_result_to_port(result, item_node)
 		var port_name = item_node.output_ports[port] if port < item_node.output_ports.size() else str(port)
-		if logger: logger.log("Inventory", "GiveTakeItem '%s' (objective '%s') -> %s (port %d)" % [item_node.id, item_node.target_objective_id, port_name, port])
+		if is_instance_valid(logger): logger.log("Inventory", "GiveTakeItem '%s' (objective '%s') -> %s (port %d)" % [item_node.id, item_node.target_objective_id, port_name, port])
 		if port == 0 and item_node.complete_objective_on_success:
 			_complete_objective_if_requested(controller, instance, item_node.target_objective_id)
 		controller._trigger_next_nodes_from_port(item_node, port)
@@ -86,7 +99,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	# ==========================================================================
 	
 	if item_node.items.is_empty():
-		if logger: logger.warn("Inventory", "Item list is empty. Nothing happened.")
+		if is_instance_valid(logger): logger.warn("Inventory", "Item list is empty. Nothing happened.")
 		controller._trigger_next_nodes_from_port(item_node, 0)
 		controller._mark_node_as_logically_complete(item_node)
 		return
@@ -94,8 +107,8 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	if item_node.action == item_node.Action.GIVE:
 		for item_id in item_node.items:
 			var amount = item_node.items[item_id]
-			adapter.give_item(str(item_id), amount)
-			if logger: logger.log("Inventory", "  - Gave %d x %s" % [amount, item_id])
+			adapter.give_item(item_id, amount)
+			if is_instance_valid(logger): logger.log("Inventory", "  - Gave %d x %s" % [amount, item_id])
 			
 		controller._trigger_next_nodes_from_port(item_node, 0)
 		controller._mark_node_as_logically_complete(item_node)
@@ -105,7 +118,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		var result = _process_take_logic(adapter, item_node.items, item_node.allow_partial_deposit, instance, &"", logger, controller)
 		
 		var port = _take_result_to_port(result, item_node)
-		if logger:
+		if is_instance_valid(logger):
 			var port_name = item_node.output_ports[port] if port < item_node.output_ports.size() else str(port)
 			logger.log("Inventory", "GiveTakeItem '%s' (TAKE) -> %s (port %d)" % [item_node.id, port_name, port])
 		controller._trigger_next_nodes_from_port(item_node, port)
@@ -117,12 +130,12 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 # ==============================================================================
 
 # Returns: 0 = full success, 1 = partial (some taken), 2 = failure (nothing taken)
-func _process_take_logic(adapter, requirements: Dictionary, partial: bool, instance: QuestInstance, update_obj_id: StringName, logger, controller: QuestController) -> int:
+func _process_take_logic(adapter: QuestInventoryAdapterBase, requirements: Dictionary, partial: bool, instance: QuestInstance, update_obj_id: StringName, logger: QWLogger, controller: QuestController) -> int:
 	# 1. ATOMIC CHECK (If NOT partial)
 	if not partial:
 		for item_id in requirements:
-			if not adapter.check_item(str(item_id), requirements[item_id]):
-				if logger: logger.log("Inventory", "  - Atomic check failed. Missing: %s" % item_id)
+			if not adapter.check_item(item_id, requirements[item_id]):
+				if is_instance_valid(logger): logger.log("Inventory", "  - Atomic check failed. Missing: %s" % item_id)
 				return 2  # FAILURE
 
 	var something_taken = false
@@ -132,7 +145,7 @@ func _process_take_logic(adapter, requirements: Dictionary, partial: bool, insta
 	# 2. EXECUTION
 	for item_id in requirements:
 		var needed = requirements[item_id]
-		var have = adapter.count_item(str(item_id))
+		var have = adapter.count_item(item_id)
 		
 		var to_take = 0
 		if partial:
@@ -145,10 +158,10 @@ func _process_take_logic(adapter, requirements: Dictionary, partial: bool, insta
 			all_requirements_met = false
 
 		if to_take > 0:
-			adapter.take_item(str(item_id), to_take)
+			adapter.take_item(item_id, to_take)
 			something_taken = true
 
-			if logger: logger.log("Inventory", "  - Taken %d x %s" % [to_take, item_id])
+			if is_instance_valid(logger): logger.log("Inventory", "  - Taken %d x %s" % [to_take, item_id])
 
 			# Auto-Update Objective Logic
 			if update_obj_id != &"":

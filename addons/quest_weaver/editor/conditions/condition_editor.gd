@@ -14,10 +14,9 @@ signal rebuild_requested()
 @onready var sort_editor: QWSortEditor = find_child("SortEditor", true, false)
 
 var edited_condition: ConditionResource
-var _spinbox_undo_values: Dictionary = {}
 var _is_setting_up: bool = false
 
-func _ready():
+func _ready() -> void:
 	if is_instance_valid(sort_editor):
 		sort_editor.move_up_requested.connect(move_up_requested.emit)
 		sort_editor.move_down_requested.connect(move_down_requested.emit)
@@ -33,23 +32,25 @@ func _ready():
 	type_picker.item_selected.connect(_on_type_picker_selected)
 	type_picker.tooltip_text = "Select the type of logic check to perform."
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		edited_condition = null
+
 func update_sort_index(index: int, total_count: int) -> void:
 	if is_instance_valid(sort_editor):
 		sort_editor.set_index(index, total_count)
 		sort_editor.visible = true
 	else:
-		# If you use the ConditionEditor for sub-conditions dynamically 
-		# where no SortEditor exists, this handles it gracefully.
-		#pass
-		sort_editor.visible = false
+		# No SortEditor when ConditionEditor is used for sub-conditions dynamically
+		pass
 
-func edit_condition(condition_res: ConditionResource):
+func edit_condition(condition_res: ConditionResource) -> void:
 	_is_setting_up = true
 	self.edited_condition = condition_res
 	_rebuild_ui()
 	_is_setting_up = false
 
-func _rebuild_ui():
+func _rebuild_ui() -> void:
 	var previous_setup_state = _is_setting_up
 	_is_setting_up = true
 	
@@ -101,10 +102,21 @@ func _rebuild_ui():
 		
 		ConditionResource.ConditionType.CHECK_QUEST_STATUS:
 			var status_picker = OptionButton.new()
-			for status_name in QWEnums.QuestState.keys(): 
+			var core_status_names = ["UNAVAILABLE", "AVAILABLE", "ACTIVE", "COMPLETED", "FAILED"]
+			for status_name in core_status_names:
 				status_picker.add_item(status_name)
-			status_picker.select(edited_condition.expected_status)
-			status_picker.item_selected.connect(_on_option_button_selected.bind("expected_status"))
+			var custom_pool_ids = QWEditorUtils.get_custom_pool_ids_from_settings()
+			for pool_id in custom_pool_ids:
+				status_picker.add_item(str(pool_id))
+			var select_idx := 0
+			if edited_condition.expected_status == QWEnums.QuestState.CUSTOM and not edited_condition.expected_custom_pool_id.is_empty():
+				var pool_idx = custom_pool_ids.find(edited_condition.expected_custom_pool_id)
+				if pool_idx >= 0:
+					select_idx = core_status_names.size() + pool_idx
+			elif edited_condition.expected_status < QWEnums.QuestState.CUSTOM:
+				select_idx = edited_condition.expected_status
+			status_picker.select(mini(select_idx, status_picker.item_count - 1))
+			status_picker.item_selected.connect(_on_quest_status_picker_selected)
 			add_row("Expected Status", status_picker)
 			
 			var quest_id_completer = QWConstants.AutoCompleteLineEditScene.instantiate()
@@ -229,6 +241,25 @@ func _on_checkbox_toggled(is_pressed: bool, property_name: String):
 	if is_instance_valid(edited_condition) and edited_condition.get(property_name) != is_pressed:
 		property_changed.emit(property_name, is_pressed, edited_condition)
 
+func _on_quest_status_picker_selected(index: int):
+	if _is_setting_up: return
+	if not is_instance_valid(edited_condition): return
+	var core_status_count = 5  # UNAVAILABLE, AVAILABLE, ACTIVE, COMPLETED, FAILED (CUSTOM excluded)
+	var custom_pool_ids = QWEditorUtils.get_custom_pool_ids_from_settings()
+	var new_status: int
+	var new_pool_id: StringName = &""
+	if index < core_status_count:
+		new_status = index
+	else:
+		new_status = QWEnums.QuestState.CUSTOM
+		var pool_idx = index - core_status_count
+		if pool_idx >= 0 and pool_idx < custom_pool_ids.size():
+			new_pool_id = custom_pool_ids[pool_idx]
+	if edited_condition.expected_status != new_status:
+		property_changed.emit("expected_status", new_status, edited_condition)
+	if edited_condition.expected_custom_pool_id != new_pool_id:
+		property_changed.emit("expected_custom_pool_id", new_pool_id, edited_condition)
+
 func _on_option_button_selected(index: int, property_name: String):
 	if _is_setting_up: return
 	if is_instance_valid(edited_condition) and edited_condition.get(property_name) != index:
@@ -239,48 +270,21 @@ func _on_line_edit_confirmed(line_edit: LineEdit, property_name: String):
 	var new_text = line_edit.text
 	if is_instance_valid(edited_condition) and edited_condition.get(property_name) != new_text:
 		property_changed.emit(property_name, new_text, edited_condition)
-		
-func _on_autocomplete_confirmed(completer: AutoCompleteLineEdit, property_name: String):
-	if _is_setting_up: return
-	var new_text = completer.text
-	if is_instance_valid(edited_condition) and edited_condition.get(property_name) != new_text:
-		property_changed.emit(property_name, new_text, edited_condition)
-
-func _connect_spinbox_signals(spinbox: SpinBox, property_name: String) -> void:
-	spinbox.focus_entered.connect(_on_spinbox_focus_entered.bind(property_name))
-	spinbox.focus_exited.connect(_on_spinbox_focus_exited.bind(spinbox, property_name))
-	var line_edit = spinbox.get_line_edit()
-	if is_instance_valid(line_edit):
-		line_edit.text_submitted.connect(func(_text): _on_spinbox_focus_exited(spinbox, property_name))
-
-func _on_spinbox_focus_entered(property_name: String) -> void:
-	if is_instance_valid(edited_condition):
-		_spinbox_undo_values[property_name] = edited_condition.get(property_name)
-
-func _on_spinbox_focus_exited(spinbox: SpinBox, property_name: String) -> void:
-	if _is_setting_up: return
-	var new_value = spinbox.value
-	if property_name in ["amount", "sync_value"]:
-		new_value = int(new_value)
-
-	var old_value = _spinbox_undo_values.get(property_name)
-	
-	if is_instance_valid(edited_condition) and old_value != new_value:
-		property_changed.emit(property_name, new_value, edited_condition)
-		_spinbox_undo_values.erase(property_name)
 
 # --- Handlers for Compound Conditions ---
 
-func _on_add_sub_condition_pressed():
+func _on_add_sub_condition_pressed() -> void:
+	if not is_instance_valid(edited_condition): return
 	var new_sub_condition = ConditionResource.new()
 	edited_condition.sub_conditions.append(new_sub_condition)
 	rebuild_requested.emit()
 
-func _on_remove_sub_condition_pressed(index: int):
+func _on_remove_sub_condition_pressed(index: int) -> void:
+	if not is_instance_valid(edited_condition): return
 	edited_condition.sub_conditions.remove_at(index)
 	rebuild_requested.emit()
 
-func add_row(label_text: String, control: Control):
+func add_row(label_text: String, control: Control) -> void:
 	var row = HBoxContainer.new()
 	var label = Label.new()
 	label.text = label_text + ": "

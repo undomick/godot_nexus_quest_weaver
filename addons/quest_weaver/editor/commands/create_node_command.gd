@@ -39,3 +39,7 @@ func execute() -> void:
 func undo() -> void:
 	if is_instance_valid(_created_node_data):
 		_graph.remove_node(_created_node_data.id)
+
+
+func get_created_node_id() -> StringName:
+	return _created_node_data.id if is_instance_valid(_created_node_data) else &""

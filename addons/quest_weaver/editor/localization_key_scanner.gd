@@ -72,14 +72,14 @@ static func _scan_single_file(path: String, results: Dictionary):
 
 	for node_data in data.get("nodes").values():
 		var script_path = node_data.get("@script_path", "").get_file().replace(".gd", "")
-		
+
 		if QWConstants.TRANSLATABLE_FIELDS.has(script_path):
 			for field_name in QWConstants.TRANSLATABLE_FIELDS[script_path]:
 				var text = node_data.get(field_name, "")
 				if not text.is_empty():
 					results[text] = true
 		
-		if script_path == "TaskNodeResource":
+		if script_path == "task_node_resource":
 			for objective_data in node_data.get("objectives", []):
 				var text = objective_data.get("description", "")
 				if not text.is_empty():

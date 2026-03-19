@@ -45,5 +45,11 @@ func from_dictionary(data: Dictionary):
 	self.target_scope_id = StringName(data.get("target_scope_id", &""))
 	self.restart_scope_on_completion = data.get("restart_scope_on_completion", true)
 
+func _validate(_context: Dictionary) -> Array[ValidationResult]:
+	var results: Array[ValidationResult] = []
+	if target_scope_id.is_empty():
+		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Reset Progress: Target Scope ID is not set.", id))
+	return results
+
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL

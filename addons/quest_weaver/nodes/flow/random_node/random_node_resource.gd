@@ -94,7 +94,7 @@ func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
 	self.outputs.clear()
 	for o_data in data.get("outputs", []):
-		var script = load(o_data.get("@script_path"))
+		var script = GraphNodeResource.get_script_cached(o_data.get("@script_path"))
 		if script:
 			var new_o = script.new()
 			new_o.from_dictionary(o_data)

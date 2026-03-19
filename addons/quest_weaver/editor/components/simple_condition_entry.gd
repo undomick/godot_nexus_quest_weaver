@@ -23,12 +23,12 @@ func _ready() -> void:
 	value_edit.focus_exited.connect(_on_value_changed)
 	remove_button.pressed.connect(removed.emit)
 
-func set_data(data: Dictionary):
+func set_data(data: Dictionary) -> void:
 	key_edit.text = data.get("key", "")
-	op_picker.select(data.get("op", 0))
+	op_picker.select(int(data.get("op", 0)))
 	value_edit.text = data.get("value", "")
 
-func _on_value_changed():
+func _on_value_changed() -> void:
 	var new_data = {
 		"key": key_edit.text,
 		"op": op_picker.selected,

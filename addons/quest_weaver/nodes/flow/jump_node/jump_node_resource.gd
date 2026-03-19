@@ -35,3 +35,9 @@ func to_dictionary() -> Dictionary:
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
 	self.target_anchor_name = StringName(data.get("target_anchor_name", &""))
+
+func _validate(_context: Dictionary) -> Array[ValidationResult]:
+	var results: Array[ValidationResult] = []
+	if target_anchor_name.is_empty():
+		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Jump Node: Target anchor name is not set.", id))
+	return results

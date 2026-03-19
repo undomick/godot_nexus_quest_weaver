@@ -20,6 +20,21 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 30)
 layout_mode = 2
 
+[node name="PoolPickerRow" type="HBoxContainer" parent="MainLayout" unique_id=3847291023]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+
+[node name="Label" type="Label" parent="MainLayout/PoolPickerRow" unique_id=2847291024]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Pool: "
+
+[node name="PoolPicker" type="OptionButton" parent="MainLayout/PoolPickerRow" unique_id=3847291025]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 30)
+layout_mode = 2
+
 [node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1011068574]
 layout_mode = 2
 

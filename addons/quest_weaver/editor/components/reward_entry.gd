@@ -1,4 +1,4 @@
-# res://addons/quest_weaver/nodes/logic/quest_context_node/reward_editor_entry.gd
+# res://addons/quest_weaver/editor/components/reward_entry.gd
 @tool
 class_name RewardEditorEntry
 extends VBoxContainer

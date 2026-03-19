@@ -48,8 +48,14 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.target_property = data.get("target_property", TextTarget.ADD_TO_QUEST_LOG)
+	self.target_property = _defensive_load(data, "target_property", TextTarget.keys(), TextTarget.ADD_TO_QUEST_LOG)
 	self.text_content = data.get("text_content", "")
+
+func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
+	var val = data.get(prop, default_val)
+	if val is int and val >= 0 and val < keys.size():
+		return val
+	return default_val
 
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []

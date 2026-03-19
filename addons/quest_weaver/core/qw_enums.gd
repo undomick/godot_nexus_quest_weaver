@@ -10,5 +10,6 @@ enum QuestState {
 	AVAILABLE,   # 1 Visible on Quest Board / Minimap, but logic not running
 	ACTIVE,      # 2 Running
 	COMPLETED,   # 3 Done
-	FAILED       # 4 Failed
+	FAILED,      # 4 Failed
+	CUSTOM       # 5 In a custom pool (see custom_pool_id on QuestInstance)
 }

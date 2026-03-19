@@ -35,7 +35,7 @@ func get_editor_summary() -> String:
 		Operator.DIVIDE: op_text = "/="
 		Operator.TOGGLE: op_text = "~="
 	
-	var var_name_text = variable_name if not variable_name.is_empty() else "???"
+	var var_name_text = String(variable_name) if not variable_name.is_empty() else "???"
 	
 	# For TOGGLE, we don't need to display a value, keeping the UI cleaner.
 	if operator == Operator.TOGGLE:
@@ -50,19 +50,6 @@ func get_description() -> String:
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/setvar.svg")
 
-# Helper function to parse the string into a variant (same as in ConditionResource).
-func _parse_string_to_variant(text: String) -> Variant:
-	var parsed_value: Variant = text
-	if text.is_valid_int():
-		parsed_value = text.to_int()
-	elif text.is_valid_float():
-		parsed_value = text.to_float()
-	elif text.to_lower() == "true":
-		parsed_value = true
-	elif text.to_lower() == "false":
-		parsed_value = false
-	return parsed_value
-
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
 	data["variable_name"] = self.variable_name
@@ -71,11 +58,21 @@ func to_dictionary() -> Dictionary:
 	return data
 
 func from_dictionary(data: Dictionary):
+	if not data is Dictionary:
+		return
 	super.from_dictionary(data)
 	self.variable_name = StringName(data.get("variable_name", &""))
 	self.value_to_set_string = data.get("value_to_set_string", "")
 	self.operator = _defensive_load(data, "operator", Operator.keys(), Operator.SET)
 	_update_ports_from_data()
+
+func _validate(_context: Dictionary) -> Array[ValidationResult]:
+	var results: Array[ValidationResult] = []
+	if variable_name.is_empty():
+		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Set Variable: Variable name is not set.", id))
+	elif operator != Operator.TOGGLE and value_to_set_string.is_empty():
+		results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Set Variable: Value is empty (except for TOGGLE operator).", id))
+	return results
 
 ## PRIVATE METHOD: Checks if an integer value is valid for the enum type.
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:

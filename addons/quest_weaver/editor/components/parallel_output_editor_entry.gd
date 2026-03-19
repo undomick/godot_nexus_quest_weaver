@@ -27,7 +27,7 @@ func _ready() -> void:
 	)
 	condition_editor.rebuild_requested.connect(rebuild_requested.emit)
 
-func set_output_info(p_output_port: ParallelOutputPort) -> void:
+func display_data(p_output_port: ParallelOutputPort) -> void:
 	self.output_port = p_output_port
 	port_name_edit.text = output_port.port_name
 	condition_editor.edit_condition(output_port.condition)

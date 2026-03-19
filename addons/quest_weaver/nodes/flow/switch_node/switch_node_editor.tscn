@@ -1,0 +1,37 @@
+[gd_scene format=3]
+
+[ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_theme"]
+[ext_resource type="Script" path="res://addons/quest_weaver/nodes/flow/switch_node/switch_node_editor.gd" id="2_script"]
+
+[node name="SwitchNodeEditor" type="PanelContainer"]
+theme = ExtResource("1_theme")
+script = ExtResource("2_script")
+
+[node name="MainLayout" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="VariableRow" type="HBoxContainer" parent="MainLayout"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainLayout/VariableRow"]
+layout_mode = 2
+text = "Variable:"
+
+[node name="VariableNameEdit" type="LineEdit" parent="MainLayout/VariableRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "e.g. choice, phase"
+
+[node name="CasesLabel" type="Label" parent="MainLayout"]
+layout_mode = 2
+text = "Cases (Value -> Port):"
+
+[node name="CasesContainer" type="VBoxContainer" parent="MainLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AddCaseButton" type="Button" parent="MainLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Add Case"

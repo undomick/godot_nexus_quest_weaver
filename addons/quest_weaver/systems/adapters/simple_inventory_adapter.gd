@@ -3,7 +3,7 @@
 class_name SimpleInventoryAdapter
 extends QuestInventoryAdapterBase
 
-var _inventory_controller = null
+var _inventory_controller: Node = null
 var _is_initialized_successfully := false
 
 # This function is called by the QuestController at runtime.
@@ -21,11 +21,11 @@ func initialize() -> void:
 	_inventory_controller = tree.get_first_node_in_group("inventory_controller")
 	
 	if not is_instance_valid(_inventory_controller):
-		push_warning("QuestWeaver (SimpleInventoryAdapter): Could not find a node in group 'inventory_controller' in the scene. This adapter will not function.")
+		push_warning("QuestWeaver (SimpleInventoryAdapter): No node in group 'inventory_controller' found. Add a node to this group for Give/Take/Check Item nodes to work.")
 		return
 	
 	# Connect to the controller's signal to propagate the update.
-	if not _inventory_controller.is_connected("inventory_changed", Callable(self, "_on_inventory_changed")):
+	if not _inventory_controller.is_connected(&"inventory_changed", Callable(self, "_on_inventory_changed")):
 		_inventory_controller.inventory_changed.connect(_on_inventory_changed)
 	
 	_is_initialized_successfully = true
@@ -36,24 +36,24 @@ func initialize() -> void:
 		services.logger.log("Inventory", "SimpleInventoryAdapter initialized successfully.")
 
 # Called when the controller signals a change.
-func _on_inventory_changed():
+func _on_inventory_changed() -> void:
 	inventory_updated.emit()
 
 # --- ADAPTER METHOD IMPLEMENTATIONS ---
 # These functions just pass the call directly to the controller.
 
-func count_item(item_id: String) -> int:
-	if not _is_initialized_successfully: return 0
-	return _inventory_controller.count_item(item_id)
+func count_item(item_id: StringName) -> int:
+	if not _is_initialized_successfully or not is_instance_valid(_inventory_controller): return 0
+	return _inventory_controller.count_item(str(item_id))
 
-func check_item(item_id: String, amount: int) -> bool:
-	if not _is_initialized_successfully: return false
-	return _inventory_controller.check_item(item_id, amount)
+func check_item(item_id: StringName, amount: int) -> bool:
+	if not _is_initialized_successfully or not is_instance_valid(_inventory_controller): return false
+	return _inventory_controller.check_item(str(item_id), amount)
 
-func give_item(item_id: String, amount: int) -> void:
-	if not _is_initialized_successfully: return
-	_inventory_controller.give_item(item_id, amount)
+func give_item(item_id: StringName, amount: int) -> void:
+	if not _is_initialized_successfully or not is_instance_valid(_inventory_controller): return
+	_inventory_controller.give_item(str(item_id), amount)
 
-func take_item(item_id: String, amount: int) -> bool:
-	if not _is_initialized_successfully: return false
-	return _inventory_controller.take_item(item_id, amount)
+func take_item(item_id: StringName, amount: int) -> bool:
+	if not _is_initialized_successfully or not is_instance_valid(_inventory_controller): return false
+	return _inventory_controller.take_item(str(item_id), amount)

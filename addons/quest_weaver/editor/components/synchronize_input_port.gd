@@ -11,7 +11,7 @@ extends Resource
 
 func to_dictionary() -> Dictionary:
 	var data: Dictionary = {
-		"@script_path": get_script().get_path(),
+		"@script_path": get_script().resource_path,
 		"port_name": port_name,
 	}
 	return data

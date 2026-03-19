@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://dxx0e86p8puli"]
+
+[ext_resource type="Script" uid="uid://fawybnhb7ggo" path="res://addons/quest_weaver/editor/ui_runtime/quest_board_entry.gd" id="1_board"]
+
+[node name="QuestBoardEntry" type="PanelContainer" unique_id=2039641510]
+custom_minimum_size = Vector2(280, 90)
+size_flags_horizontal = 3
+script = ExtResource("1_board")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1310503170]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=906978824]
+layout_mode = 2
+
+[node name="BoardTitleLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=275520614]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quest Title"
+
+[node name="BoardDescLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=450750382]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+text = "Short description of the quest..."
+autowrap_mode = 2
+
+[node name="AcceptButton" type="Button" parent="MarginContainer/VBoxContainer" unique_id=110095842]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Accept"
+
+[connection signal="pressed" from="MarginContainer/VBoxContainer/AcceptButton" to="." method="_on_accept_pressed"]

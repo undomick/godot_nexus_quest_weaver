@@ -35,6 +35,8 @@ const RemoveRewardCommand = preload("commands/remove_reward_command.gd")
 const AddSimpleConditionCommand = preload("commands/add_simple_condition_command.gd")
 const RemoveSimpleConditionCommand = preload("commands/remove_simple_condition_command.gd")
 const SetSimpleConditionCommand = preload("commands/set_simple_condition_command.gd")
+const AddSwitchCaseCommand = preload("commands/add_switch_case_command.gd")
+const RemoveSwitchCaseCommand = preload("commands/remove_switch_case_command.gd")
 
 
 # --- Dependencies ---
@@ -98,6 +100,11 @@ func on_node_property_update_requested(node_id: StringName, property_name: Strin
 					target_resource = output_port.condition
 				else:
 					target_resource = output_port
+	elif extra.has("case_index"): # SwitchNode case changes
+		var idx: int = extra["case_index"]
+		if is_instance_valid(editable_node) and editable_node is SwitchNodeResource:
+			if idx >= 0 and idx < editable_node.cases.size():
+				target_resource = editable_node.cases[idx]
 	else:
 		target_resource = sub_resource if is_instance_valid(sub_resource) else editable_graph.nodes.get(node_id)
 	
@@ -111,7 +118,7 @@ func on_node_property_update_requested(node_id: StringName, property_name: Strin
 	_history.execute_command(command)
 	
 	node_data_changed.emit(node_id, property_name)
-	_graph_controller.call_deferred("grab_focus")
+	_graph_controller.call_deferred(&"grab_focus")
 
 # Complex actions are actions that require multiple properties to be changed.
 # Example: Adding an objective requires adding a new objective resource and updating the task node's objectives array.
@@ -216,6 +223,18 @@ func on_complex_action_requested(node_id: StringName, action: String, payload: D
 				var new_data: Dictionary = payload.get("new_data", {})
 				if idx >= 0 and idx < node_data.simple_conditions.size():
 					command = SetSimpleConditionCommand.new(node_data, idx, new_data)
+		"add_switch_case":
+			if node_data is SwitchNodeResource: command = AddSwitchCaseCommand.new(node_data)
+		"remove_switch_case":
+			if node_data is SwitchNodeResource:
+				var idx: int = payload.get("index", -1)
+				if idx >= 0 and idx < node_data.cases.size():
+					command = RemoveSwitchCaseCommand.new(editable_graph, node_data, idx)
+		"update_switch_case_name":
+			if node_data is SwitchNodeResource:
+				var idx: int = payload.get("index", -1)
+				if idx >= 0 and idx < node_data.cases.size():
+					command = ChangePropertyCommand.new(node_data.cases[idx], "port_name", StringName(str(payload.get("new_name", ""))))
 		_:
 			push_warning("QWActionHandler: Received unknown complex action '%s'" % action)
 
@@ -315,11 +334,10 @@ func copy_selection_to_clipboard() -> void:
 		return
 
 	var selected_nodes_data: Array[GraphNodeResource] = []
-	for node in _graph_controller.get_children():
-		if node is GraphElement and node.selected:
-			var node_data = current_graph.nodes.get(node.name)
-			if is_instance_valid(node_data):
-				selected_nodes_data.append(node_data)
+	for node_id in _graph_controller.get_selected_node_ids():
+		var node_data = current_graph.nodes.get(node_id)
+		if is_instance_valid(node_data):
+			selected_nodes_data.append(node_data)
 
 	_clipboard.copy_selection_to_clipboard(selected_nodes_data, current_graph.connections)
 
@@ -372,7 +390,7 @@ func _handle_terminal_toggle(graph: QuestGraphResource, node_id: StringName, nod
 	_history.execute_command(composite)
 
 	node_data_changed.emit(node_id, "is_terminal")
-	_graph_controller.call_deferred("grab_focus")
+	_graph_controller.call_deferred(&"grab_focus")
 
 # Helper to create the command
 func _create_sync_pattern_command(node: SynchronizeNodeResource, payload: Dictionary) -> EditorCommand:

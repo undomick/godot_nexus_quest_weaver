@@ -136,10 +136,12 @@ func from_dictionary(data: Dictionary):
 	var objectives_data = data.get("objectives", [])
 	for objective_dict in objectives_data:
 		var script_path = objective_dict.get("@script_path")
-		if script_path and ResourceLoader.exists(script_path):
-			var new_objective = load(script_path).new()
-			new_objective.from_dictionary(objective_dict)
-			self.objectives.append(new_objective)
+		if script_path:
+			var script = GraphNodeResource.get_script_cached(script_path)
+			if script:
+				var new_objective = script.new()
+				new_objective.from_dictionary(objective_dict)
+				self.objectives.append(new_objective)
 	
 	_update_ports_from_data()
 

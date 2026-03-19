@@ -14,6 +14,7 @@ extends Node
 @onready var quest_log_ui: QuestLogUI = %QuestLogUI
 @onready var journal_button: Button = %JournalButton
 @onready var lang_opt_button: OptionButton = %LangOptButton
+@onready var inventory_amount: Label = %InventoryAmount
 
 # Old Man Nestor
 @onready var mq_vbox_container: VBoxContainer = %MQ_VBoxContainer
@@ -36,7 +37,11 @@ func _ready() -> void:
 	inventory_controller = get_tree().get_first_node_in_group("inventory_controller")
 	if not is_instance_valid(inventory_controller):
 		push_error("Test Scene: Could not find the 'inventory_controller' in the scene!")
-	
+	else:
+		if inventory_controller.has_signal("inventory_changed"):
+			inventory_controller.inventory_changed.connect(_update_rewards_display)
+		_update_rewards_display()
+
 	# Hide on startup
 	collect_v_box_container.visible = false
 	old_man_kill_button.visible = false
@@ -103,6 +108,20 @@ func _on_kill_lydia() -> void:
 	
 	if mq_vbox_container_2:
 		mq_vbox_container_2.modulate = Color(0.0, 0.0, 0.0, 0.25)
+
+func _update_rewards_display() -> void:
+	if not is_instance_valid(inventory_controller) or not is_instance_valid(inventory_amount):
+		return
+	if not inventory_controller.has_method("get_all_items"):
+		return
+	var items: Dictionary = inventory_controller.get_all_items()
+	if items.is_empty():
+		inventory_amount.text = "—"
+		return
+	var parts: PackedStringArray = []
+	for item_id in items.keys():
+		parts.append("%s × %d" % [item_id, items[item_id]])
+	inventory_amount.text = ", ".join(parts)
 
 func _on_collect_item(item_id: String, amount: int) -> void:
 	if is_instance_valid(inventory_controller):

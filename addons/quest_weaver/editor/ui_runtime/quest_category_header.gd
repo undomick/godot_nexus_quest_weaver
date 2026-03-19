@@ -28,22 +28,27 @@ func _on_header_toggled(is_button_pressed: bool) -> void:
 func set_category_name(new_name: String) -> void:
 	category_name = new_name
 
-func add_quest_entry(entry_node: QuestLogEntry, quest_type: QuestContextNodeResource.QuestType):
+func add_quest_entry(entry_node: QuestLogEntry, quest_type: QuestContextNodeResource.QuestType) -> void:
 	if quest_type == QuestContextNodeResource.QuestType.MAIN:
 		main_quest_list.add_child(entry_node)
 	else: # SIDE
 		side_quest_list.add_child(entry_node)
 	
-func clear_entries() -> void:
+## Clears entries. If recycle_to is an Array, entries are returned to it instead of freed.
+func clear_entries(recycle_to: Variant = null) -> void:
 	for child in main_quest_list.get_children().duplicate():
-		# Remove the child from the scene tree first.
 		main_quest_list.remove_child(child)
-		# Now that it's detached, free it immediately.
-		child.free()
-		
+		if recycle_to is Array:
+			recycle_to.append(child)
+		else:
+			child.free()
+
 	for child in side_quest_list.get_children().duplicate():
 		side_quest_list.remove_child(child)
-		child.free()
+		if recycle_to is Array:
+			recycle_to.append(child)
+		else:
+			child.free()
 
 func _should_separator_be_visible() -> bool:
 	return main_quest_list.get_child_count() > 0 and side_quest_list.get_child_count() > 0

@@ -3,6 +3,9 @@
 class_name NodeTypeInfo
 extends Resource
 
+## Metadata for a graph node type. Used by NodeTypeRegistry for editor UI and executor lookup.
+## Role: START (one per graph), NORMAL, END.
+
 enum Role { START, NORMAL, END }
 
 @export var node_name: String

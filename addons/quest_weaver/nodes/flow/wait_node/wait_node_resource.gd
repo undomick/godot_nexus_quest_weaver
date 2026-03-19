@@ -28,7 +28,7 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.wait_duration = data.get("wait_duration", 1.0)
+	self.wait_duration = float(data.get("wait_duration", 1.0))
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL

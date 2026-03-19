@@ -22,14 +22,16 @@ func _ready() -> void:
 	# Use the robust focus-based logic for the SpinBox
 	value_spinbox.focus_entered.connect(_on_value_spinbox_focus_entered)
 	value_spinbox.focus_exited.connect(_on_value_spinbox_focus_exited)
-	value_spinbox.get_line_edit().text_submitted.connect(
-		func(_text): _on_value_spinbox_focus_exited()
-	)
+	var line_edit = value_spinbox.get_line_edit()
+	if is_instance_valid(line_edit):
+		line_edit.text_submitted.connect(func(_text): _on_value_spinbox_focus_exited())
 
 func edit_condition(condition_res: ConditionResource) -> void:
 	self.edited_condition = condition_res
-	
-	# Ensure the condition type is correct, silently.
+
+	## Context-specific fix: This editor only handles CHECK_SYNCHRONIZER. If the condition
+	## was another type (e.g. from a template), we coerce it silently without emitting
+	## property_changed to avoid Undo noise. Callers use this editor only for sync conditions.
 	if edited_condition.type != ConditionResource.ConditionType.CHECK_SYNCHRONIZER:
 		edited_condition.type = ConditionResource.ConditionType.CHECK_SYNCHRONIZER
 	

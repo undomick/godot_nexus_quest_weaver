@@ -8,13 +8,9 @@ extends Resource
 @export var port_name: StringName = &"Out"
 @export_range(1, 1000) var weight: int = 50
 
-
-func _init() -> void:
-	pass
-
 func to_dictionary() -> Dictionary:
 	var data: Dictionary = {
-		"@script_path": get_script().get_path(),
+		"@script_path": get_script().resource_path,
 		"port_name": port_name,
 		"weight": weight
 	}

@@ -38,10 +38,20 @@ func to_dictionary() -> Dictionary:
 	return data
 
 func from_dictionary(data: Dictionary):
+	if not data is Dictionary:
+		return
 	super.from_dictionary(data)
 	self.quest_graph_path = data.get("quest_graph_path", "")
 	self.wait_for_completion = data.get("wait_for_completion", true)
 	_update_ports_from_data()
+
+func _validate(_context: Dictionary) -> Array[ValidationResult]:
+	var results: Array[ValidationResult] = []
+	if quest_graph_path.is_empty():
+		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Sub Graph: Quest graph path is not set.", id))
+	elif not ResourceLoader.exists(quest_graph_path):
+		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Sub Graph: File not found at '%s'." % quest_graph_path, id))
+	return results
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL

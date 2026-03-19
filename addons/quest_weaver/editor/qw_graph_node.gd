@@ -36,24 +36,15 @@ func _draw():
 				remaining_text = ""
 				break
 			
-			# Find wrap point by searching backwards for the last space
-			var wrap_index = -1
-			for i in range(remaining_text.length(), 0, -1):
-				var sub = remaining_text.left(i)
-				if font.get_string_size(sub, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x <= available_width:
-					wrap_index = sub.rfind(" ")
-					break
-			
+			# Binary search for wrap point: find largest substring that fits
+			var wrap_index = _find_wrap_index(remaining_text, font, font_size, available_width)
 			if wrap_index > 0:
 				processed_lines.append(remaining_text.left(wrap_index).strip_edges())
 				remaining_text = remaining_text.substr(wrap_index).strip_edges()
 			else:
 				# Fallback: Hard break if a single word is longer than the node width
-				var hard_idx = 1
-				for i in range(remaining_text.length(), 0, -1):
-					if font.get_string_size(remaining_text.left(i), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x <= available_width:
-						hard_idx = i
-						break
+				var hard_idx = _find_wrap_index(remaining_text, font, font_size, available_width)
+				hard_idx = max(1, hard_idx)
 				processed_lines.append(remaining_text.left(hard_idx))
 				remaining_text = remaining_text.substr(hard_idx).strip_edges()
 
@@ -99,6 +90,21 @@ func _draw():
 			HORIZONTAL_ALIGNMENT_LEFT, available_width, font_size, color
 		)
 		current_y += line_spacing
+
+## Binary search for the largest prefix that fits. Returns last-space index if found, else max fitting length.
+func _find_wrap_index(text: String, font: Font, font_size: int, max_width: float) -> int:
+	var low := 1
+	var high := text.length()
+	if high == 0:
+		return 0
+	while low < high:
+		var mid := (low + high + 1) >> 1
+		if font.get_string_size(text.left(mid), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x <= max_width:
+			low = mid
+		else:
+			high = mid - 1
+	var last_space := text.left(low).rfind(" ")
+	return last_space if last_space > 0 else low
 
 # --- HELPER FOR SMART WRAPPING ---
 func _wrap_text_smart(text: String, font: Font, font_size: int, max_width: float) -> PackedStringArray:

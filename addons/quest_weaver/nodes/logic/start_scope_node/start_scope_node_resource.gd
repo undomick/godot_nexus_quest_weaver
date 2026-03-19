@@ -14,7 +14,7 @@ func _init():
 	output_ports = ["On Start", "On Max Reached"]
 
 func get_editor_summary() -> String:
-	var id_text = scope_id if not scope_id.is_empty() else "???"
+	var id_text = String(scope_id) if not scope_id.is_empty() else "???"
 	var limit_text = " (Limit: %d)" % max_executions if max_executions > 0 else " (No Limit)"
 	return "Begin Scope:\n%s\n%s" % [id_text, limit_text]
 
@@ -31,9 +31,18 @@ func to_dictionary() -> Dictionary:
 	return data
 
 func from_dictionary(data: Dictionary):
+	if not data is Dictionary:
+		return
 	super.from_dictionary(data)
 	self.scope_id = StringName(data.get("scope_id", &"my_scope_1"))
-	self.max_executions = data.get("max_executions", 0)
+	var raw = data.get("max_executions", 0)
+	self.max_executions = clamp(int(raw) if (raw is int or raw is float) else 0, 0, 100)
+
+func _validate(_context: Dictionary) -> Array[ValidationResult]:
+	var results: Array[ValidationResult] = []
+	if scope_id.is_empty():
+		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Start Scope: Scope ID is not set.", id))
+	return results
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL

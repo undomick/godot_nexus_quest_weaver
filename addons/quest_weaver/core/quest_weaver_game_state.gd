@@ -1,4 +1,6 @@
 # res://addons/quest_weaver/core/quest_weaver_game_state.gd
+## Autoload singleton for game state: variables, quest status, and kill counts.
+## Registers with QuestWeaverServices and listens to enemy_was_killed for KILL objectives.
 class_name QWGameState
 extends Node
 
@@ -22,12 +24,12 @@ func _ready() -> void:
 
 ## Gets a variable from the game state.
 ## Example: QWGameState.get_variable("player_level")
-func get_variable(key: StringName, default = null):
+func get_variable(key: StringName, default = null) -> Variant:
 	return variables.get(key, default)
 
 ## Sets a variable in the game state.
 ## Example: QWGameState.set_variable("player_level", 10)
-func set_variable(key: StringName, value: Variant):
+func set_variable(key: StringName, value: Variant) -> void:
 	variables[key] = value
 
 ## Checks if a variable exists in the game state.
@@ -49,8 +51,9 @@ func set_quest_status(quest_id: StringName, status: int) -> void:
 
 # --- Kill Tracking ---
 
-func count_kill(enemy_id: String) -> int:
-	return kill_counts.get(enemy_id, 0)
+## Returns the kill count for the given enemy_id. Used by KILL objectives.
+func count_kill(enemy_id: StringName) -> int:
+	return kill_counts.get(str(enemy_id), 0)
 
 func _on_enemy_was_killed(enemy_id: StringName) -> void:
 	var key = String(enemy_id)
@@ -59,6 +62,14 @@ func _on_enemy_was_killed(enemy_id: StringName) -> void:
 
 # --- Save/Load Support ---
 
+## Normalizes dictionary keys to StringName (JSON often yields String keys).
+static func _normalize_keys_to_stringname(d: Dictionary) -> Dictionary:
+	var out: Dictionary = {}
+	for k in d:
+		out[StringName(str(k))] = d[k]
+	return out
+
+## Serializes variables, quest_states, and kill_counts for persistence.
 func get_save_data() -> Dictionary:
 	return {
 		"variables": variables.duplicate(true),
@@ -66,7 +77,14 @@ func get_save_data() -> Dictionary:
 		"kill_counts": kill_counts.duplicate()
 	}
 
+## Restores variables, quest_states, and kill_counts from a previously saved dictionary.
 func load_from_data(data: Dictionary) -> void:
-	variables = data.get("variables", {}).duplicate(true)
-	quest_states = data.get("quest_states", {}).duplicate(true)
-	kill_counts = data.get("kill_counts", {}).duplicate()
+	if data == null:
+		push_warning("QWGameState: load_from_data called with null.")
+		return
+	var v = data.get("variables", {})
+	var qs = data.get("quest_states", {})
+	var kc = data.get("kill_counts", {})
+	variables = _normalize_keys_to_stringname(v if v is Dictionary else {}).duplicate(true)
+	quest_states = _normalize_keys_to_stringname(qs if qs is Dictionary else {}).duplicate(true)
+	kill_counts = _normalize_keys_to_stringname(kc if kc is Dictionary else {}).duplicate()

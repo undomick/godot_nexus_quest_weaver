@@ -28,7 +28,7 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 	
 	terminal_checkbox.button_pressed = node_data.is_terminal
 	
-	call_deferred("_rebuild_payload_list")
+	call_deferred(&"_rebuild_payload_list")
 	
 	_is_setting_up = false
 
@@ -123,5 +123,3 @@ func _on_entry_type_changed(new_type_index: int, entry: EventNodeResource.Payloa
 func _on_terminal_toggled(pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.is_terminal != pressed:
 		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed, null, {})
-		edited_node_data.is_terminal = pressed
-		edited_node_data._update_ports_from_data()

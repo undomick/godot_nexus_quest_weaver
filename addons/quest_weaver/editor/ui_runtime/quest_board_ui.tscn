@@ -1,0 +1,92 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/ui_runtime/quest_board_ui.gd" id="1_qbui"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.08, 0.08, 0.1, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+
+[node name="QuestBoardUI" type="CanvasLayer"]
+script = ExtResource("1_qbui")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -200.0
+offset_right = 220.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Available Quests"
+
+[node name="HSeparator" type="HSeparator" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ContentContainer" type="Control" parent="Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 280)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/MarginContainer/VBoxContainer/ContentContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BoardQuestListContainer" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/ContentContainer/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="CenterContainer" type="CenterContainer" parent="Panel/MarginContainer/VBoxContainer/ContentContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BoardEmptyLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/ContentContainer/CenterContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No quests available."
+
+[node name="BoardCloseButton" type="Button" parent="Panel/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Close"
+
+[connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/BoardCloseButton" to="." method="_on_close_button_pressed"]

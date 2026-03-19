@@ -82,11 +82,23 @@ func from_dictionary(data: Dictionary):
 	var entries_data = data.get("payload_entries", [])
 	for entry_dict in entries_data:
 		var new_entry = PayloadEntry.new()
-		new_entry.key = entry_dict.get("key", "")
-		new_entry.value_string = entry_dict.get("value_string", "")
-		new_entry.value_type = entry_dict.get("value_type", PayloadEntry.Type.STRING)
+		new_entry.key = StringName(entry_dict.get("key", &"my_key"))
+		new_entry.value_string = str(entry_dict.get("value_string", ""))
+		new_entry.value_type = _defensive_load(entry_dict, "value_type", PayloadEntry.Type.keys(), PayloadEntry.Type.STRING)
 		self.payload_entries.append(new_entry)
 	_update_ports_from_data()
+
+func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
+	var val = data.get(prop, default_val)
+	if val is int and val >= 0 and val < keys.size():
+		return val
+	return default_val
+
+func _validate(_context: Dictionary) -> Array[ValidationResult]:
+	var results: Array[ValidationResult] = []
+	if event_name.is_empty():
+		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Event Node: Event name is not set.", id))
+	return results
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL

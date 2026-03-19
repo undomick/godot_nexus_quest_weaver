@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://bqx7qm8n2k4wp"]
+
+[ext_resource type="Script" path="res://addons/quest_weaver/core/benchmarks/qw_performance_benchmark.gd" id="1_bench"]
+[ext_resource type="Script" path="res://addons/quest_weaver/core/quest_controller.gd" id="2_ctrl"]
+
+[node name="BenchmarkRunner" type="Node"]
+script = ExtResource("1_bench")
+
+[node name="QuestController" type="Node" parent="."]
+script = ExtResource("2_ctrl")

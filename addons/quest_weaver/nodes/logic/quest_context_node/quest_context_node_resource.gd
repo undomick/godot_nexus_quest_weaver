@@ -46,23 +46,8 @@ func get_description() -> String:
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/context.svg")
 
-# --- EDITOR COMMANDS ---
-
-func add_new_reward() -> void:
-	# No Class instantiation! Just a dictionary.
-	var new_reward = {
-		"id": &"",
-		"amount": 1,
-		"linked_objective_id": &"",
-		"description": ""
-	}
-	rewards.append(new_reward)
-	emit_changed()
-
-func remove_reward_at(index: int) -> void:
-	if index >= 0 and index < rewards.size():
-		rewards.remove_at(index)
-		emit_changed()
+## Reward editing is done via AddRewardCommand / RemoveRewardCommand in the editor.
+## The qw_action_handler uses these commands; do not add direct mutators here.
 
 # --- SERIALIZATION ---
 
@@ -78,6 +63,9 @@ func to_dictionary() -> Dictionary:
 	return data
 
 func from_dictionary(data: Dictionary):
+	if not data is Dictionary:
+		push_error("QuestContextNodeResource: from_dictionary requires a valid Dictionary.")
+		return
 	super.from_dictionary(data)
 	self.quest_type = _defensive_load(data, "quest_type", QuestType.keys(), QuestType.SIDE)
 	self.quest_id = StringName(data.get("quest_id", &""))
@@ -104,13 +92,14 @@ func from_dictionary(data: Dictionary):
 	# Migration Fallback (Old logic)
 	elif data.has("rewards_summary"):
 		var old_dict = data.get("rewards_summary", {})
-		for k in old_dict:
-			self.rewards.append({
-				"id": StringName(k),
-				"amount": int(old_dict[k]),
-				"linked_objective_id": &"",
-				"description": ""
-			})
+		if old_dict is Dictionary:
+			for k in old_dict:
+				self.rewards.append({
+					"id": StringName(k),
+					"amount": int(old_dict[k]),
+					"linked_objective_id": &"",
+					"description": ""
+				})
 
 ## PRIVATE METHOD: Checks if an integer value is valid for the enum type.
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:

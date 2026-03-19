@@ -41,6 +41,16 @@ layout_mode = 2
 text = "Validate Active Quest"
 icon = SubResource("DPITexture_63uxm")
 
+[node name="ValidateSidePanelButton" type="Button" parent="HSplitContainer/ButtonsContainer/HorizontalBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Validate Opened Quests"
+
+[node name="ValidateAllButton" type="Button" parent="HSplitContainer/ButtonsContainer/HorizontalBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Validate All Quests"
+
 [node name="ValidationPanel" type="PanelContainer" parent="HSplitContainer/ButtonsContainer"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -51,5 +61,5 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 50)
 layout_mode = 2
-columns = 3
+columns = 4
 column_titles_visible = true

@@ -35,14 +35,19 @@ func _can_drop_data(_at_position, data) -> bool:
 	return false
 
 func _drop_data(_at_position, data) -> void:
-	var file_path = data.get("files")[0]
+	var files = data.get("files", [])
+	if not files is Array or files.is_empty():
+		return
+	var file_path = files[0]
+	if not file_path is String or not file_path.ends_with(".quest"):
+		return
 	_on_path_confirmed(file_path)
 
 func _on_browse_button_pressed():
 	var dialog: QuestFileDialog = QWConstants.QuestFileDialogScene.instantiate()
 	get_tree().root.add_child(dialog)
 	dialog.path_confirmed.connect(_on_path_confirmed)
-	dialog.prompt(QuestFileDialog.Mode.OPEN_FILE)
+	dialog.show_for_mode(QuestFileDialog.QuestDialogMode.OPEN_FILE)
 
 func _on_path_confirmed(new_path: String = ""):
 	if new_path.is_empty():
@@ -61,7 +66,7 @@ func _on_wait_toggled(button_state: bool):
 		property_update_requested.emit(edited_node_data.id, "wait_for_completion", button_state, null, {})
 
 func _on_dive_in_pressed():
-	if not dive_in_button.disabled:
+	if not dive_in_button.disabled and is_instance_valid(edited_node_data):
 		dive_in_requested.emit(edited_node_data.quest_graph_path)
 
 func _update_dive_in_button_state():
@@ -71,5 +76,3 @@ func _update_dive_in_button_state():
 func _on_terminal_toggled(pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.is_terminal != pressed:
 		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed, null, {})
-		edited_node_data.is_terminal = pressed
-		edited_node_data._update_ports_from_data()

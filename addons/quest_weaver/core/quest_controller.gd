@@ -8,6 +8,13 @@ signal quest_started(quest_id: StringName)
 signal quest_completed(quest_id: StringName)
 signal quest_failed(quest_id: StringName)
 signal quest_data_changed(quest_id: StringName)
+## Emitted when active objective markers (waypoints for map/minimap) may have changed.
+## Connect to refresh your map UI. Use get_active_objective_markers() to get the new list.
+signal quest_markers_changed
+## Emitted when a quest is successfully accepted (started) via start_quest_id.
+signal quest_accepted(quest_id: StringName)
+## Emitted when the player explicitly rejects an AVAILABLE quest via reject_quest_id.
+signal quest_rejected(quest_id: StringName)
 
 # --- MANAGER INSTANCES ---
 var _timer_manager: QuestTimerManager
@@ -16,16 +23,16 @@ var _event_manager: QuestEventManager
 var _scope_manager: QuestScopeManager
 var _persistence_manager: QuestStatePersistenceManager
 var _execution_context: ExecutionContext
+var _presentation_manager: PresentationManager
 var _inventory_adapter: QuestInventoryAdapterBase = null
 var _kill_adapter: QuestKillAdapterBase = null
-var _presentation_manager: PresentationManager
 var _logger: QWLogger
 
-# === STATE MANAGEMENT (v1.0) ===
+# === STATE MANAGEMENT (v1.5 - Pool Pattern) ===
 
-# Holds the runtime data objects (QuestInstance). 
-# Key: File ID (String) | Value: QuestInstance
-var _active_instances: Dictionary = {}
+# Manages five predefined pools (UNAVAILABLE, AVAILABLE, ACTIVE, COMPLETED, FAILED).
+# Provides O(1) instance lookup via internal registry.
+var _pool_registry: QuestPoolRegistry
 
 # === STATIC DEFINITIONS (BLUEPRINTS) ===
 
@@ -48,6 +55,12 @@ var _node_to_file_id_map: Dictionary = {}
 # Cache for Auto-Loading (Logical ID (StringName) -> File Path (String))
 var _registry_map: Dictionary = {}
 
+# O(1) lookup: File basename (StringName) -> File Path (String). Populated in _load_registry_cache.
+var _file_basename_to_path: Dictionary = {}
+
+# O(1) lookup: Logical/File ID (StringName) -> File ID (StringName). Populated on load and instance registration.
+var _logical_id_to_file_id: Dictionary = {}
+
 # Startup Queue to handle API calls made before _ready is finished
 var _is_initialized: bool = false
 var _startup_queue: Array[Callable] = []
@@ -55,8 +68,30 @@ var _startup_queue: Array[Callable] = []
 # Flag to prevent double cleanup
 var _is_shutting_down: bool = false
 
+# Cached reference to QuestWeaverGlobal event bus
+var _event_bus_cache: Node = null
+## True when global signals (quest_event_fired, interacted_with_object, etc.) were connected.
+## When false, interaction/location/kill objectives will not trigger from the event bus.
+var _event_bus_connected: bool = false
+
 var _call_stack: Array[Dictionary] = []
 var _node_registry: NodeTypeRegistry
+
+## Optional acceptance conditions per quest. Key: quest_id (StringName) -> Array[Callable].
+## Each Callable must return bool. All must return true for can_accept_quest to pass.
+var _acceptance_conditions: Dictionary = {}
+
+# O(1) lookup: Objective ID (StringName) -> ObjectiveResource. Built in _load_graph_data.
+var _objective_id_to_resource: Dictionary = {}
+
+# O(1) lookup: Objective ID (StringName) -> File ID (StringName). Populated when TaskNode registers listeners.
+var _objective_id_to_file_id: Dictionary = {}
+
+# O(1) lookup: Node ID (StringName) -> Quest path (String). Populated in _load_graph_data.
+var _node_id_to_quest_path: Dictionary = {}
+
+# O(1) anchor lookup: graph_path (String) -> { anchor_name (String) -> AnchorNodeResource }. Populated in _load_graph_data.
+var _anchor_name_to_node: Dictionary = {}
 
 
 # --- INITIALIZATION & LIFECYCLE ---
@@ -73,8 +108,15 @@ func _get_logger() -> QWLogger:
 	if is_instance_valid(services): return services.logger
 	return null
 
+func _get_event_bus() -> Node:
+	if is_instance_valid(_event_bus_cache): return _event_bus_cache
+	if is_inside_tree():
+		_event_bus_cache = get_tree().root.get_node_or_null("QuestWeaverGlobal")
+	return _event_bus_cache
+
 func _ready() -> void:	
-	var global_bus = get_tree().root.get_node_or_null("QuestWeaverGlobal")
+	quest_data_changed.connect(_emit_markers_changed)
+	var global_bus = _get_event_bus()
 	if is_instance_valid(global_bus):
 		global_bus.register_controller(self)
 	
@@ -84,34 +126,80 @@ func _ready() -> void:
 	
 	_initialize_dependencies_and_start()
 	_send_debug_message("session_started")
+	if OS.is_debug_build():
+		_register_performance_monitors()
 
+func _register_performance_monitors() -> void:
+	Performance.add_custom_monitor("QuestWeaver/RuntimeTotal", func() -> float: return float(_pool_registry.get_instance_count()))
+	Performance.add_custom_monitor("QuestWeaver/StateActive", func() -> float: return float(_pool_registry.get_pool_for_state(QWEnums.QuestState.ACTIVE).get_instance_count()))
+	Performance.add_custom_monitor("QuestWeaver/StateCompleted", func() -> float: return float(_pool_registry.get_pool_for_state(QWEnums.QuestState.COMPLETED).get_instance_count()))
+	Performance.add_custom_monitor("QuestWeaver/StateFailed", func() -> float: return float(_pool_registry.get_pool_for_state(QWEnums.QuestState.FAILED).get_instance_count()))
+	Performance.add_custom_monitor("QuestWeaver/StateAvailable", func() -> float: return float(_pool_registry.get_pool_for_state(QWEnums.QuestState.AVAILABLE).get_instance_count()))
+	Performance.add_custom_monitor("QuestWeaver/StateUnavailable", func() -> float: return float(_pool_registry.get_pool_for_state(QWEnums.QuestState.UNAVAILABLE).get_instance_count()))
+
+func _unregister_performance_monitors() -> void:
+	for id in ["QuestWeaver/RuntimeTotal", "QuestWeaver/StateActive", "QuestWeaver/StateCompleted", "QuestWeaver/StateFailed", "QuestWeaver/StateAvailable", "QuestWeaver/StateUnavailable"]:
+		if Performance.has_custom_monitor(id):
+			Performance.remove_custom_monitor(id)
+
+func _emit_markers_changed(_sid: StringName) -> void:
+	quest_markers_changed.emit()
+
+## Returns true if the controller is shutting down. Managers use this to avoid scheduling deferred work during cleanup.
+func is_shutting_down() -> bool:
+	return _is_shutting_down
+
+## Returns true if QuestWeaverGlobal event bus was found and signals were connected.
+## When false, interaction/location/kill objectives will not receive events.
+func is_event_bus_connected() -> bool:
+	return _event_bus_connected
+
+## Full cleanup when exiting the tree. Clears all managers, maps, and sets references to null.
+## Use this for scene/node teardown (NOTIFICATION_EXIT_TREE).
+## For programmatic "soft" shutdown (e.g. WM_CLOSE_REQUEST), prefer [method shutdown] which keeps manager instances but clears runtime state.
 func _on_exit_cleanup() -> void:
+	_is_shutting_down = true
+	if OS.is_debug_build():
+		_unregister_performance_monitors()
 	_send_debug_message("session_ended")
 	
 	if is_instance_valid(_timer_manager): _timer_manager.clear_all_timers()
 	if is_instance_valid(_sync_manager): _sync_manager.clear()
 	if is_instance_valid(_event_manager): _event_manager.clear()
 	if is_instance_valid(_scope_manager): _scope_manager.clear()
+	if is_instance_valid(_presentation_manager): _presentation_manager.force_close_current()
+
+	if is_instance_valid(_execution_context):
+		_execution_context.cleanup()
 
 	_timer_manager = null
 	_sync_manager = null
 	_event_manager = null
 	_scope_manager = null
 	_persistence_manager = null
-	_execution_context = null 
+	_execution_context = null
 	_node_registry = null
 	_inventory_adapter = null
 	_kill_adapter = null
 	_presentation_manager = null
 	_logger = null
+	_event_bus_cache = null
 	
-	_active_instances.clear()
+	if is_instance_valid(_pool_registry):
+		_pool_registry.clear_all()
 	_node_definitions.clear()
 	_node_connections.clear()
 	_quest_node_map.clear()
 	_id_to_context_node_map.clear()
 	_node_to_file_id_map.clear()
-	
+	_logical_id_to_file_id.clear()
+	_objective_id_to_resource.clear()
+	_objective_id_to_file_id.clear()
+	_node_id_to_quest_path.clear()
+	_registry_map.clear()
+	_file_basename_to_path.clear()
+	_anchor_name_to_node.clear()
+
 	QWConstants.clear_static_references()
 
 func _initialize_dependencies_and_start() -> void:
@@ -129,16 +217,23 @@ func _initialize_dependencies_and_start() -> void:
 		await services.game_state_ready
 	
 	start_all_loaded_graphs()
-	
+
+	# --- DEBUG: Register and sync instances to editor viewer
+	_send_debug_message("register", [get_instance_id()])
+	for inst in _pool_registry.get_all_instances():
+		_send_instance_update(inst)
+
 	# --- PROCESS QUEUE ---
 	_is_initialized = true
 	if not _startup_queue.is_empty():
-		if _logger: _logger.log("System", "Processing %d queued startup commands..." % _startup_queue.size())
-		for command in _startup_queue:
-			command.call()
+		var queue_copy = _startup_queue.duplicate()
 		_startup_queue.clear()
+		if _logger: _logger.log("System", "Processing %d queued startup commands..." % queue_copy.size())
+		for command in queue_copy:
+			command.call()
 
-func _initialize_managers():
+func _initialize_managers() -> void:
+	_pool_registry = QuestPoolRegistry.new()
 	_persistence_manager = QuestStatePersistenceManager.new()
 	_timer_manager = QuestTimerManager.new(self)
 	_sync_manager = QuestSyncManager.new(self)
@@ -156,7 +251,7 @@ func _initialize_managers():
 		add_child(_presentation_manager)
 		services.register_presentation_manager(_presentation_manager)
 
-func _register_executors():
+func _register_executors() -> void:
 	_node_registry = NodeTypeRegistry.new()
 	if not is_instance_valid(_node_registry):
 		push_error("QuestController: Could not load NodeTypeRegistry!")
@@ -195,9 +290,11 @@ func _initialize_quest_graphs() -> void:
 
 	logger.log("Flow", "Initialization complete.")
 
-func _initialize_inventory_adapter():
+func _initialize_inventory_adapter() -> void:
 	var logger = _logger
-	var adapter_path = QWConstants.get_settings().inventory_adapter_script
+	var settings = QWConstants.get_settings()
+	if not is_instance_valid(settings): return
+	var adapter_path = settings.inventory_adapter_script
 	
 	if adapter_path and not adapter_path.is_empty() and ResourceLoader.exists(adapter_path):
 		var adapter_script = load(adapter_path)
@@ -213,9 +310,11 @@ func _initialize_inventory_adapter():
 	elif is_instance_valid(logger):
 		logger.warn("Inventory", "No Inventory Adapter configured. Item-related quests will not function.")
 
-func _initialize_kill_adapter():
+func _initialize_kill_adapter() -> void:
 	var logger = _logger
-	var adapter_path = QWConstants.get_settings().kill_adapter_script
+	var settings = QWConstants.get_settings()
+	if not is_instance_valid(settings): return
+	var adapter_path = settings.kill_adapter_script
 	if adapter_path and not adapter_path.is_empty() and ResourceLoader.exists(adapter_path):
 		var adapter_script = load(adapter_path)
 		if is_instance_valid(adapter_script):
@@ -230,9 +329,10 @@ func _initialize_kill_adapter():
 		logger.warn("Flow", "No Kill Adapter configured. KILL objectives use event-based tracking.")
 
 func _connect_global_signals() -> void:
-	var event_bus = get_tree().root.get_node_or_null("QuestWeaverGlobal")
+	_event_bus_connected = false
+	var event_bus = _get_event_bus()
 	if not is_instance_valid(event_bus):
-		push_warning("[QuestController] QuestWeaverGlobal Singleton could not be found.")
+		push_warning("[QuestController] QuestWeaverGlobal Singleton could not be found. Interaction/location/kill objectives will not trigger.")
 		return
 
 	if not event_bus.quest_event_fired.is_connected(_event_manager.on_global_event):
@@ -243,11 +343,13 @@ func _connect_global_signals() -> void:
 		event_bus.enemy_was_killed.connect(_on_enemy_was_killed)
 	if not event_bus.entered_location.is_connected(_on_entered_location):
 		event_bus.entered_location.connect(_on_entered_location)
+	_event_bus_connected = true
 
 # --- PUBLIC API ---
 
+## Marks a quest as AVAILABLE (e.g. for Quest Board). Auto-loads if registered.
 func set_quest_available(query_id: StringName) -> void:
-	if query_id == &"": return
+	if query_id.is_empty(): return
 	
 	# Ensure loaded logic (similar to start_quest_id)
 	if not _ensure_quest_loaded(query_id):
@@ -255,34 +357,71 @@ func set_quest_available(query_id: StringName) -> void:
 		return
 
 	var file_id = _resolve_instance_file_id(query_id)
-	var instance = _active_instances.get(file_id)
-	
-	# Create if missing
-	if not instance:
-		instance = QuestInstance.new(file_id)
-		_active_instances[file_id] = instance
-		# Apply logical ID from map if possible
-		var ctx = _id_to_context_node_map.get(query_id)
-		if ctx: instance.quest_id = ctx.quest_id
+	var instance = _get_or_create_instance(file_id, query_id)
 
-	# Only change if currently UNAVAILABLE. 
+	# Only change if currently UNAVAILABLE.
 	if instance.current_status == QWEnums.QuestState.UNAVAILABLE:
-		instance.current_status = QWEnums.QuestState.AVAILABLE
+		_pool_registry.move_instance_to_pool(instance, QWEnums.QuestState.AVAILABLE)
 		
-		var signal_id = instance.quest_id if instance.quest_id != &"" else instance.file_id
+		var signal_id = _get_signal_id_for_instance(instance)
 		quest_became_available.emit(signal_id)
 		quest_data_changed.emit(signal_id)
+		_send_instance_update(instance)
 		
 		if _logger: _logger.log("Flow", "Quest '%s' marked as AVAILABLE." % signal_id)
 
-## Getter for Quest Boards
-func get_available_quests() -> Array[StringName]:
+func _get_quest_ids_by_status(status: int) -> Array[StringName]:
 	var list: Array[StringName] = []
-	for instance: QuestInstance in _active_instances.values():
-		if instance.current_status == QWEnums.QuestState.AVAILABLE:
-			var q_id = instance.quest_id if instance.quest_id != &"" else instance.file_id
-			list.append(q_id)
+	var pool = _pool_registry.get_pool_for_state(status)
+	for instance: QuestInstance in pool.get_all_instances():
+		var q_id = _get_signal_id_for_instance(instance)
+		list.append(q_id)
 	return list
+
+## Getter for Quest Boards (Pool-style API)
+func get_available_quests() -> Array[StringName]:
+	return _get_quest_ids_by_status(QWEnums.QuestState.AVAILABLE)
+
+# --- ACCEPT/REJECT API ---
+
+## Returns all quests currently ACTIVE.
+func get_active_quests() -> Array[StringName]:
+	return _get_quest_ids_by_status(QWEnums.QuestState.ACTIVE)
+
+## Returns all quests that are COMPLETED (success).
+func get_completed_quests() -> Array[StringName]:
+	return _get_quest_ids_by_status(QWEnums.QuestState.COMPLETED)
+
+## Returns all quests that are FAILED.
+func get_failed_quests() -> Array[StringName]:
+	return _get_quest_ids_by_status(QWEnums.QuestState.FAILED)
+
+## Returns IDs of all custom pools (from additional_pool_scripts).
+func get_all_custom_pool_ids() -> Array[StringName]:
+	return _pool_registry.get_all_pool_ids()
+
+## Returns quest IDs (signal_id) in a custom pool.
+func get_quests_in_pool(pool_id: StringName) -> Array[StringName]:
+	return _pool_registry.get_quests_in_pool(pool_id)
+
+## Moves a quest instance to a custom pool. Quest must exist and pool_id must be registered.
+func move_quest_to_custom_pool(quest_id: StringName, pool_id: StringName) -> void:
+	if not _is_valid_quest_id(quest_id) or pool_id.is_empty():
+		push_warning("[QuestController] move_quest_to_custom_pool: invalid quest_id or pool_id.")
+		return
+	if not _pool_registry.get_pool_by_id(pool_id):
+		push_warning("[QuestController] move_quest_to_custom_pool: unknown pool '%s'." % pool_id)
+		return
+	if not _ensure_quest_loaded(quest_id):
+		if _logger: _logger.warn("Flow", "move_quest_to_custom_pool: Could not load '%s'." % quest_id)
+		return
+	var file_id = _resolve_instance_file_id(quest_id)
+	var instance = _get_or_create_instance(file_id, quest_id)
+	_pool_registry.move_instance_to_custom_pool(instance, pool_id)
+	var signal_id = _get_signal_id_for_instance(instance)
+	quest_data_changed.emit(signal_id)
+	_send_instance_update(instance)
+	if _logger: _logger.log("Flow", "Quest '%s' moved to custom pool '%s'." % [signal_id, pool_id])
 
 ## Main entry point to activate a quest logic flow.
 ## Sets status to ACTIVE, registers Logical ID, and emits signals.
@@ -291,23 +430,20 @@ func start_quest(context_node: QuestContextNodeResource) -> void:
 	
 	# 1. Resolve File ID
 	var file_id = _node_to_file_id_map.get(context_node.id, &"")
-	if file_id == &"":
+	if file_id.is_empty():
 		if logger: logger.error("Flow", "ContextNode '%s' is not mapped to a file instance." % context_node.id)
 		return
 		
 	# 2. Get or Create Instance
-	var instance = _active_instances.get(file_id)
-	if not instance:
-		instance = QuestInstance.new(file_id)
-		_active_instances[file_id] = instance
-	
-	# 3. Register Logical ID (from Context)
+	var instance = _get_or_create_instance(file_id, context_node.quest_id)
+	# Register Logical ID if not already set
 	if not context_node.quest_id.is_empty():
 		instance.quest_id = context_node.quest_id
+		_update_logical_id_map(instance.quest_id, file_id)
 
 	# 4. Activate Logic (Only if not already running)
 	if instance.current_status < QWEnums.QuestState.ACTIVE:
-		instance.current_status = QWEnums.QuestState.ACTIVE
+		_pool_registry.move_instance_to_pool(instance, QWEnums.QuestState.ACTIVE)
 		
 		if not context_node.log_on_start.is_empty():
 			var resolved_log = instance.resolve_text(context_node.log_on_start, null)
@@ -316,12 +452,81 @@ func start_quest(context_node: QuestContextNodeResource) -> void:
 		if logger: 
 			logger.log("Flow", "Quest '%s' (File: %s) set to ACTIVE. LogicID: %s" % [context_node.quest_title, file_id, instance.quest_id])
 		
-		var signal_id = instance.quest_id if not instance.quest_id.is_empty() else file_id
+		var signal_id = _get_signal_id_for_instance(instance)
 		quest_started.emit(signal_id)
+		quest_accepted.emit(signal_id)
 		quest_data_changed.emit(signal_id)
+		_send_instance_update(instance)
 
-## Starts a quest using its Logical ID. Auto-loads if registered.
+## Returns true if the quest can be accepted (AVAILABLE, not rejected, all acceptance conditions pass).
+func can_accept_quest(quest_id: StringName) -> bool:
+	if not _is_valid_quest_id(quest_id):
+		return false
+	if not _ensure_quest_loaded(quest_id):
+		return false
+	var file_id = _resolve_instance_file_id(quest_id)
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
+	if not instance:
+		return false
+	if instance.current_status != QWEnums.QuestState.AVAILABLE:
+		return false
+	if instance.rejected_by_player:
+		return false
+	var conditions: Array = _acceptance_conditions.get(quest_id, []) + _acceptance_conditions.get(file_id, [])
+	for cond in conditions:
+		if cond is Callable and cond.is_valid() and not cond.call():
+			return false
+	return true
+
+## Marks an AVAILABLE quest as rejected by the player. Emits quest_rejected. Quest stays AVAILABLE but rejected_by_player is set.
+func reject_quest_id(quest_id: StringName) -> void:
+	if not _is_valid_quest_id(quest_id):
+		push_warning("[QuestController] reject_quest_id called with empty quest_id.")
+		return
+	if not _is_initialized:
+		_startup_queue.append(func(): reject_quest_id(quest_id))
+		return
+	if not _ensure_quest_loaded(quest_id):
+		return
+	var file_id = _resolve_instance_file_id(quest_id)
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
+	if not instance: return
+	if instance.current_status != QWEnums.QuestState.AVAILABLE: return
+	instance.rejected_by_player = true
+	var signal_id = _get_signal_id_for_instance(instance)
+	quest_rejected.emit(signal_id)
+	quest_data_changed.emit(signal_id)
+	_send_instance_update(instance)
+	if _logger: _logger.log("Flow", "Quest '%s' rejected by player." % signal_id)
+
+## Adds a Callable condition for accepting a quest. The Callable must return bool.
+func add_acceptance_condition(quest_id: StringName, condition: Callable) -> void:
+	if not _is_valid_quest_id(quest_id):
+		return
+	if not _acceptance_conditions.has(quest_id):
+		_acceptance_conditions[quest_id] = []
+	_acceptance_conditions[quest_id].append(condition)
+
+## Clears all acceptance conditions for a quest. Removes entries for both quest_id and file_id,
+## matching the lookup logic in can_accept_quest.
+func clear_acceptance_conditions(quest_id: StringName) -> void:
+	if quest_id.is_empty(): return
+	_acceptance_conditions.erase(quest_id)
+	var file_id = _resolve_instance_file_id(quest_id)
+	if not file_id.is_empty() and file_id != quest_id:
+		_acceptance_conditions.erase(file_id)
+
+## Returns true if the player previously rejected this quest while it was AVAILABLE.
+func was_quest_rejected(quest_id: StringName) -> bool:
+	var file_id = _resolve_instance_file_id(quest_id)
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
+	return instance != null and instance.rejected_by_player
+
+## Starts a quest using its Logical ID. Auto-loads if registered. Fails if can_accept_quest returns false.
 func start_quest_id(quest_id: StringName) -> void:
+	if not _is_valid_quest_id(quest_id):
+		push_warning("[QuestController] start_quest_id called with empty quest_id.")
+		return
 	if not _is_initialized:
 		_startup_queue.append(func(): start_quest_id(quest_id))
 		return
@@ -339,14 +544,17 @@ func start_quest_id(quest_id: StringName) -> void:
 
 ## Starts a quest using its File ID (filename).
 func start_quest_file(file_id: StringName) -> void:
+	if not _is_valid_quest_id(file_id):
+		push_warning("[QuestController] start_quest_file called with empty file_id.")
+		return
 	if not _is_initialized:
 		_startup_queue.append(func(): start_quest_file(file_id))
 		return
 	
 	# 1. Check if already loaded/active
 	var resolved_id = _resolve_instance_file_id(file_id)
-	if _active_instances.has(resolved_id):
-		var instance = _active_instances[resolved_id]
+	if _pool_registry.has_instance(resolved_id):
+		var instance = _pool_registry.get_instance_by_file_id(resolved_id)
 		if instance.current_status == QWEnums.QuestState.UNAVAILABLE:
 			_start_specific_graph_entry(resolved_id)
 		return
@@ -356,32 +564,36 @@ func start_quest_file(file_id: StringName) -> void:
 		start_sub_graph(_registry_map[file_id])
 		return
 	
-	# 3. Fallback: Search in Registry Values (Paths) to find filename match
-	# Note: This loop compares strings
-	var file_id_str = String(file_id)
-	for path in _registry_map.values():
-		if path.get_file().get_basename() == file_id_str:
-			start_sub_graph(path)
-			return
-			
+	# 3. Fallback: O(1) lookup via file basename
+	var path = _file_basename_to_path.get(file_id, "")
+	if not path.is_empty():
+		start_sub_graph(path)
+		return
+
 	if _logger: _logger.warn("Flow", "start_quest_file: '%s' not found." % file_id)
 
 ## Restarts a quest by Logical ID.
 func restart_quest_id(quest_id: StringName) -> void:
+	if not _is_valid_quest_id(quest_id):
+		push_warning("[QuestController] restart_quest_id called with empty quest_id.")
+		return
 	if not _is_initialized:
 		_startup_queue.append(func(): restart_quest_id(quest_id))
 		return
 
 	var file_id = _resolve_instance_file_id(quest_id)
 	
-	if file_id == quest_id and not _active_instances.has(file_id):
+	if file_id == quest_id and not _pool_registry.has_instance(file_id):
 		start_quest_id(quest_id) # Fallback start
 		return
 		
 	_restart_quest_internal(file_id)
 
-## Restarts a quest by File ID.
+## Restarts a quest by File ID. Clears active nodes and objective state, then reactivates.
 func restart_quest_file(file_id: StringName) -> void:
+	if not _is_valid_quest_id(file_id):
+		push_warning("[QuestController] restart_quest_file called with empty file_id.")
+		return
 	if not _is_initialized:
 		_startup_queue.append(func(): restart_quest_file(file_id))
 		return
@@ -389,6 +601,9 @@ func restart_quest_file(file_id: StringName) -> void:
 
 ## Starts a quest with parameters.
 func start_quest_with_parameters(quest_id: StringName, params: Dictionary) -> void:
+	if not _is_valid_quest_id(quest_id):
+		push_warning("[QuestController] start_quest_with_parameters called with empty quest_id.")
+		return
 	if not _is_initialized:
 		_startup_queue.append(func(): start_quest_with_parameters(quest_id, params))
 		return
@@ -398,13 +613,7 @@ func start_quest_with_parameters(quest_id: StringName, params: Dictionary) -> vo
 		_logger.warn("Flow", "start_quest_with_parameters: Could not load '%s'. Attempting file_id fallback." % quest_id)
 
 	var file_id = _resolve_instance_file_id(quest_id)
-	
-	if not _active_instances.has(file_id):
-		var instance = QuestInstance.new(file_id)
-		instance.current_status = QWEnums.QuestState.UNAVAILABLE
-		_active_instances[file_id] = instance
-
-	var instance: QuestInstance = _active_instances[file_id]
+	var instance = _get_or_create_instance(file_id, quest_id)
 	for key in params:
 		instance.set_variable(key, params[key])
 	
@@ -420,10 +629,16 @@ func start_quest_with_parameters(quest_id: StringName, params: Dictionary) -> vo
 		_start_specific_graph_entry(file_id)
 
 func complete_quest_id(quest_id: StringName, success: bool = true) -> void:
+	if not _is_valid_quest_id(quest_id):
+		push_warning("[QuestController] complete_quest_id called with empty quest_id.")
+		return
 	var action = QuestNodeResource.QuestAction.COMPLETE if success else QuestNodeResource.QuestAction.FAIL
 	set_quest_status(quest_id, action)
 
 func complete_quest_file(file_id: StringName, success: bool = true) -> void:
+	if not _is_valid_quest_id(file_id):
+		push_warning("[QuestController] complete_quest_file called with empty file_id.")
+		return
 	var action = QuestNodeResource.QuestAction.COMPLETE if success else QuestNodeResource.QuestAction.FAIL
 	set_quest_status(file_id, action)
 
@@ -438,20 +653,20 @@ func get_quest_rewards(query_id: StringName) -> Dictionary:
 	if not context_node:
 		var file_id = _resolve_instance_file_id(query_id)
 		context_node = _id_to_context_node_map.get(file_id)
-	var file_id = _resolve_instance_file_id(query_id)
-	var instance = _active_instances.get(file_id)
 	if not context_node:
 		return {}
+	var file_id = _resolve_instance_file_id(query_id)
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
 	var result = {}
 	for r in context_node.rewards:
 		if not r is Dictionary:
 			continue
 		var r_id = r.get("id", &"unknown")
 		var r_amount = int(r.get("amount", 0))
-		if r_id == &"":
+		if r_id.is_empty():
 			continue
 		var linked_obj_id: StringName = r.get("linked_objective_id", &"")
-		if linked_obj_id != &"":
+		if not linked_obj_id.is_empty():
 			if not is_instance_valid(instance) or instance.get_objective_status(linked_obj_id) != ObjectiveResource.Status.COMPLETED:
 				continue
 		result[r_id] = result.get(r_id, 0) + r_amount
@@ -461,7 +676,7 @@ func get_quest_rewards(query_id: StringName) -> Dictionary:
 ## Stops all currently active nodes in this quest before jumping.
 func jump_to_node(node_id: StringName) -> void:
 	var file_id = _get_file_id_for_node(node_id)
-	var instance = _active_instances.get(file_id)
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
 	var logger = _get_logger()
 	
 	if not instance:
@@ -478,8 +693,9 @@ func jump_to_node(node_id: StringName) -> void:
 	
 	# 2. Ensure Quest is Active (if we jump into a inactive quest)
 	if instance.current_status != QWEnums.QuestState.ACTIVE:
-		instance.current_status = QWEnums.QuestState.ACTIVE
-		quest_started.emit(instance.quest_id if not instance.quest_id.is_empty() else file_id)
+		_pool_registry.move_instance_to_pool(instance, QWEnums.QuestState.ACTIVE)
+		quest_started.emit(_get_signal_id_for_instance(instance))
+		_send_instance_update(instance)
 	
 	# 3. Activate Target
 	var node_def = _node_definitions.get(node_id)
@@ -488,21 +704,26 @@ func jump_to_node(node_id: StringName) -> void:
 
 func set_quest_status(query_id: StringName, action: QuestNodeResource.QuestAction) -> void:
 	var logger = _logger
-	if query_id == &"": return
+	if query_id.is_empty(): return
 	
 	# START Action: Logic is different (Activation)
 	if action == QuestNodeResource.QuestAction.START:
 		start_quest_id(query_id)
 		return
 
+	# MARK_AVAILABLE Action: Marks quest as available (e.g. for Quest Board)
+	if action == QuestNodeResource.QuestAction.MARK_AVAILABLE:
+		set_quest_available(query_id)
+		return
+
 	# Resolve Instance ID (File ID) from Query ID
 	var file_id = _resolve_instance_file_id(query_id)
 
-	if not _active_instances.has(file_id):
+	if not _pool_registry.has_instance(file_id):
 		if logger: logger.warn("Flow", "Cannot change status of inactive/unknown quest '%s'." % query_id)
 		return
 
-	var instance: QuestInstance = _active_instances[file_id]
+	var instance: QuestInstance = _pool_registry.get_instance_by_file_id(file_id)
 	var target_status = QWEnums.QuestState.ACTIVE
 	
 	match action:
@@ -510,22 +731,23 @@ func set_quest_status(query_id: StringName, action: QuestNodeResource.QuestActio
 		QuestNodeResource.QuestAction.FAIL: target_status = QWEnums.QuestState.FAILED
 	
 	if instance.current_status != target_status:
-		instance.current_status = target_status
+		_pool_registry.move_instance_to_pool(instance, target_status)
 		
 		if logger: logger.log("Flow", "Quest '%s' status changed to %d." % [query_id, target_status])
 		
-		# Prefer logic ID for signals
-		var signal_id = instance.quest_id if not instance.quest_id.is_empty() else file_id
+		var signal_id = _get_signal_id_for_instance(instance)
 		
 		if target_status == QWEnums.QuestState.COMPLETED:
 			quest_completed.emit(signal_id)
 		elif target_status == QWEnums.QuestState.FAILED:
 			quest_failed.emit(signal_id)
+		_send_instance_update(instance)
 
 func get_quest_state(query_id: StringName) -> int:
 	var file_id = _resolve_instance_file_id(query_id)
-	if _active_instances.has(file_id):
-		return _active_instances[file_id].current_status
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
+	if instance:
+		return instance.current_status
 	return QWEnums.QuestState.UNAVAILABLE
 
 func get_quest_data(query_id: StringName) -> Dictionary:
@@ -542,8 +764,8 @@ func get_quest_data(query_id: StringName) -> Dictionary:
 	
 	# 2. Dynamic Data (Status, Logs)
 	var file_id = _resolve_instance_file_id(query_id)
-	if _active_instances.has(file_id):
-		var instance: QuestInstance = _active_instances[file_id]
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
+	if instance:
 		result["id"] = query_id # Keep the requested ID
 		result["status"] = instance.current_status
 		result["log_entries"] = instance.get_variable("_logs", [])
@@ -565,15 +787,14 @@ func get_quest_data(query_id: StringName) -> Dictionary:
 
 func get_all_managed_quests_data() -> Array[Dictionary]:
 	var list: Array[Dictionary] = []
-	var processed_nodes: Dictionary = {} # Deduplication Cache
+	var processed_instance_ids: Dictionary = {} # Deduplication Cache (instance_id -> true)
 	
 	for q_id in _id_to_context_node_map:
 		var context_node = _id_to_context_node_map[q_id]
-		
-		if processed_nodes.has(context_node):
+		var instance_id = context_node.get_instance_id()
+		if processed_instance_ids.has(instance_id):
 			continue
-		
-		processed_nodes[context_node] = true
+		processed_instance_ids[instance_id] = true
 		
 		var primary_id = q_id
 		if not context_node.quest_id.is_empty():
@@ -587,9 +808,8 @@ func get_active_objectives_for_quest(query_id: StringName) -> Array[ObjectiveRes
 	var objectives: Array[ObjectiveResource] = []
 	var file_id = _resolve_instance_file_id(query_id)
 	
-	if not _active_instances.has(file_id): return objectives
-	
-	var instance: QuestInstance = _active_instances[file_id]
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
+	if not instance: return objectives
 	
 	# Scan active nodes in this instance
 	for node_id in instance.active_node_ids:
@@ -612,25 +832,89 @@ func get_active_objectives_for_quest(query_id: StringName) -> Array[ObjectiveRes
 					
 	return objectives
 
+## Returns active objective markers for map/minimap UI integration.
+## Each marker is a Dictionary: {"type": "location"|"interact", "target": String, "quest_id": String, "objective_id": String, "description": String, "file_id": String}
+## - type "location": target is location_id; map your location IDs to world positions.
+## - type "interact": target is node path (scene path); use get_node(target) for world position.
+## Example: for m in QuestController.get_active_objective_markers(): place_marker(m.target, m.description)
+func get_active_objective_markers() -> Array:
+	var markers: Array = []
+	if not is_instance_valid(_execution_context): return markers
+
+	for target_key in _execution_context.location_objective_listeners:
+		var wrappers = _execution_context.location_objective_listeners[target_key]
+		for w in wrappers:
+			var instance = _pool_registry.get_instance_by_file_id(w.file_id)
+			if not instance: continue
+			var obj: ObjectiveResource = w.objective
+			if instance.get_objective_status(obj.id) != ObjectiveResource.Status.ACTIVE:
+				continue
+			var signal_id = _get_signal_id_for_instance(instance)
+			markers.append({
+				"type": "location",
+				"target": str(target_key),
+				"quest_id": str(signal_id),
+				"objective_id": str(obj.id),
+				"description": instance.get_objective_description(obj.id, obj.description),
+				"file_id": str(instance.file_id)
+			})
+
+	for target_key in _execution_context.interact_objective_listeners:
+		var wrappers = _execution_context.interact_objective_listeners[target_key]
+		for w in wrappers:
+			var instance = _pool_registry.get_instance_by_file_id(w.file_id)
+			if not instance: continue
+			var obj: ObjectiveResource = w.objective
+			if instance.get_objective_status(obj.id) != ObjectiveResource.Status.ACTIVE:
+				continue
+			var signal_id = _get_signal_id_for_instance(instance)
+			markers.append({
+				"type": "interact",
+				"target": str(target_key),
+				"quest_id": str(signal_id),
+				"objective_id": str(obj.id),
+				"description": instance.get_objective_description(obj.id, obj.description),
+				"file_id": str(instance.file_id)
+			})
+
+	return markers
+
 func get_objective_status(p_objective_id: StringName) -> int:
-	if p_objective_id.is_empty(): return ObjectiveResource.Status.INACTIVE
-	
-	# Search all active instances
-	for instance in _active_instances.values():
+	if p_objective_id.is_empty():
+		return ObjectiveResource.Status.INACTIVE
+	var file_id = _objective_id_to_file_id.get(p_objective_id, &"")
+	if not file_id.is_empty() and _pool_registry.has_instance(file_id):
+		var inst = _pool_registry.get_instance_by_file_id(file_id)
+		var status = inst.get_objective_status(p_objective_id)
+		if status != ObjectiveResource.Status.INACTIVE:
+			return status
+	for instance in _pool_registry.get_all_instances():
 		var status = instance.get_objective_status(p_objective_id)
 		if status != ObjectiveResource.Status.INACTIVE:
 			return status
 	return ObjectiveResource.Status.INACTIVE
 
-func set_manual_objective_status(objective_id: StringName, new_status: int):
-	for instance in _active_instances.values():
+func set_manual_objective_status(objective_id: StringName, new_status: int) -> void:
+	var file_id = _objective_id_to_file_id.get(objective_id, &"")
+	if not file_id.is_empty() and _pool_registry.has_instance(file_id):
+		var instance = _pool_registry.get_instance_by_file_id(file_id)
+		if instance.objective_states.has(objective_id):
+			instance.set_objective_status(objective_id, new_status)
+			var signal_id = _get_signal_id_for_instance(instance)
+			var global_bus = _get_event_bus()
+			if global_bus:
+				global_bus.quest_objective_state_changed.emit(signal_id, objective_id, new_status)
+			quest_data_changed.emit(signal_id)
+			_check_tasks_in_instance(instance)
+			return
+	for instance in _pool_registry.get_all_instances():
 		if instance.objective_states.has(objective_id):
 			instance.set_objective_status(objective_id, new_status)
 			
-			var signal_id = instance.quest_id if not instance.quest_id.is_empty() else instance.file_id
+			var signal_id = _get_signal_id_for_instance(instance)
 			
 			# Granular Signal
-			var global_bus = get_tree().root.get_node_or_null("QuestWeaverGlobal")
+			var global_bus = _get_event_bus()
 			if global_bus:
 				global_bus.quest_objective_state_changed.emit(signal_id, objective_id, new_status)
 			
@@ -642,11 +926,11 @@ func set_manual_objective_status(objective_id: StringName, new_status: int):
 
 func set_quest_description(node_id: StringName, description: String) -> void:
 	var file_id = _get_file_id_for_node(node_id)
-	if not file_id.is_empty() and _active_instances.has(file_id):
-		var instance = _active_instances[file_id]
+	if not file_id.is_empty() and _pool_registry.has_instance(file_id):
+		var instance = _pool_registry.get_instance_by_file_id(file_id)
 		instance.set_variable("_description_override", description)
 		
-		var signal_id = instance.quest_id if not instance.quest_id.is_empty() else file_id
+		var signal_id = _get_signal_id_for_instance(instance)
 		quest_data_changed.emit(signal_id)
 
 ## Convenience: Set description by quest_id, file_id, or node_id.
@@ -669,18 +953,19 @@ func set_quest_description_by_quest_id(quest_id: StringName, description: String
 
 func add_quest_log_entry(node_id: StringName, log_text: String) -> void:
 	var file_id = _get_file_id_for_node(node_id)
-	if not file_id.is_empty() and _active_instances.has(file_id):
-		var instance = _active_instances[file_id]
-		var logs: Array = instance.get_variable("_logs", [])
+	if not file_id.is_empty() and _pool_registry.has_instance(file_id):
+		var instance = _pool_registry.get_instance_by_file_id(file_id)
+		var stored = instance.get_variable("_logs", [])
+		var logs: Array = (stored as Array).duplicate()
 		logs.append(log_text)
 		instance.set_variable("_logs", logs)
 		
-		var signal_id = instance.quest_id if not instance.quest_id.is_empty() else file_id
+		var signal_id = _get_signal_id_for_instance(instance)
 		quest_data_changed.emit(signal_id)
 
 func force_skip_node(node_id: StringName) -> void:
 	var file_id = _get_file_id_for_node(node_id)
-	var instance = _active_instances.get(file_id)
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
 	
 	if not instance or not instance.is_node_active(node_id): return
 	
@@ -701,24 +986,26 @@ func force_skip_node(node_id: StringName) -> void:
 			anim_player.seek(anim_player.current_animation_length, true)
 			anim_player.stop()
 
-	var global_bus = get_tree().root.get_node_or_null("QuestWeaverGlobal")
+	var global_bus = _get_event_bus()
 	if is_instance_valid(global_bus):
 		global_bus.unlock_interaction(node_id)
 
 	complete_node(node_def)
 
-func reset_all_graphs_and_quests():
+func reset_all_graphs_and_quests() -> void:
+	if _is_shutting_down:
+		return
 	var logger = _logger
 	if is_instance_valid(logger):
 		logger.log("Flow", "Resetting all graphs and quest states.")
 	
-	_active_instances.clear()
-	_timer_manager.clear_all_timers()
-	_sync_manager.clear()
-	_event_manager.clear()
-	_scope_manager.clear()
+	_pool_registry.clear_all()
+	if is_instance_valid(_timer_manager): _timer_manager.clear_all_timers()
+	if is_instance_valid(_sync_manager): _sync_manager.clear()
+	if is_instance_valid(_event_manager): _event_manager.clear()
+	if is_instance_valid(_scope_manager): _scope_manager.clear()
 
-func start_all_loaded_graphs():
+func start_all_loaded_graphs() -> void:
 	_ensure_execution_context_exists()
 	
 	var settings = QWConstants.get_settings()
@@ -737,43 +1024,46 @@ func start_all_loaded_graphs():
 
 func start_sub_graph(graph_path: String) -> void:
 	if ResourceLoader.exists(graph_path):
-		var graph_res = ResourceLoader.load(graph_path)
-		_load_graph_data(graph_res)
+		var graph_res = ResourceLoader.load(graph_path, "QuestGraphResource") as QuestGraphResource
+		if is_instance_valid(graph_res):
+			graph_res.resource_path = graph_path
+			_load_graph_data(graph_res)
+		else:
+			if _logger: _logger.error("System", "Sub-graph at '%s' is not a valid QuestGraphResource." % graph_path)
+			return
 	else:
 		if _logger: _logger.error("System", "Could not load sub-graph resource at '%s'." % graph_path)
 		return
 	
-	var file_id = graph_path.get_file().get_basename()
+	var file_id: StringName = StringName(graph_path.get_file().get_basename())
 	
 	# Create Instance if missing, initially UNAVAILABLE
-	if not _active_instances.has(file_id):
+	if not _pool_registry.has_instance(file_id):
 		var instance = QuestInstance.new(file_id)
-		instance.current_status = QWEnums.QuestState.UNAVAILABLE
-		_active_instances[file_id] = instance
+		_pool_registry.add_instance_to_pool(instance, QWEnums.QuestState.UNAVAILABLE)
+		_update_logical_id_map(file_id, file_id)
 		
 		if is_instance_valid(_logger):
 			_logger.log("Flow", "Sub-Graph: Created instance '%s' (Status: INACTIVE)." % file_id)
 	
 	var nodes_in_graph = _quest_node_map.get(graph_path, [])
-	
-	# Try StartNode
+	var fallback_context_node: GraphNodeResource = null
+
 	for node_id in nodes_in_graph:
 		var node = _node_definitions.get(node_id)
 		if node is StartNodeResource:
 			_activate_node(node)
 			return
-	
-	# Fallback: QuestContextNode
-	for node_id in nodes_in_graph:
-		var node = _node_definitions.get(node_id)
 		if node is QuestContextNodeResource:
-			if _logger: _logger.warn("Flow", "Sub-graph '%s' has no StartNode. Starting at QuestContextNode." % graph_path)
-			_activate_node(node)
-			return
-			
-	if _logger: _logger.error("Flow", "Sub-graph at '%s' has no entry point." % graph_path)
+			fallback_context_node = node
 
-func push_to_call_stack(parent_node_id: StringName):
+	if fallback_context_node:
+		if _logger: _logger.warn("Flow", "Sub-graph '%s' has no StartNode. Starting at QuestContextNode." % graph_path)
+		_activate_node(fallback_context_node)
+	else:
+		if _logger: _logger.error("Flow", "Sub-graph at '%s' has no entry point." % graph_path)
+
+func push_to_call_stack(parent_node_id: StringName) -> void:
 	var parent_graph_path = _get_quest_path_for_node(parent_node_id)
 	if parent_graph_path.is_empty(): return
 		
@@ -791,7 +1081,7 @@ func push_to_call_stack(parent_node_id: StringName):
 		"child_graph_path": child_path
 	})
 
-func pop_from_call_stack():
+func pop_from_call_stack() -> void:
 	if _call_stack.is_empty(): return
 	
 	var return_info = _call_stack.pop_back()
@@ -812,15 +1102,9 @@ func jump_to_anchor(origin_node: GraphNodeResource, anchor_name: String) -> void
 	var current_graph_path = _get_quest_path_for_node(origin_node.id)
 	if current_graph_path.is_empty(): return
 
-	var node_ids_in_graph = _quest_node_map.get(current_graph_path, [])
-	var target_anchor: AnchorNodeResource = null
-	
-	for id in node_ids_in_graph:
-		var def = _node_definitions.get(id)
-		if def is AnchorNodeResource and def.anchor_name == anchor_name:
-			target_anchor = def
-			break
-	
+	var anchors_in_graph = _anchor_name_to_node.get(current_graph_path, {})
+	var target_anchor: AnchorNodeResource = anchors_in_graph.get(anchor_name) as AnchorNodeResource
+
 	if target_anchor:
 		if is_instance_valid(_logger):
 			_logger.log("Flow", "  -> JUMPING to Anchor '%s'." % anchor_name)
@@ -834,8 +1118,8 @@ func jump_to_anchor(origin_node: GraphNodeResource, anchor_name: String) -> void
 func get_quest_variable(query_id: StringName, key: StringName, default: Variant = null) -> Variant:
 	var file_id = _resolve_instance_file_id(query_id)
 	
-	if _active_instances.has(file_id):
-		var instance: QuestInstance = _active_instances[file_id]
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
+	if instance:
 		return instance.get_variable(key, default)
 		
 	return default
@@ -843,22 +1127,27 @@ func get_quest_variable(query_id: StringName, key: StringName, default: Variant 
 ## Returns the current numeric progress of an objective (e.g. 3 out of 5 items).
 ## Returns 0 if the objective is inactive or not found.
 func get_objective_progress(objective_id: StringName) -> int:
-	if objective_id == &"": return 0
-	
-	# Search in active instances
-	for instance: QuestInstance in _active_instances.values():
-		# Only check if the objective is actually tracked in this instance
+	if objective_id.is_empty(): return 0
+	var file_id = _objective_id_to_file_id.get(objective_id, &"")
+	if not file_id.is_empty() and _pool_registry.has_instance(file_id):
+		var instance: QuestInstance = _pool_registry.get_instance_by_file_id(file_id)
 		if instance.objective_states.has(objective_id):
 			return instance.get_objective_progress(objective_id)
-			
+	for instance: QuestInstance in _pool_registry.get_all_instances():
+		if instance.objective_states.has(objective_id):
+			return instance.get_objective_progress(objective_id)
 	return 0
 
 ## Returns progress for a specific target key of an objective (e.g. amount of "wood" collected).
 ## Returns 0 if the objective is inactive, not found, or the key has no progress.
 func get_objective_progress_by_key(objective_id: StringName, target_key: StringName) -> int:
-	if objective_id == &"": return 0
-	
-	for instance: QuestInstance in _active_instances.values():
+	if objective_id.is_empty(): return 0
+	var file_id = _objective_id_to_file_id.get(objective_id, &"")
+	if not file_id.is_empty() and _pool_registry.has_instance(file_id):
+		var instance: QuestInstance = _pool_registry.get_instance_by_file_id(file_id)
+		if instance.objective_states.has(objective_id):
+			return instance.get_objective_progress_by_key(objective_id, target_key)
+	for instance: QuestInstance in _pool_registry.get_all_instances():
 		if instance.objective_states.has(objective_id):
 			return instance.get_objective_progress_by_key(objective_id, target_key)
 	return 0
@@ -873,20 +1162,29 @@ func get_kill_adapter() -> QuestKillAdapterBase:
 
 # --- SAVE / LOAD ---
 
+## Returns a Dictionary with all quest instance state for persistence.
 func get_save_data() -> Dictionary:
+	if not is_instance_valid(_persistence_manager):
+		return {}
 	return _persistence_manager.save_state(self)
 
-func load_from_data(data: Dictionary):
-	_persistence_manager.load_state(self, data)
+## Restores quest instance state from a previously saved dictionary.
+## Returns true on success, false if data format is invalid.
+func load_from_data(data: Dictionary) -> bool:
+	if not is_instance_valid(_persistence_manager):
+		return false
+	return _persistence_manager.load_state(self, data)
 
 # --- CORE LOGIC ---
 
+## Activates a node and runs its executor.
+## [param instance] can be null for QuestContextNodeResource (entry point) - executors must handle null.
 func _activate_node(node_definition: GraphNodeResource, from_input_port: int = 0) -> void:
 	var logger = _logger
 	if not is_instance_valid(node_definition): return
 
-	var file_id = _node_to_file_id_map.get(node_definition.id, "")
-	var instance: QuestInstance = _active_instances.get(file_id)
+	var file_id = _node_to_file_id_map.get(node_definition.id, &"")
+	var instance: QuestInstance = _pool_registry.get_instance_by_file_id(file_id)
 	
 	if not instance and not (node_definition is QuestContextNodeResource):
 		if logger: logger.warn("Flow", "Node '%s' activated but no Quest Instance found." % node_definition.id)
@@ -911,10 +1209,13 @@ func _activate_node(node_definition: GraphNodeResource, from_input_port: int = 0
 	else:
 		complete_node(node_definition)
 
+	if instance:
+		_send_instance_update(instance)
+
 func complete_node(node_definition: GraphNodeResource) -> void:
 	var logger = _logger
 	var file_id = _node_to_file_id_map.get(node_definition.id, &"")
-	var instance: QuestInstance = _active_instances.get(file_id)
+	var instance: QuestInstance = _pool_registry.get_instance_by_file_id(file_id)
 	
 	if logger: logger.log("Flow", "<- Completing Node: '%s'" % node_definition.id)
 	
@@ -922,6 +1223,7 @@ func complete_node(node_definition: GraphNodeResource) -> void:
 	
 	if instance:
 		instance.set_node_active(node_definition.id, false)
+		_send_instance_update(instance)
 	
 	if node_definition is EndNodeResource:
 		var current_graph_path = _get_quest_path_for_node(node_definition.id)
@@ -929,7 +1231,7 @@ func complete_node(node_definition: GraphNodeResource) -> void:
 		
 		if not _call_stack.is_empty():
 			var top = _call_stack.back()
-			if top.child_graph_path == current_graph_path:
+			if top.get("child_graph_path", "") == current_graph_path:
 				pop_from_call_stack()
 				return
 
@@ -938,24 +1240,45 @@ func complete_node(node_definition: GraphNodeResource) -> void:
 func _mark_node_as_logically_complete(node_definition: GraphNodeResource) -> void:
 	_send_debug_message("node_completed", [node_definition.id])
 	var file_id = _node_to_file_id_map.get(node_definition.id, &"")
-	var instance: QuestInstance = _active_instances.get(file_id)
+	var instance: QuestInstance = _pool_registry.get_instance_by_file_id(file_id)
 	if instance:
 		instance.set_node_active(node_definition.id, false)
+		_send_instance_update(instance)
 
 func get_quest_id_for_node(node_id: StringName) -> StringName:
-	return _get_file_id_for_node(node_id) 
+	return _get_file_id_for_node(node_id)
+
+## Returns the QuestInstance that owns the given node_id, or null if not found.
+## Use this instead of direct _pool_registry access in managers.
+func get_instance_for_node(node_id: StringName) -> QuestInstance:
+	var file_id = _get_file_id_for_node(node_id)
+	if file_id.is_empty(): return null
+	return _pool_registry.get_instance_by_file_id(file_id) as QuestInstance
+
+## Returns the node definition for the given node_id, or null if not found.
+## Use this instead of direct _node_definitions access in managers.
+func get_node_definition(node_id: StringName) -> GraphNodeResource:
+	return _node_definitions.get(node_id) as GraphNodeResource
 
 func _get_file_id_for_node(node_id: StringName) -> StringName:
-	return _node_to_file_id_map.get(node_id, "")
+	return _node_to_file_id_map.get(node_id, &"")
 
-func _on_objective_in_node_changed(_new_status: int, node: TaskNodeResource, objective: ObjectiveResource):
+func _get_signal_id_for_instance(instance: QuestInstance) -> StringName:
+	return instance.quest_id if not instance.quest_id.is_empty() else instance.file_id
+
+func _is_valid_quest_id(id: StringName) -> bool:
+	if id.is_empty(): return false
+	if " " in str(id): return not String(id).strip_edges().is_empty()
+	return true
+
+func _on_objective_in_node_changed(_new_status: int, node: TaskNodeResource, objective: ObjectiveResource) -> void:
 	var file_id = _get_file_id_for_node(node.id)
-	var instance = _active_instances.get(file_id)
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
 	
 	if instance:
-		var signal_id = instance.quest_id if not instance.quest_id.is_empty() else instance.file_id
+		var signal_id = _get_signal_id_for_instance(instance)
 		quest_data_changed.emit(signal_id)
-	
+		
 		var all_complete = true
 		for obj in node.objectives:
 			if instance.get_objective_status(obj.id) != ObjectiveResource.Status.COMPLETED:
@@ -965,7 +1288,7 @@ func _on_objective_in_node_changed(_new_status: int, node: TaskNodeResource, obj
 		if all_complete:
 			complete_node(node)
 
-func _check_tasks_in_instance(instance: QuestInstance):
+func _check_tasks_in_instance(instance: QuestInstance) -> void:
 	for node_id in instance.active_node_ids:
 		var node_def = _node_definitions.get(node_id)
 		if node_def is TaskNodeResource:
@@ -987,10 +1310,13 @@ func _load_registry_cache() -> void:
 	if ResourceLoader.exists(settings.quest_registry_path):
 		var registry = ResourceLoader.load(settings.quest_registry_path)
 		if registry and "quest_path_map" in registry:
-			# Convert Keys to StringName
 			_registry_map.clear()
+			_file_basename_to_path.clear()
 			for k in registry.quest_path_map:
-				_registry_map[StringName(k)] = registry.quest_path_map[k]
+				var p: String = registry.quest_path_map[k]
+				_registry_map[StringName(k)] = p
+				var basename := StringName(p.get_file().get_basename())
+				_file_basename_to_path[basename] = p
 			if _logger: _logger.log("System", "Loaded Registry. Known Quests: %d" % _registry_map.size())
 
 func _ensure_quest_loaded(quest_id: StringName) -> bool:
@@ -1000,9 +1326,10 @@ func _ensure_quest_loaded(quest_id: StringName) -> bool:
 		var path = _registry_map[quest_id]
 		if ResourceLoader.exists(path):
 			if _logger: _logger.log("System", "Auto-Loading quest '%s' from '%s'" % [quest_id, path])
-			var res = ResourceLoader.load(path)
-			_load_graph_data(res)
-			return true
+			var res = ResourceLoader.load(path, "QuestGraphResource") as QuestGraphResource
+			if is_instance_valid(res):
+				_load_graph_data(res)
+				return true
 	return false
 
 func _are_all_requirements_met(instance: QuestInstance, obj: ObjectiveResource) -> bool:
@@ -1018,25 +1345,14 @@ func _are_all_requirements_met(instance: QuestInstance, obj: ObjectiveResource) 
 
 ## Helper to find an ObjectiveResource by its ID within loaded definitions.
 func get_objective_resource(obj_id: StringName) -> ObjectiveResource:
-	# Search in active nodes first (Fast)
-	for instance in _active_instances.values():
-		for node_id in instance.active_node_ids:
-			var node = _node_definitions.get(node_id)
-			if node is TaskNodeResource:
-				for obj in node.objectives:
-					if obj.id == obj_id: return obj
-					
-	# Fallback: Brute force search in all loaded definitions (Slow but safe)
-	for node in _node_definitions.values():
-		if node is TaskNodeResource:
-			for obj in node.objectives:
-				if obj.id == obj_id: return obj
+	if _objective_id_to_resource.has(obj_id):
+		return _objective_id_to_resource[obj_id]
 	return null
 
 func _restart_quest_internal(file_id: StringName) -> void:
-	if not _active_instances.has(file_id): return
+	if not _pool_registry.has_instance(file_id): return
 
-	var instance: QuestInstance = _active_instances[file_id]
+	var instance: QuestInstance = _pool_registry.get_instance_by_file_id(file_id)
 	if _logger: _logger.log("Flow", "Restarting Quest Instance '%s'..." % file_id)
 	
 	for node_id in instance.active_node_ids.duplicate():
@@ -1045,7 +1361,7 @@ func _restart_quest_internal(file_id: StringName) -> void:
 	instance.active_node_ids.clear()
 	instance.node_states.clear()
 	instance.objective_states.clear()
-	instance.current_status = QWEnums.QuestState.UNAVAILABLE
+	_pool_registry.move_instance_to_pool(instance, QWEnums.QuestState.UNAVAILABLE)
 	
 	# Restart Logic
 	var context_node = null
@@ -1061,20 +1377,50 @@ func _restart_quest_internal(file_id: StringName) -> void:
 		_start_specific_graph_entry(file_id)
 
 func _resolve_instance_file_id(query_id: StringName) -> StringName:
-	# 1. Active File ID?
-	if _active_instances.has(query_id): return query_id
-	
-	# 2. Active Logical ID?
-	for inst in _active_instances.values():
-		if inst.quest_id == query_id: return inst.file_id
-
+	# 1. O(1) cache lookup
+	if _logical_id_to_file_id.has(query_id):
+		return _logical_id_to_file_id[query_id]
+	# 2. Active File ID?
+	if _pool_registry.has_instance(query_id):
+		return query_id
 	# 3. Static Definition? (Loaded but inactive)
 	if _id_to_context_node_map.has(query_id):
 		var context = _id_to_context_node_map[query_id]
 		var fid = _node_to_file_id_map.get(context.id)
-		if fid: return fid
-
+		if fid:
+			_update_logical_id_map(query_id, fid)
+			return fid
 	return query_id
+
+func _update_logical_id_map(logical_id: StringName, file_id: StringName) -> void:
+	if logical_id.is_empty(): return
+	_logical_id_to_file_id[logical_id] = file_id
+
+func _get_or_create_instance(file_id: StringName, optional_logical_id: StringName = &"") -> QuestInstance:
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
+	if not instance:
+		instance = QuestInstance.new(file_id)
+		_pool_registry.add_instance_to_pool(instance, QWEnums.QuestState.UNAVAILABLE)
+		_update_logical_id_map(file_id, file_id)
+		if not optional_logical_id.is_empty():
+			var ctx = _id_to_context_node_map.get(optional_logical_id)
+			if ctx:
+				instance.quest_id = ctx.quest_id
+				if not instance.quest_id.is_empty():
+					_update_logical_id_map(instance.quest_id, file_id)
+	return instance
+
+func _remove_from_logical_id_map(instance: QuestInstance) -> void:
+	_logical_id_to_file_id.erase(instance.file_id)
+	if not instance.quest_id.is_empty():
+		_logical_id_to_file_id.erase(instance.quest_id)
+
+func _register_objective_instance(objective_id: StringName, file_id: StringName) -> void:
+	if objective_id.is_empty(): return
+	_objective_id_to_file_id[objective_id] = file_id
+
+func _unregister_objective_instance(objective_id: StringName) -> void:
+	_objective_id_to_file_id.erase(objective_id)
 
 func _cleanup_node_runtime(node_id: StringName, instance: QuestInstance) -> void:
 	var node_def = _node_definitions.get(node_id)
@@ -1115,18 +1461,29 @@ func _load_auto_start_graphs() -> void:
 	
 	for path in paths:
 		if ResourceLoader.exists(path):
-			var res = ResourceLoader.load(path, "QuestGraphResource")
-			_load_graph_data(res)
+			var res = ResourceLoader.load(path, "QuestGraphResource") as QuestGraphResource
+			if is_instance_valid(res):
+				res.resource_path = path
+				_load_graph_data(res)
 
-func _load_graph_data(graph_resource: QuestGraphResource):
+## Loads graph definitions and maps Context Nodes. Only the first QuestContextNode per graph is used
+## for logical_id/file_id mapping (one-context-per-quest-file design). Additional ContextNodes in the
+## same graph are ignored.
+func _load_graph_data(graph_resource: QuestGraphResource) -> void:
+	if not is_instance_valid(graph_resource):
+		push_error("QuestController: _load_graph_data called with invalid graph_resource.")
+		return
 	var path = graph_resource.resource_path
+	if path.is_empty():
+		push_warning("QuestController: Graph has no resource_path. Skipping load.")
+		return
 	if _quest_node_map.has(path): return 
 	
 	# Create map entry with typed array
 	var node_list: Array[StringName] = []
 	_quest_node_map[path] = node_list
 	
-	var file_id = path.get_file().get_basename()
+	var file_id: StringName = StringName(path.get_file().get_basename())
 	
 	# 1. Map Context Nodes (Logical ID -> Node Resource)
 	for node_id in graph_resource.nodes:
@@ -1135,10 +1492,12 @@ func _load_graph_data(graph_resource: QuestGraphResource):
 			var logical_id = node.quest_id
 			if not logical_id.is_empty():
 				_id_to_context_node_map[logical_id] = node
+				_update_logical_id_map(logical_id, file_id)
 			
 			# Fallback mapping
 			if logical_id != file_id:
 				_id_to_context_node_map[file_id] = node
+			_update_logical_id_map(file_id, file_id)
 			break
 	
 	# 2. Register Nodes
@@ -1150,10 +1509,24 @@ func _load_graph_data(graph_resource: QuestGraphResource):
 				node._update_ports_from_data()
 			_node_definitions[node_id] = node
 			node_list.append(node_id)
-			_node_to_file_id_map[node_id] = file_id 
+			_node_id_to_quest_path[node_id] = path
+			_node_to_file_id_map[node_id] = file_id
+			if node is TaskNodeResource:
+				for obj in node.objectives:
+					_objective_id_to_resource[obj.id] = obj
+					_objective_id_to_file_id[obj.id] = file_id
+			if node is AnchorNodeResource:
+				if not _anchor_name_to_node.has(path):
+					_anchor_name_to_node[path] = {}
+				_anchor_name_to_node[path][node.anchor_name] = node
 
 	for connection in graph_resource.connections:
-		var from_id = StringName(connection.get("from_node")) # Cast explicit
+		var from_val = connection.get("from_node")
+		var to_val = connection.get("to_node")
+		if from_val == null or to_val == null or not (from_val is String or from_val is StringName) or not (to_val is String or to_val is StringName):
+			push_warning("QuestController: Skipping invalid connection (missing or invalid from_node/to_node).")
+			continue
+		var from_id = StringName(from_val)
 		if not _node_connections.has(from_id):
 			_node_connections[from_id] = []
 		_node_connections[from_id].append(connection)
@@ -1161,8 +1534,9 @@ func _load_graph_data(graph_resource: QuestGraphResource):
 func _start_specific_graph_entry(graph_path: String) -> void:
 	if not _quest_node_map.has(graph_path):
 		if ResourceLoader.exists(graph_path):
-			var res = ResourceLoader.load(graph_path)
-			_load_graph_data(res)
+			var res = ResourceLoader.load(graph_path, "QuestGraphResource") as QuestGraphResource
+			if is_instance_valid(res):
+				_load_graph_data(res)
 	
 	var file_id = StringName(graph_path.get_file().get_basename())
 	var nodes = _quest_node_map.get(graph_path, [])
@@ -1175,23 +1549,25 @@ func _start_specific_graph_entry(graph_path: String) -> void:
 			break
 	
 	if start_node_def:
-		if not _active_instances.has(file_id):
+		if not _pool_registry.has_instance(file_id):
 			var instance = QuestInstance.new(file_id)
-			instance.current_status = QWEnums.QuestState.ACTIVE
-			_active_instances[file_id] = instance
+			_pool_registry.add_instance_to_pool(instance, QWEnums.QuestState.ACTIVE)
+			_update_logical_id_map(file_id, file_id)
 			
 			if is_instance_valid(_logger):
 				_logger.log("Flow", "Auto-Start: Created implicit instance for '%s'." % file_id)
 				
+			var instance_for_start = _pool_registry.get_instance_by_file_id(file_id)
 			quest_started.emit(file_id)
 			quest_data_changed.emit(file_id)
+			_send_instance_update(instance_for_start)
 		
 		_activate_node(start_node_def)
 	else:
 		if is_instance_valid(_logger):
 			_logger.warn("Flow", "Auto-start graph '%s' has no StartNode." % graph_path)
 
-func _trigger_next_nodes_from_port(from_node: GraphNodeResource, from_port_index: int):
+func _trigger_next_nodes_from_port(from_node: GraphNodeResource, from_port_index: int) -> void:
 	var logger = _logger
 	if logger: logger.log("Flow", "    - Triggering next nodes from '%s' port %d..." % [from_node.id, from_port_index])
 	
@@ -1199,7 +1575,7 @@ func _trigger_next_nodes_from_port(from_node: GraphNodeResource, from_port_index
 	var triggered_count = 0
 	for connection in connections:
 		if connection.get("from_port") == from_port_index:
-			var next_node_id = connection.get("to_node")
+			var next_node_id = StringName(connection.get("to_node"))
 			var to_port = connection.get("to_port", 0)
 			var next_node_def = _node_definitions.get(next_node_id)
 			if next_node_def:
@@ -1209,15 +1585,16 @@ func _trigger_next_nodes_from_port(from_node: GraphNodeResource, from_port_index
 	if logger and triggered_count == 0 and from_node is GiveTakeItemNodeResource and from_port_index == 0:
 		logger.warn("Flow", "    - No connections from '%s' Success port. Connect the Success output." % from_node.id)
 
+## Called by QuestSyncManager via call_deferred to process pending sync operations for a node.
 func _process_sync_node_batch(node_id: StringName, instance: QuestInstance) -> void:
 	if is_instance_valid(_sync_manager):
 		_sync_manager.process_pending(node_id, instance)
 
 func _cleanup_graph_instances(graph_path: String) -> void:
-	var file_id_to_cleanup = graph_path.get_file().get_basename()
+	var file_id_to_cleanup: StringName = StringName(graph_path.get_file().get_basename())
 	
-	if _active_instances.has(file_id_to_cleanup):
-		var instance = _active_instances[file_id_to_cleanup]
+	if _pool_registry.has_instance(file_id_to_cleanup):
+		var instance = _pool_registry.get_instance_by_file_id(file_id_to_cleanup)
 		
 		for node_id in instance.active_node_ids:
 			_cleanup_node_runtime(node_id, instance)
@@ -1231,36 +1608,33 @@ func _cleanup_graph_instances(graph_path: String) -> void:
 			if is_instance_valid(_logger):
 				_logger.log("System", "Graph finished but Instance '%s' kept in memory (Status: %d)." % [file_id_to_cleanup, instance.current_status])
 		else:
-			_active_instances.erase(file_id_to_cleanup)
+			_remove_from_logical_id_map(instance)
+			_pool_registry.remove_instance_from_all_pools(file_id_to_cleanup)
 			if is_instance_valid(_logger):
 				_logger.log("System", "Graph finished and Instance '%s' garbage collected." % file_id_to_cleanup)
 
 func _get_quest_path_for_node(node_id: StringName) -> String:
-	for path in _quest_node_map:
-		if _quest_node_map[path].has(node_id):
-			return path
-	return ""
+	return _node_id_to_quest_path.get(node_id, "")
 
 func _on_interacted_with_object(interacted_node: Node):
 	if not is_instance_valid(_execution_context): return
 	var path = str(interacted_node.get_path())
 	
 	if _execution_context.interact_objective_listeners.has(path):
-		var global_bus = get_tree().root.get_node_or_null("QuestWeaverGlobal")
+		var global_bus = _get_event_bus()
 		var wrappers = _execution_context.interact_objective_listeners[path]
 		for w in wrappers:
 			var obj: ObjectiveResource = w.objective
-			var instance: QuestInstance = _active_instances.get(w.quest_id)
-			if not instance: instance = _active_instances.get(w.file_id)
+			var instance: QuestInstance = _pool_registry.get_instance_by_file_id(w.file_id)
 
 			if instance:
 				instance.set_objective_status(obj.id, ObjectiveResource.Status.COMPLETED)
-				
+
 				# Granular State Signal
 				if global_bus:
-					var sig_id = instance.quest_id if not instance.quest_id.is_empty() else instance.file_id
+					var sig_id = _get_signal_id_for_instance(instance)
 					global_bus.quest_objective_state_changed.emit(sig_id, obj.id, ObjectiveResource.Status.COMPLETED)
-				
+
 				_check_tasks_in_instance(instance)
 
 func _on_enemy_was_killed(enemy_id: StringName):
@@ -1270,11 +1644,11 @@ func _on_enemy_was_killed(enemy_id: StringName):
 	# Key lookup with StringName cast
 	if _execution_context.kill_objective_listeners.has(String(enemy_id)):
 		var wrappers = _execution_context.kill_objective_listeners[String(enemy_id)]
-		var global_bus = get_tree().root.get_node_or_null("QuestWeaverGlobal")
+		var global_bus = _get_event_bus()
 		
 		for w in wrappers:
 			var obj: ObjectiveResource = w.objective
-			var instance = _active_instances.get(w.file_id)
+			var instance = _pool_registry.get_instance_by_file_id(w.file_id)
 			var target_key = w.get("target_key", enemy_id) 
 			
 			if instance:
@@ -1287,7 +1661,7 @@ func _on_enemy_was_killed(enemy_id: StringName):
 				progress_amount = min(progress_amount, obj.requirements.get(target_key, 1))
 				instance.set_objective_progress_by_key(obj.id, target_key, progress_amount)
 				
-				var signal_id = instance.quest_id if instance.quest_id != &"" else instance.file_id
+				var signal_id = _get_signal_id_for_instance(instance)
 				var required_for_this = obj.requirements.get(target_key, 1)
 				
 				if global_bus:
@@ -1305,108 +1679,68 @@ func _on_entered_location(location_id: String):
 	if not is_instance_valid(_execution_context): return
 	
 	if _execution_context.location_objective_listeners.has(location_id):
-		var global_bus = get_tree().root.get_node_or_null("QuestWeaverGlobal")
+		var global_bus = _get_event_bus()
 		var wrappers = _execution_context.location_objective_listeners[location_id]
 		
 		for w in wrappers:
 			var obj: ObjectiveResource = w.objective
-			var instance = _active_instances.get(w.file_id)
+			var instance = _pool_registry.get_instance_by_file_id(w.file_id)
 			
 			if instance:
 				instance.set_objective_status(obj.id, ObjectiveResource.Status.COMPLETED)
 				
-				var signal_id = instance.quest_id if not instance.quest_id.is_empty() else instance.file_id
+				var signal_id = _get_signal_id_for_instance(instance)
 				
 				if global_bus:
 					global_bus.quest_objective_state_changed.emit(signal_id, obj.id, ObjectiveResource.Status.COMPLETED)
 				
 				_check_tasks_in_instance(instance)
 
-func _check_item_collect_objectives():
+func _check_item_collect_objectives() -> void:
 	if not is_instance_valid(_execution_context) or not is_instance_valid(_inventory_adapter): return
-	var global_bus = get_tree().root.get_node_or_null("QuestWeaverGlobal")
-	
-	# Iterate all tracked items
-	var item_ids_str = _execution_context.item_objective_listeners.keys()
-	
-	for item_id_str in item_ids_str:
-		var item_id = StringName(item_id_str)
-		var current_inv_amount = _inventory_adapter.count_item(item_id_str)
-		var wrappers = _execution_context.item_objective_listeners[item_id_str]
-		
-		for w in wrappers:
-			var obj: ObjectiveResource = w.objective
-			if obj.complete_on_delivery:
-				continue  # Progress only from GiveTakeItem; no auto-complete from inventory
-			var instance = _active_instances.get(_resolve_instance_file_id(w.file_id)) # Resolve safely
-			if not instance: continue
-			
-			# Snapshot Logic per Item
-			var snapshot_key = StringName("start_amount_%s_%s" % [obj.id, item_id])
-			var start_amount = instance.get_node_data(w.task_node_id, snapshot_key, 0)
-			
-			# Calculate Quest Progress (Delta)
-			var progress_amount = current_inv_amount
-			if obj.track_progress_since_activation:
-				progress_amount = max(0, current_inv_amount - start_amount)
-			
-			# Get Target
-			var required = obj.requirements.get(item_id, 1)
-			
-			# Clamp to required
-			progress_amount = min(progress_amount, required)
-			
-			# Update Instance State
-			var stored_progress = instance.get_objective_progress_by_key(obj.id, item_id)
-			
-			if stored_progress != progress_amount:
-				instance.set_objective_progress_by_key(obj.id, item_id, progress_amount)
-				
-				var signal_id = instance.quest_id if instance.quest_id != &"" else instance.file_id
-				if global_bus:
-					global_bus.quest_objective_progress_changed.emit(signal_id, obj.id, progress_amount, required)
-				quest_data_changed.emit(signal_id)
-				
-			# Check Completion
-			if _are_all_requirements_met(instance, obj):
-				if instance.get_objective_status(obj.id) != ObjectiveResource.Status.COMPLETED:
-					instance.set_objective_status(obj.id, ObjectiveResource.Status.COMPLETED)
-					var sig_id = instance.quest_id if instance.quest_id != &"" else instance.file_id
-					if global_bus:
-						global_bus.quest_objective_state_changed.emit(sig_id, obj.id, ObjectiveResource.Status.COMPLETED)
-					quest_data_changed.emit(sig_id)
-					_check_tasks_in_instance(instance)
+	var count_func = func(key_str: StringName) -> int: return _inventory_adapter.count_item(key_str)
+	_check_objectives_from_adapter(_execution_context.item_objective_listeners, count_func, true)
 
-func _check_kill_objectives():
+func _check_kill_objectives() -> void:
 	if not is_instance_valid(_execution_context) or not is_instance_valid(_kill_adapter): return
-	var global_bus = get_tree().root.get_node_or_null("QuestWeaverGlobal")
-	var enemy_ids_str = _execution_context.kill_objective_listeners.keys()
-	for enemy_id_str in enemy_ids_str:
-		var enemy_id = StringName(enemy_id_str)
-		var current_count = _kill_adapter.count_kill(enemy_id_str)
-		var wrappers = _execution_context.kill_objective_listeners[enemy_id_str]
+	var count_func = func(key_str: StringName) -> int: return _kill_adapter.count_kill(key_str)
+	_check_objectives_from_adapter(_execution_context.kill_objective_listeners, count_func, false)
+
+## Shared logic for adapter-based objective checks (item collect, kill). [param skip_complete_on_delivery] skips
+## completion when obj.complete_on_delivery is true (used for ITEM_COLLECT; GiveTakeItem completes those).
+func _check_objectives_from_adapter(listeners_dict: Dictionary, count_func: Callable, skip_complete_on_delivery: bool) -> void:
+	var global_bus = _get_event_bus()
+	for key_str in listeners_dict:
+		var target_key = StringName(key_str)
+		var current_count = count_func.call(target_key)
+		var wrappers = listeners_dict[key_str]
 		for w in wrappers:
 			var obj: ObjectiveResource = w.objective
-			var instance = _active_instances.get(_resolve_instance_file_id(w.file_id))
+			var instance = _pool_registry.get_instance_by_file_id(w.file_id)
 			if not instance: continue
-			var snapshot_key = StringName("start_amount_%s_%s" % [obj.id, enemy_id])
+
+			var snapshot_key = StringName("start_amount_%s_%s" % [obj.id, target_key])
 			var start_amount = instance.get_node_data(w.task_node_id, snapshot_key, 0)
 			var progress_amount = current_count
 			if obj.track_progress_since_activation:
 				progress_amount = max(0, current_count - start_amount)
-			var required = obj.requirements.get(enemy_id, 1)
+			var required = obj.requirements.get(target_key, 1)
 			progress_amount = min(progress_amount, required)
-			var stored_progress = instance.get_objective_progress_by_key(obj.id, enemy_id)
+
+			var stored_progress = instance.get_objective_progress_by_key(obj.id, target_key)
 			if stored_progress != progress_amount:
-				instance.set_objective_progress_by_key(obj.id, enemy_id, progress_amount)
-				var signal_id = instance.quest_id if instance.quest_id != &"" else instance.file_id
+				instance.set_objective_progress_by_key(obj.id, target_key, progress_amount)
+				var signal_id = _get_signal_id_for_instance(instance)
 				if global_bus:
 					global_bus.quest_objective_progress_changed.emit(signal_id, obj.id, progress_amount, required)
 				quest_data_changed.emit(signal_id)
+
+			if skip_complete_on_delivery and obj.complete_on_delivery:
+				continue
 			if _are_all_requirements_met(instance, obj):
 				if instance.get_objective_status(obj.id) != ObjectiveResource.Status.COMPLETED:
 					instance.set_objective_status(obj.id, ObjectiveResource.Status.COMPLETED)
-					var sig_id = instance.quest_id if instance.quest_id != &"" else instance.file_id
+					var sig_id = _get_signal_id_for_instance(instance)
 					if global_bus:
 						global_bus.quest_objective_state_changed.emit(sig_id, obj.id, ObjectiveResource.Status.COMPLETED)
 					quest_data_changed.emit(sig_id)
@@ -1417,9 +1751,27 @@ func _send_debug_message(message: String, data: Array = []) -> void:
 	if not EngineDebugger.is_active(): return
 	EngineDebugger.send_message("quest_weaver:%s" % message, data)
 
+func _send_instance_update(instance: QuestInstance) -> void:
+	if not EngineDebugger.is_active(): return
+	var obj_states: Dictionary = {}
+	for k in instance.objective_states:
+		obj_states[str(k)] = instance.objective_states[k].duplicate()
+	var active_keys: Array = []
+	for k in instance.active_node_ids:
+		active_keys.append(str(k))
+	var payload = {
+		"file_id": str(instance.file_id),
+		"quest_id": str(instance.quest_id),
+		"status": instance.current_status,
+		"variables": instance.variables.duplicate(),
+		"active_node_ids": active_keys,
+		"objective_states": obj_states
+	}
+	_send_debug_message("instance_update", [payload])
+
 # --- SHUTDOWN LOGIC ---
 
-func _notification(what):
+func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		if not _is_shutting_down:
 			shutdown()
@@ -1427,15 +1779,36 @@ func _notification(what):
 		if not _is_shutting_down:
 			_on_exit_cleanup()
 
+## Light shutdown for programmatic teardown (e.g. WM_CLOSE_REQUEST).
+## Clears runtime state (instances, definitions, exec context) and all static maps for consistency.
+## For full cleanup on scene exit, see [method _on_exit_cleanup].
 func shutdown() -> void:
+	_is_shutting_down = true
+	if OS.is_debug_build():
+		_unregister_performance_monitors()
 	_send_debug_message("session_ended")
-	
+
 	if is_instance_valid(_timer_manager): _timer_manager.clear_all_timers()
+	if is_instance_valid(_sync_manager): _sync_manager.clear()
+	if is_instance_valid(_event_manager): _event_manager.clear()
+	if is_instance_valid(_scope_manager): _scope_manager.clear()
+	if is_instance_valid(_presentation_manager): _presentation_manager.force_close_current()
 	if is_instance_valid(_execution_context):
 		_execution_context.cleanup()
 		_execution_context = null
-	_active_instances.clear()
+	_pool_registry.clear_all()
 	_node_definitions.clear()
+	_node_connections.clear()
+	_quest_node_map.clear()
+	_id_to_context_node_map.clear()
+	_node_to_file_id_map.clear()
+	_logical_id_to_file_id.clear()
+	_objective_id_to_resource.clear()
+	_objective_id_to_file_id.clear()
+	_node_id_to_quest_path.clear()
+	_registry_map.clear()
+	_file_basename_to_path.clear()
+	_anchor_name_to_node.clear()
 	QWConstants.clear_static_references()
 
 # --- DEBUG API (Developer Tools) ---
@@ -1443,24 +1816,21 @@ func shutdown() -> void:
 ## Prints the full internal state of a quest instance to the console (JSON formatted).
 func debug_dump_quest_state(query_id: StringName) -> void:
 	var file_id = _resolve_instance_file_id(query_id)
-	if not _active_instances.has(file_id):
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
+	if not instance:
 		print("[QW Debug] Quest '%s' not found or inactive." % query_id)
 		return
-
-	var instance: QuestInstance = _active_instances[file_id]
 	var data = instance.get_save_data()
 	print(JSON.stringify(data, "\t"))
 
 ## Instantly completes all objectives of currently ACTIVE task nodes in a quest.
 func debug_complete_active_tasks(query_id: StringName) -> void:
 	var file_id = _resolve_instance_file_id(query_id)
-	if not _active_instances.has(file_id): return
-
-	var instance: QuestInstance = _active_instances[file_id]
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
+	if not instance: return
 	var modified = false
 
-	# Iterate over a copy of active nodes
-	for node_id in instance.active_node_ids.keys():
+	for node_id in instance.active_node_ids:
 		var node_def = _node_definitions.get(node_id)
 		
 		if node_def is TaskNodeResource:
@@ -1471,14 +1841,44 @@ func debug_complete_active_tasks(query_id: StringName) -> void:
 					modified = true
 	
 	if modified:
-		var signal_id = instance.quest_id if not instance.quest_id.is_empty() else instance.file_id
+		var signal_id = _get_signal_id_for_instance(instance)
 		quest_data_changed.emit(signal_id)
 		_check_tasks_in_instance(instance)
 
 ## Sets a quest variable directly (bypassing normal logic flow).
 func debug_set_variable(query_id: StringName, key: StringName, value: Variant) -> void:
 	var file_id = _resolve_instance_file_id(query_id)
-	if _active_instances.has(file_id):
-		var instance = _active_instances[file_id]
+	var instance = _pool_registry.get_instance_by_file_id(file_id)
+	if instance:
 		instance.set_variable(key, value)
 		print("[QW Debug] Set variable '%s' = %s in quest '%s'" % [key, value, query_id])
+
+## Prints all registered quest IDs and their paths (and status if instance is active).
+func debug_list_quests() -> void:
+	print("[QW Debug] --- Registered Quests ---")
+	if _registry_map.is_empty():
+		print("  (none - registry not loaded or empty)")
+		return
+	for quest_id in _registry_map:
+		var path: String = _registry_map[quest_id]
+		var file_id = _resolve_instance_file_id(quest_id)
+		var instance = _pool_registry.get_instance_by_file_id(file_id)
+		var status_str := "not loaded"
+		if instance:
+			status_str = QWEnums.QuestState.keys()[instance.current_status] if instance.current_status >= 0 and instance.current_status < QWEnums.QuestState.size() else str(instance.current_status)
+		print("  %s -> %s [%s]" % [quest_id, path, status_str])
+
+## Prints all active quest instances (file_id, quest_id, status, active nodes) to the console.
+func debug_list_active_instances() -> void:
+	print("[QW Debug] --- Active Instances ---")
+	var all_instances = _pool_registry.get_all_instances()
+	if all_instances.is_empty():
+		print("  (none)")
+		return
+	for instance in all_instances:
+		var file_id = instance.file_id
+		var status_str = QWEnums.QuestState.keys()[instance.current_status] if instance.current_status >= 0 and instance.current_status < QWEnums.QuestState.size() else str(instance.current_status)
+		var active_keys: Array = []
+		for k in instance.active_node_ids:
+			active_keys.append(str(k))
+		print("  file_id=%s quest_id=%s status=%s active_nodes=%s" % [file_id, instance.quest_id, status_str, active_keys])

@@ -6,8 +6,11 @@ extends RefCounted
 ## Maps to ConditionResource.Operator and EventListenerNodeResource.SimpleOperator (Indices 0-5).
 enum Op { EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_OR_EQUAL, LESS_OR_EQUAL }
 
+## Returns false if val_a is null or types are incompatible. Supports numeric coercion (int/float). Use QWConditionLogic.Op enum (indices 0-5).
 static func compare(val_a: Variant, val_b: Variant, op: int) -> bool:
-	if val_a == null: return false 
+	if val_a == null: return false
+	if val_b == null and op in [Op.GREATER_THAN, Op.LESS_THAN, Op.GREATER_OR_EQUAL, Op.LESS_OR_EQUAL]:
+		return false
 
 	# Numeric safety: Allow comparison between int and float
 	if typeof(val_a) != typeof(val_b):
@@ -26,9 +29,11 @@ static func compare(val_a: Variant, val_b: Variant, op: int) -> bool:
 		
 	return false
 
+## Parses a string to int, float, bool, or returns the string as-is. Empty string returns "".
 static func parse_string_to_variant(text: String) -> Variant:
 	if text.is_valid_int(): return text.to_int()
 	if text.is_valid_float(): return text.to_float()
-	if text.to_lower() == "true": return true
-	if text.to_lower() == "false": return false
+	var lower = text.to_lower()
+	if lower == "true": return true
+	if lower == "false": return false
 	return text

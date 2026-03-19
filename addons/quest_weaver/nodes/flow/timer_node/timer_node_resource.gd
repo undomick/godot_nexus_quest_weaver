@@ -30,7 +30,7 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.duration = data.get("duration", 10)
+	self.duration = int(data.get("duration", 10))
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL

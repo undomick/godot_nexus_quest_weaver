@@ -54,10 +54,7 @@ func handle_event(event: InputEvent) -> bool:
 				return true
 
 	if key_event.keycode == KEY_DELETE:
-		var selected_node_ids: Array[StringName] = []
-		for child in _graph_controller.get_children():
-			if child is GraphElement and child.selected:
-				selected_node_ids.append(child.name)
+		var selected_node_ids: Array[StringName] = _graph_controller.get_selected_node_ids()
 		if not selected_node_ids.is_empty():
 			_action_handler.on_nodes_deleted(selected_node_ids)
 			return true

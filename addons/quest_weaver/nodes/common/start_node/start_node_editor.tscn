@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_o4k48"]
-[ext_resource type="Script" path="res://addons/quest_weaver/nodes/common/start_node/start_node_editor.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cymxoaiim76jf" path="res://addons/quest_weaver/nodes/common/start_node/start_node_editor.gd" id="1_script"]
 
 [node name="StartNodeEditor" type="PanelContainer" unique_id=1553788321]
 offset_right = 153.0

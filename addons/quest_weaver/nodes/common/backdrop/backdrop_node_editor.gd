@@ -8,6 +8,7 @@ signal property_preview_requested(node_id: StringName, property_name: String, va
 # --- UI References ---
 @onready var color_picker: ColorPickerButton = %ColorPicker
 @onready var title_edit: LineEdit = %TitleEdit
+@onready var text_edit: TextEdit = %TextEdit
 @onready var font_size_slider: HSlider = %FontSizeSlider
 @onready var font_size_label: Label = %FontSizeLabel
 
@@ -21,6 +22,7 @@ func _ready() -> void:
 	# Connect signals for all property controls.
 	title_edit.text_submitted.connect(func(_text): _on_title_confirmed())
 	title_edit.focus_exited.connect(_on_title_confirmed)
+	text_edit.focus_exited.connect(_on_text_confirmed)
 	color_picker.popup_closed.connect(_on_color_confirmed)
 	
 	# Connect slider signals for a robust undo/redo experience.
@@ -37,6 +39,7 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 	if not node_data is BackdropNodeResource: return
 	
 	title_edit.text = node_data.title
+	text_edit.text = node_data.text
 	color_picker.color = node_data.color
 	
 	# Update the slider and its label with the data from the resource,
@@ -52,6 +55,12 @@ func _on_title_confirmed() -> void:
 	var current_text = title_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.title != current_text:
 		property_update_requested.emit(edited_node_data.id, "title", current_text, null, {})
+
+# Called when the user confirms the description text by losing focus.
+func _on_text_confirmed() -> void:
+	var current_text = text_edit.text
+	if is_instance_valid(edited_node_data) and edited_node_data.text != current_text:
+		property_update_requested.emit(edited_node_data.id, "text", current_text, null, {})
 
 # Called when the user closes the color picker popup.
 func _on_color_confirmed() -> void:

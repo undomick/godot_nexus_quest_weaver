@@ -5,7 +5,7 @@ extends RefCounted
 
 class QuestGraphFormatSaver extends ResourceFormatSaver:
 	func _get_recognized_extensions(_for_resource: Resource = null) -> PackedStringArray:
-		return [QWConstants.FILE_EXTENSION]
+		return PackedStringArray([QWConstants.FILE_EXTENSION])
 
 	func _recognize(p_resource: Resource) -> bool:
 		return p_resource is QuestGraphResource
@@ -17,7 +17,7 @@ class QuestGraphFormatSaver extends ResourceFormatSaver:
 		if file == null:
 			return FileAccess.get_open_error()
 
-		# Saves the Dictionary as Text in the ".quest" fileformat.
+		# Saves the Dictionary via store_var (binary Variant format).
 		file.store_var(data_to_save, true)
 		
 		if file.get_error() != OK:

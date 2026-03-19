@@ -49,7 +49,7 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 		quest_type_picker.add_item(type_name.capitalize())
 	quest_type_picker.select(node_data.quest_type)
 	
-	call_deferred("_safe_rebuild")
+	call_deferred(&"_safe_rebuild")
 	_is_setting_up = false
 
 func _safe_rebuild() -> void:
@@ -82,43 +82,48 @@ func _safe_rebuild() -> void:
 		reward_label.visible = (context_node.rewards.size() > 0)
 
 func _on_add_reward_pressed() -> void:
-	if edited_node_data is QuestContextNodeResource:
+	if is_instance_valid(edited_node_data) and edited_node_data is QuestContextNodeResource:
 		complex_action_requested.emit(edited_node_data.id, "add_reward", {})
-		call_deferred("_safe_rebuild")
+		call_deferred(&"_safe_rebuild")
 
 func _on_reward_delete_requested(index: int) -> void:
-	if edited_node_data is QuestContextNodeResource:
+	if is_instance_valid(edited_node_data) and edited_node_data is QuestContextNodeResource:
 		complex_action_requested.emit(edited_node_data.id, "remove_reward", {"index": index})
-		call_deferred("_safe_rebuild")
+		call_deferred(&"_safe_rebuild")
 
 func _on_reward_entry_data_changed() -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data is QuestContextNodeResource:
 		property_update_requested.emit(edited_node_data.id, "rewards", edited_node_data.rewards.duplicate(true), null, {})
-	call_deferred("_safe_rebuild")
+	call_deferred(&"_safe_rebuild")
 
 # --- CORE PROPERTY HANDLERS ---
 
 func _on_quest_id_confirmed() -> void:
-	if _is_setting_up: return 
+	if _is_setting_up: return
+	if not is_instance_valid(edited_node_data): return
 	if edited_node_data.quest_id != quest_id_edit.text:
 		property_update_requested.emit(edited_node_data.id, "quest_id", StringName(quest_id_edit.text), null, {})
 
 func _on_quest_type_changed(index: int):
 	if _is_setting_up: return
+	if not is_instance_valid(edited_node_data): return
 	if edited_node_data.quest_type != index:
 		property_update_requested.emit(edited_node_data.id, "quest_type", index, null, {})
 
 func _on_title_confirmed() -> void:
 	if _is_setting_up: return
+	if not is_instance_valid(edited_node_data): return
 	if edited_node_data.quest_title != title_edit.text:
 		property_update_requested.emit(edited_node_data.id, "quest_title", title_edit.text, null, {})
 
 func _on_description_confirmed() -> void:
 	if _is_setting_up: return
+	if not is_instance_valid(edited_node_data): return
 	if edited_node_data.quest_description != description_edit.text:
 		property_update_requested.emit(edited_node_data.id, "quest_description", description_edit.text, null, {})
 
 func _on_log_on_start_confirmed() -> void:
 	if _is_setting_up: return
+	if not is_instance_valid(edited_node_data): return
 	if edited_node_data.log_on_start != log_on_start_edit.text:
 		property_update_requested.emit(edited_node_data.id, "log_on_start", log_on_start_edit.text, null, {})

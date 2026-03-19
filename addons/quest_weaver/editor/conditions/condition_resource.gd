@@ -25,6 +25,8 @@ enum ConditionType {
 @export var quest_id: StringName = &""
 # Updated to use Global Enum
 @export var expected_status: QWEnums.QuestState = QWEnums.QuestState.COMPLETED
+## When expected_status is CUSTOM, specifies which pool. Empty = any custom pool.
+@export var expected_custom_pool_id: StringName = &""
 
 # --- CheckVariableCondition ---
 @export var variable_name: StringName = &""
@@ -62,13 +64,16 @@ func check(context: Variant, instance: QuestInstance = null) -> bool:
 			
 		ConditionType.CHECK_ITEM:
 			if not is_instance_valid(controller): return false
-			var adapter = controller._inventory_adapter
+			var adapter = controller.get_inventory_adapter()
 			if not is_instance_valid(adapter) or item_id.is_empty():
 				return false
 			return adapter.check_item(item_id, amount)
 			
 		ConditionType.CHECK_QUEST_STATUS:
+			if not is_instance_valid(controller): return false
 			var current_status = controller.get_quest_state(quest_id)
+			if expected_status == QWEnums.QuestState.CUSTOM and not expected_custom_pool_id.is_empty():
+				return controller.get_quests_in_pool(expected_custom_pool_id).has(quest_id)
 			return current_status == expected_status
 			
 		ConditionType.CHECK_VARIABLE:
@@ -91,30 +96,32 @@ func check(context: Variant, instance: QuestInstance = null) -> bool:
 			
 		ConditionType.CHECK_OBJECTIVE_REQUIREMENT:
 			if not is_instance_valid(controller): return false
-			if objective_id == &"": return false
+			if objective_id.is_empty(): return false
 			if not instance: return false 
 
 			var objective_def = controller.get_objective_resource(objective_id) 
 			if not objective_def: return false
+
+			var inventory_adapter = controller.get_inventory_adapter()
 			
 			if has_any_progress:
 				# Pass when player has any progress (potential > 0) for at least one requirement
-				for item_id in objective_def.requirements:
-					var current_progress = instance.get_objective_progress_by_key(objective_id, item_id)
+				for req_item_id in objective_def.requirements:
+					var current_progress = instance.get_objective_progress_by_key(objective_id, req_item_id)
 					var potential = current_progress
-					if include_inventory_holdings and controller._inventory_adapter:
-						potential += controller._inventory_adapter.count_item(str(item_id))
+					if include_inventory_holdings and is_instance_valid(inventory_adapter):
+						potential += inventory_adapter.count_item(req_item_id)
 					if potential > 0:
 						return true
 				return false
 			
 			var all_met = true
-			for item_id in objective_def.requirements:
-				var target_amount = objective_def.requirements[item_id]
-				var current_progress = instance.get_objective_progress_by_key(objective_id, item_id)
+			for req_item_id in objective_def.requirements:
+				var target_amount = objective_def.requirements[req_item_id]
+				var current_progress = instance.get_objective_progress_by_key(objective_id, req_item_id)
 				var potential = current_progress
-				if include_inventory_holdings and controller._inventory_adapter:
-					potential += controller._inventory_adapter.count_item(str(item_id))
+				if include_inventory_holdings and is_instance_valid(inventory_adapter):
+					potential += inventory_adapter.count_item(req_item_id)
 				if potential < target_amount:
 					all_met = false
 					break
@@ -141,17 +148,22 @@ func check(context: Variant, instance: QuestInstance = null) -> bool:
 					for condition in sub_conditions:
 						if is_instance_valid(condition) and condition.check(context, instance): return true
 					return false
-	
-	return false
+				_:
+					return false
+		_:
+			push_error("ConditionResource: Unhandled ConditionType %s" % type)
+			return false
 
 func _get_controller_safely(context: Variant) -> Node:
-	if context is RefCounted and context.get("quest_controller"): 
+	if context is RefCounted and context.get("quest_controller"):
 		return context.quest_controller
-		
+
 	var main_loop = Engine.get_main_loop()
 	if main_loop and main_loop.root:
-		return main_loop.root.get_node_or_null("QuestWeaverServices")
-	
+		var services = main_loop.root.get_node_or_null("QuestWeaverServices")
+		if is_instance_valid(services) and services.quest_controller:
+			return services.quest_controller
+
 	return null
 
 func to_dictionary() -> Dictionary:
@@ -165,7 +177,8 @@ func to_dictionary() -> Dictionary:
 		"type": self.type, "is_true": self.is_true,
 		"chance_percentage": self.chance_percentage, "item_id": self.item_id,
 		"amount": self.amount, "quest_id": self.quest_id,
-		"expected_status": self.expected_status, "variable_name": self.variable_name,
+		"expected_status": self.expected_status, "expected_custom_pool_id": self.expected_custom_pool_id,
+		"variable_name": self.variable_name,
 		"expected_value_string": self.expected_value_string, "operator": self.operator,
 		"check_type": self.check_type, "sync_value": self.sync_value,
 		"logic_operator": self.logic_operator, "objective_id": self.objective_id,
@@ -175,7 +188,7 @@ func to_dictionary() -> Dictionary:
 		"sub_conditions": sub_conditions_data,
 	}
 
-func from_dictionary(data: Dictionary):
+func from_dictionary(data: Dictionary) -> void:
 	self.type = _defensive_load(data, "type", ConditionType.keys(), ConditionType.BOOL)
 	self.is_true = data.get("is_true", true)
 	self.chance_percentage = data.get("chance_percentage", 50.0)
@@ -184,6 +197,7 @@ func from_dictionary(data: Dictionary):
 	self.quest_id = StringName(data.get("quest_id", &""))
 	# Updated defensive load for global keys
 	self.expected_status = _defensive_load(data, "expected_status", QWEnums.QuestState.keys(), QWEnums.QuestState.COMPLETED)
+	self.expected_custom_pool_id = StringName(data.get("expected_custom_pool_id", &""))
 	self.variable_name = StringName(data.get("variable_name", &""))
 	self.expected_value_string = data.get("expected_value_string", "")
 	self.operator = _defensive_load(data, "operator", Operator.keys(), Operator.EQUALS)
@@ -199,10 +213,11 @@ func from_dictionary(data: Dictionary):
 	var sub_conditions_data = data.get("sub_conditions", [])
 	for sub_cond_dict in sub_conditions_data:
 		var script_path = sub_cond_dict.get("@script_path")
-		if script_path and ResourceLoader.exists(script_path):
-			var new_sub_cond = load(script_path).new()
-			new_sub_cond.from_dictionary(sub_cond_dict)
-			self.sub_conditions.append(new_sub_cond)
+		if script_path:
+			var new_sub_cond = GraphNodeResource.new_condition_from_path(script_path)
+			if is_instance_valid(new_sub_cond):
+				new_sub_cond.from_dictionary(sub_cond_dict)
+				self.sub_conditions.append(new_sub_cond)
 
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
 	var val = data.get(prop, default_val)

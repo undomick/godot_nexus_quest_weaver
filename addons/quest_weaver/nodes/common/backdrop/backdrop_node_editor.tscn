@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://addons/quest_weaver/nodes/common/backdrop/backdrop_node_editor.gd" id="1_n00xk"]
 [ext_resource type="Theme" path="res://addons/quest_weaver/assets/themes/qw_container_style.tres" id="1_tflrs"]
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/tab_focus_text_edit.gd" id="2_tabedit"]
 
 [node name="BackdropNodeEditor" type="PanelContainer" unique_id=380099397]
 offset_right = 112.0
@@ -23,6 +24,15 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 placeholder_text = "Backdrop Title"
+
+[node name="TextEdit" type="TextEdit" parent="MainLayout" unique_id=3900123456]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "Optional description (not displayed in graph)"
+wrap_mode = 1
+script = ExtResource("2_tabedit")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MainLayout" unique_id=1581083517]
 layout_mode = 2

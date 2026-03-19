@@ -1,3 +1,5 @@
+## Uses QuestController internals (_timer_manager) by design.
+## Non-blocking timer requires manager coordination; these APIs are not exposed publicly.
 class_name TimerNodeExecutor
 extends NodeExecutor
 

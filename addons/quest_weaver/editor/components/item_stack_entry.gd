@@ -12,7 +12,7 @@ signal remove_requested(key: StringName)
 @onready var amount_spinbox: SpinBox = %AmountSpinBox
 @onready var delete_button: Button = %DeleteButton
 
-var _current_key: StringName
+var _current_key: StringName = &""
 var _is_setup := false
 var _is_temp_display := false 
 

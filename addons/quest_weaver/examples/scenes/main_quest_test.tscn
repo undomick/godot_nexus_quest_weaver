@@ -1,11 +1,11 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://chh4rqghtldrt"]
 
-[ext_resource type="Script" path="res://addons/quest_weaver/examples/scenes/main_quest_test.gd" id="1_wqj30"]
-[ext_resource type="Texture2D" path="res://addons/quest_weaver/examples/assets/bg_winter.jpg" id="2_iuw1t"]
-[ext_resource type="Texture2D" path="res://addons/quest_weaver/examples/assets/portrait.png" id="2_rh56j"]
-[ext_resource type="Texture2D" path="res://addons/quest_weaver/examples/assets/portrait2.png" id="3_iuw1t"]
-[ext_resource type="Script" path="res://addons/quest_weaver/examples/scenes/simple_inventory_controller.gd" id="3_s2h8j"]
-[ext_resource type="Script" path="res://addons/quest_weaver/core/quest_controller.gd" id="5_i4cg0"]
+[ext_resource type="Script" uid="uid://m6kbkprnn5ts" path="res://addons/quest_weaver/examples/scenes/main_quest_test.gd" id="1_wqj30"]
+[ext_resource type="Texture2D" uid="uid://ploskwne7qqe" path="res://addons/quest_weaver/examples/assets/bg_winter.png" id="2_iuw1t"]
+[ext_resource type="Texture2D" uid="uid://ch3f7x11hbqwr" path="res://addons/quest_weaver/examples/assets/portrait.png" id="2_rh56j"]
+[ext_resource type="Texture2D" uid="uid://dkvqcbmabwlf8" path="res://addons/quest_weaver/examples/assets/portrait2.png" id="3_iuw1t"]
+[ext_resource type="Script" uid="uid://c85xrg7ak35hk" path="res://addons/quest_weaver/examples/scenes/simple_inventory_controller.gd" id="3_s2h8j"]
+[ext_resource type="Script" uid="uid://cfqarxnxa5hgv" path="res://addons/quest_weaver/core/quest_controller.gd" id="5_i4cg0"]
 [ext_resource type="PackedScene" path="res://addons/quest_weaver/editor/ui_runtime/quest_log_ui.tscn" id="7_iqkk4"]
 
 [node name="main_quest_test" type="Node" unique_id=373961287]
@@ -216,6 +216,25 @@ popup/item_1/text = "german"
 popup/item_1/id = 1
 popup/item_2/text = "french"
 popup/item_2/id = 2
+
+[node name="InventoryMarginContainer" type="MarginContainer" parent="." unique_id=118748340]
+offset_right = 90.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="InventoryMarginContainer" unique_id=673639747]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="InventoryMarginContainer/HBoxContainer" unique_id=223962950]
+layout_mode = 2
+text = "Inventory: "
+
+[node name="InventoryAmount" type="Label" parent="InventoryMarginContainer/HBoxContainer" unique_id=1741784020]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=150635352]
 unique_name_in_owner = true

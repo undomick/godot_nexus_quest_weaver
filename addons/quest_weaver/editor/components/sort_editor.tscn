@@ -1,6 +1,6 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://addons/quest_weaver/editor/components/sort_editor.gd" id="1_dj67e"]
+[ext_resource type="Script" uid="uid://cauwvqrxjpyj3" path="res://addons/quest_weaver/editor/components/sort_editor.gd" id="1_dj67e"]
 [ext_resource type="Texture2D" path="res://addons/quest_weaver/assets/icons/sort_arrow.svg" id="1_mwfi3"]
 [ext_resource type="Texture2D" path="res://addons/quest_weaver/assets/icons/sort_arrow_down.svg" id="2_dj67e"]
 

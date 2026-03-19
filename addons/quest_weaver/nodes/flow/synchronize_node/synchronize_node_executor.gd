@@ -1,4 +1,5 @@
-# res://addons/quest_weaver/nodes/flow/synchronize_node/synchronize_node_executor.gd
+## Uses QuestController internals (_sync_manager) by design.
+## Pattern-matching gate requires manager coordination; these APIs are not exposed publicly.
 class_name SynchronizeNodeExecutor
 extends NodeExecutor
 

@@ -74,16 +74,25 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.action = data.get("action", Action.GIVE)
+	self.action = _defensive_load(data, "action", Action.keys(), Action.GIVE)
 	self.target_quest_id = StringName(data.get("target_quest_id", &""))
 	self.target_objective_id = StringName(data.get("target_objective_id", &""))
 	self.allow_partial_deposit = data.get("allow_partial_deposit", false)
 	self.complete_objective_on_success = data.get("complete_objective_on_success", false)
-	# Load Dictionary ensuring StringName keys and int values
+	# Load Dictionary ensuring StringName keys and int values (defensive conversion for corrupt data)
 	self.items.clear()
 	var raw_items = data.get("items", {})
-	for key in raw_items:
-		self.items[StringName(key)] = int(raw_items[key])
+	if raw_items is Dictionary:
+		for key in raw_items:
+			var v = raw_items.get(key, 0)
+			var amount = 0
+			if v is int:
+				amount = v
+			elif v is float:
+				amount = int(v)
+			elif str(v).is_valid_int():
+				amount = int(str(v))
+			self.items[StringName(key)] = amount
 		
 	_update_ports_from_data()
 
@@ -104,3 +113,9 @@ func _validate(_context: Dictionary) -> Array[ValidationResult]:
 				results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Give/Take: Item list is empty.", id))
 		
 	return results
+
+func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
+	var val = data.get(prop, default_val)
+	if val is int and val >= 0 and val < keys.size():
+		return val
+	return default_val

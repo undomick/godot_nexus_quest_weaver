@@ -80,19 +80,25 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.message_type = data.get("message_type", &"Default")
-	self.title_override = data.get("title_override", "")
-	self.message_override = data.get("message_override", "")
+	self.message_type = StringName(data.get("message_type", &"Default"))
+	self.title_override = str(data.get("title_override", ""))
+	self.message_override = str(data.get("message_override", ""))
 	self.wait_for_completion = data.get("wait_for_completion", true)
-	self.animation_in = data.get("animation_in", AnimationPreset.SLIDE_UP)
-	self.ease_in = data.get("ease_in", Tween.EASE_OUT)
+	self.animation_in = _defensive_load(data, "animation_in", AnimationPreset.keys(), AnimationPreset.SLIDE_UP)
+	self.ease_in = _defensive_load(data, "ease_in", [0, 1, 2, 3], Tween.EASE_OUT)
 	self.per_character_in = data.get("per_character_in", false)
-	self.animation_out = data.get("animation_out", AnimationPreset.FADE)
-	self.ease_out = data.get("ease_out", Tween.EASE_IN)
+	self.animation_out = _defensive_load(data, "animation_out", AnimationPreset.keys(), AnimationPreset.FADE)
+	self.ease_out = _defensive_load(data, "ease_out", [0, 1, 2, 3], Tween.EASE_IN)
 	self.per_character_out = data.get("per_character_out", false)
-	self.duration_in = data.get("duration_in", 0.4)
-	self.duration_out = data.get("duration_out", 0.4)
-	self.delay_title_message = data.get("delay_title_message", 0.1)
-	self.hold_duration = data.get("hold_duration", 3.0)
-	self.character_stagger_ms = data.get("character_stagger_ms", 40)
+	self.duration_in = float(data.get("duration_in", 0.4))
+	self.duration_out = float(data.get("duration_out", 0.4))
+	self.delay_title_message = float(data.get("delay_title_message", 0.1))
+	self.hold_duration = float(data.get("hold_duration", 3.0))
+	self.character_stagger_ms = int(data.get("character_stagger_ms", 40))
 	_update_ports_from_data()
+
+func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
+	var val = data.get(prop, default_val)
+	if val is int and val >= 0 and val < keys.size():
+		return val
+	return default_val

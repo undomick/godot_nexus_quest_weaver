@@ -1,3 +1,5 @@
+## Uses QuestController internals (_node_connections, _node_definitions, _activate_node) by design.
+## Random path selection requires direct connection lookup; these APIs are not exposed publicly.
 class_name RandomNodeExecutor
 extends NodeExecutor
 

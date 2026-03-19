@@ -12,7 +12,7 @@ func _init(p_node_data: RandomNodeResource):
 func execute() -> void:
 	if not is_instance_valid(_new_port_data):
 		_new_port_data = RandomOutputPort.new()
-		_new_port_data.port_name = "Choice %s" % char(65 + _node_data.outputs.size())
+		_new_port_data.port_name = "Choice %d" % (_node_data.outputs.size() + 1)
 	
 	_node_data.outputs.append(_new_port_data)
 	_node_data._update_ports_from_data()

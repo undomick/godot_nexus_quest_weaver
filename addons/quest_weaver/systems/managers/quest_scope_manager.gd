@@ -6,7 +6,7 @@ extends RefCounted
 
 var _controller_weak: WeakRef
 
-# Static Cache: { StringName: { "start_node_id": StringName, "nodes_in_scope": Array[StringName] } }
+# Static Cache: { StringName: { "start_node_id": StringName, "nodes_in_scope": Array[StringName], "end_node_ids": Array[StringName] } }
 var _scope_definitions: Dictionary = {} 
 
 func _init(p_controller: QuestController):
@@ -52,7 +52,7 @@ func initialize_scope_definitions(node_definitions: Dictionary, node_connections
 
 			var conns = node_connections.get(current_id, [])
 			for c in conns:
-				var next_id: StringName = StringName(c.to_node)
+				var next_id: StringName = StringName(c.get("to_node", &""))
 				var next_def = node_definitions.get(next_id)
 				var boundary = false
 				if next_def:
@@ -64,10 +64,14 @@ func initialize_scope_definitions(node_definitions: Dictionary, node_connections
 					visited[next_id] = true
 					queue.append(next_id)
 
+		var end_node_ids: Array[StringName] = []
+		for end_node in end_nodes:
+			end_node_ids.append(end_node.id)
+
 		_scope_definitions[scope_id] = {
 			"start_node_id": start_node.id,
-			"nodes_in_scope": nodes_in_scope # .filter creates a new array, logic remains valid
-			#"nodes_in_scope": nodes_in_scope.filter(func(id): return id != start_node.id)
+			"nodes_in_scope": nodes_in_scope,
+			"end_node_ids": end_node_ids
 		}
 
 # --- 2. Runtime Logic (Instance Based) ---
@@ -91,7 +95,6 @@ func handle_start_scope(node: StartScopeNodeResource, instance: QuestInstance) -
 	return false
 
 func handle_reset_scope(reset_node: ResetProgressNodeResource, instance: QuestInstance) -> Array[StringName]:
-	var controller = _get_controller()
 	var scope_id = reset_node.target_scope_id
 	var definition = _scope_definitions.get(scope_id)
 	
@@ -99,12 +102,10 @@ func handle_reset_scope(reset_node: ResetProgressNodeResource, instance: QuestIn
 	
 	var nodes_to_reset: Array[StringName] = []
 	nodes_to_reset.assign(definition.nodes_in_scope)
-	
-	# Include EndNodes for cleanup
-	if controller:
-		for node_def in controller._node_definitions.values():
-			if node_def is EndScopeNodeResource and node_def.scope_id == scope_id:
-				nodes_to_reset.append(node_def.id)
+	# Include EndScope nodes for cleanup (cached at init, O(1) per scope)
+	var end_node_ids: Array = definition.get("end_node_ids", [])
+	for end_id in end_node_ids:
+		nodes_to_reset.append(end_id)
 
 	# If restarting, reset the execution counter in the Instance
 	if reset_node.restart_scope_on_completion:
@@ -117,5 +118,18 @@ func get_start_node_id_for_scope(scope_id: StringName) -> StringName:
 	var def = _scope_definitions.get(scope_id)
 	return def.get("start_node_id", &"") if def else &""
 
-func clear():
-	pass
+## Returns node IDs for scope cleanup (same as handle_reset_scope without restart logic).
+## Used by Cancel Scope Node.
+func get_nodes_for_scope_cleanup(scope_id: StringName) -> Array[StringName]:
+	var definition = _scope_definitions.get(scope_id)
+	if not definition:
+		return []
+	var result: Array[StringName] = []
+	result.assign(definition.nodes_in_scope)
+	var end_node_ids: Array = definition.get("end_node_ids", [])
+	for end_id in end_node_ids:
+		result.append(end_id)
+	return result
+
+func clear() -> void:
+	_scope_definitions.clear()

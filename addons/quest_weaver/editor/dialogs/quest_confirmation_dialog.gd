@@ -27,8 +27,6 @@ func _on_custom_action(action: StringName) -> void:
 			save_requested.emit()
 		"discard":
 			discard_requested.emit()
-		"cancel":
-			action_cancelled.emit()
 	
 	queue_free()
 

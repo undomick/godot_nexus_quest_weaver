@@ -3,6 +3,7 @@
 class_name ParallelNodeResource
 extends GraphNodeResource
 
+@export var keep_listening: bool = true
 @export var outputs: Array[ParallelOutputPort] = []
 
 func _init():
@@ -82,6 +83,7 @@ func _update_ports_from_data():
 
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
+	data["keep_listening"] = keep_listening
 	var outputs_data = []
 	for o in self.outputs:
 		if is_instance_valid(o): outputs_data.append(o.to_dictionary())
@@ -90,9 +92,10 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
+	keep_listening = data.get("keep_listening", true)
 	self.outputs.clear()
 	for o_data in data.get("outputs", []):
-		var script = load(o_data.get("@script_path"))
+		var script = GraphNodeResource.get_script_cached(o_data.get("@script_path"))
 		if script:
 			var new_o = script.new()
 			new_o.from_dictionary(o_data)

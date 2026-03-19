@@ -26,6 +26,11 @@ func handle_input(node_def: SynchronizeNodeResource, instance: QuestInstance, re
 	if received_on_port < 0 or received_on_port >= node_def.inputs.size():
 		return
 
+	if not node_def.keep_listening:
+		var has_fired: bool = instance.get_node_data(node_id, &"_sync_has_fired", false)
+		if has_fired:
+			return
+
 	if logger: logger.log("Flow", "Synchronizer '%s' received input on port %d." % [node_id, received_on_port])
 
 	# 1. Add to pending
@@ -34,6 +39,9 @@ func handle_input(node_def: SynchronizeNodeResource, instance: QuestInstance, re
 	instance.set_node_data(node_id, &"_sync_pending", pending)
 
 	# 2. Schedule deferred processing (only once per node/instance per batch)
+	# Skip during shutdown to avoid deferred calls running after cleanup
+	if controller.is_shutting_down():
+		return
 	var key = "%s|%s" % [node_id, instance.file_id]
 	if not _deferred_scheduled.has(key):
 		_deferred_scheduled[key] = true
@@ -95,6 +103,10 @@ func process_pending(node_id: StringName, instance: QuestInstance) -> void:
 
 		for idx in matched_indices:
 			_fire_output(sync_node, instance, idx, state_snapshot, controller)
+
+		if not sync_node.keep_listening:
+			instance.set_node_data(node_id, &"_sync_has_fired", true)
+			controller.complete_node(sync_node)
 	else:
 		if logger: logger.log("Flow", "  - No pattern matched yet (Waiting).")
 
@@ -126,10 +138,12 @@ func _fire_output(node_def: SynchronizeNodeResource, instance: QuestInstance, ou
 			return # Condition failed
 
 	for connection in connections:
-		if connection.from_port == output_index:
-			var next_node_def = controller._node_definitions.get(connection.to_node)
+		if connection.get("from_port", -1) == output_index:
+			var to_node = connection.get("to_node", &"")
+			var next_node_def = controller._node_definitions.get(to_node)
 			if next_node_def:
-				controller._activate_node(next_node_def, connection.to_port)
+				var to_port = connection.get("to_port", 0)
+				controller._activate_node(next_node_def, to_port)
 
 func clear():
 	_deferred_scheduled.clear()

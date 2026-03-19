@@ -15,7 +15,7 @@ func _init(p_controller: QuestController):
 func _get_controller() -> QuestController:
 	return _controller_weak.get_ref() as QuestController
 
-func register_listener(listener_node: EventListenerNodeResource):
+func register_listener(listener_node: EventListenerNodeResource) -> void:
 	var evt: StringName = listener_node.event_name
 	if not _event_listeners.has(evt):
 		var list: Array[StringName] = []
@@ -24,14 +24,14 @@ func register_listener(listener_node: EventListenerNodeResource):
 	if not listener_node.id in _event_listeners[evt]:
 		_event_listeners[evt].append(listener_node.id)
 
-func unregister_listener(listener_node: EventListenerNodeResource):
+func unregister_listener(listener_node: EventListenerNodeResource) -> void:
 	var evt: StringName = listener_node.event_name
 	if _event_listeners.has(evt):
 		_event_listeners[evt].erase(listener_node.id)
 		if _event_listeners[evt].is_empty():
 			_event_listeners.erase(evt)
 
-func on_global_event(event_name: StringName, payload: Dictionary):
+func on_global_event(event_name: StringName, payload: Dictionary) -> void:
 	var controller = _get_controller()
 	if not controller: return
 	
@@ -43,14 +43,13 @@ func on_global_event(event_name: StringName, payload: Dictionary):
 	
 	for node_id: StringName in listeners:
 		# 1. Resolve Instance
-		var quest_id = controller.get_quest_id_for_node(node_id)
-		var instance: QuestInstance = controller._active_instances.get(quest_id)
+		var instance: QuestInstance = controller.get_instance_for_node(node_id)
 		
 		# If instance or node is not active, ignore/cleanup
 		if not instance or not instance.is_node_active(node_id):
 			continue
 			
-		var node_def = controller._node_definitions.get(node_id)
+		var node_def = controller.get_node_definition(node_id)
 		if node_def is EventListenerNodeResource:
 			# 2. Check Conditions (Instance-aware)
 			var condition_passes = true
@@ -62,8 +61,9 @@ func on_global_event(event_name: StringName, payload: Dictionary):
 			
 			# 3. Trigger
 			if condition_passes:
-				if controller._logger:
-					controller._logger.log("Flow", "Event '%s' triggered listener '%s'." % [event_name, node_id])
+				var logger = controller._get_logger()
+				if logger:
+					logger.log("Flow", "Event '%s' triggered listener '%s'." % [event_name, node_id])
 				
 				if node_def.keep_listening:
 					controller._trigger_next_nodes_from_port(node_def, 0)
@@ -72,14 +72,15 @@ func on_global_event(event_name: StringName, payload: Dictionary):
 					_event_listeners[event_name].erase(node_id)
 					controller.complete_node(node_def)
 
-func clear():
+func clear() -> void:
 	_event_listeners.clear()
 
-func remove_listeners_for_quest(nodes_in_quest: Array):
+## Removes all event listeners for nodes in the given set. Use Dictionary for O(1) lookup.
+func remove_listeners_for_quest(nodes_in_quest: Dictionary) -> void:
 	for evt in _event_listeners.keys():
 		var list = _event_listeners[evt]
 		for i in range(list.size() - 1, -1, -1):
-			if list[i] in nodes_in_quest:
+			if nodes_in_quest.has(list[i]):
 				list.remove_at(i)
 
 # --- Helper for Simple Conditions ---
@@ -93,8 +94,8 @@ func _check_simple_conditions(conditions: Array[Dictionary], payload: Dictionary
 		
 		if key.is_empty(): continue
 		
-		# Special handling for "HAS" (Index 6 in SimpleOperator enum)
-		if op == 6: 
+		# Special handling for "HAS" (SimpleOperator.HAS)
+		if op == EventListenerNodeResource.SimpleOperator.HAS: 
 			if not payload.has(key): return false
 			continue
 			

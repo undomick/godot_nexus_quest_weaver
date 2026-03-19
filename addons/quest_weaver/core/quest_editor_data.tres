@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1_darr6")
-open_files = Array[String](["res://addons/quest_weaver/examples/quests/main/questline.quest", "res://addons/quest_weaver/examples/quests/main/start_first_task.quest", "res://addons/quest_weaver/examples/quests/side/side_a_little_favor.quest", "res://addons/quest_weaver/examples/quests/Credits/end_screen.quest"])
+open_files = Array[String](["res://addons/quest_weaver/examples/quests/Credits/end_screen.quest", "res://addons/quest_weaver/examples/quests/main/questline.quest", "res://addons/quest_weaver/examples/quests/side/side_a_little_favor.quest", "res://addons/quest_weaver/examples/quests/main/start_first_task.quest"])
 last_focused_file = "res://addons/quest_weaver/examples/quests/main/start_first_task.quest"
 metadata/_custom_type_script = "uid://cwipgpyf0yin0"

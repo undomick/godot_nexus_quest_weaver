@@ -4,7 +4,7 @@ class_name AddRewardCommand
 extends EditorCommand
 
 var _context_node: QuestContextNodeResource
-var _reward_added: Dictionary
+var _reward_added: Dictionary = {}
 var _added_index: int = -1
 
 func _init(p_context_node: QuestContextNodeResource):

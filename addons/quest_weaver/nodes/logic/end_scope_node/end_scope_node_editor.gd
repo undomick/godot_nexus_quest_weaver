@@ -26,5 +26,3 @@ func _on_scope_id_confirmed() -> void:
 func _on_terminal_toggled(pressed: bool) -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data.is_terminal != pressed:
 		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed, null, {})
-		edited_node_data.is_terminal = pressed
-		edited_node_data._update_ports_from_data()

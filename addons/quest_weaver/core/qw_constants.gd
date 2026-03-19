@@ -2,25 +2,32 @@
 class_name QWConstants
 extends RefCounted
 
+## Central constants and static resource loaders for Quest-Weaver.
+## Call clear_static_references() before plugin shutdown.
+
 # ==============================================================================
 # Settings & Resources
 # ==============================================================================
-static var _settings: Resource = null
-static var _graph_node_category: Resource = null
+static var _settings: QuestWeaverSettings = null
+static var _graph_node_category: GraphNodeCategory = null
 static var _is_shutting_down: bool = false
 
-static func get_settings() -> Resource:
+## Returns QuestWeaverSettings resource. Returns null if settings file is missing or during shutdown. Callers must use is_instance_valid().
+static func get_settings() -> QuestWeaverSettings:
 	if _is_shutting_down: return null
-	
 	if not is_instance_valid(_settings):
-		_settings = ResourceLoader.load("res://addons/quest_weaver/quest_weaver_settings.tres")
+		_settings = ResourceLoader.load("res://addons/quest_weaver/quest_weaver_settings.tres") as QuestWeaverSettings
+		if not is_instance_valid(_settings):
+			push_warning("QWConstants: Could not load quest_weaver_settings.tres.")
 	return _settings
 
-static func get_graph_node_category() -> Resource:
+## Returns GraphNodeCategory resource. Returns null if file is missing or during shutdown. Callers must use is_instance_valid().
+static func get_graph_node_category() -> GraphNodeCategory:
 	if _is_shutting_down: return null
-	
 	if not is_instance_valid(_graph_node_category):
-		_graph_node_category = ResourceLoader.load("res://addons/quest_weaver/assets/graph_node_category.tres")
+		_graph_node_category = ResourceLoader.load("res://addons/quest_weaver/assets/graph_node_category.tres") as GraphNodeCategory
+		if not is_instance_valid(_graph_node_category):
+			push_warning("QWConstants: Could not load graph_node_category.tres.")
 	return _graph_node_category
 
 static func clear_static_references():

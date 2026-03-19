@@ -10,7 +10,7 @@ var services: Node
 
 var logger: QWLogger:
 	get:
-		if is_instance_valid(services) and services.get("logger"):
+		if is_instance_valid(services) and services.logger:
 			return services.logger
 		return null
 
@@ -33,16 +33,21 @@ var kill_adapter: QuestKillAdapterBase:
 		var c = quest_controller
 		return c.get_kill_adapter() if c else null
 
+## Listeners for objective completion callbacks. Key: node_id or objective key.
 var item_objective_listeners: Dictionary = {}
+## Listeners for kill objective completion callbacks.
 var kill_objective_listeners: Dictionary = {}
+## Listeners for interact objective completion callbacks.
 var interact_objective_listeners: Dictionary = {}
-var location_objective_listeners: Dictionary = {} 
+## Listeners for location objective completion callbacks.
+var location_objective_listeners: Dictionary = {}
 
 func _init(p_controller: QuestController, p_game_state: Node, p_logger: QWLogger, p_services: Node) -> void:
 	self._controller_weak = weakref(p_controller)
 	self.game_state = p_game_state
 	self.services = p_services
 
+## Clears references and listener dictionaries. Call when execution context is no longer needed.
 func cleanup() -> void:
 	game_state = null
 	services = null

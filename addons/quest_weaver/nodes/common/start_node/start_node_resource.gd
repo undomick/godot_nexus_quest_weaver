@@ -7,7 +7,7 @@ extends GraphNodeResource
 
 func _init():
 	category = "Default"
-	input_ports = [""]
+	input_ports = []  # Entry point has no inputs
 	output_ports = ["Out"]
 
 func get_editor_summary() -> String:

@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://ttmqfiuwllba"]
+
+[ext_resource type="Script" path="res://addons/quest_weaver/editor/debugger/quest_weaver_debugger_viewer.gd" id="1_viewer"]
+
+[node name="QuestWeaverDebuggerViewer" type="VBoxContainer"]
+custom_minimum_size = Vector2(200, 150)
+layout_mode = 3
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_viewer")

@@ -12,6 +12,8 @@ signal node_moved(node_id: StringName, new_position: Vector2)
 signal connection_request_forwarded(from_node: StringName, from_port: int, to_node: StringName, to_port: int)
 signal disconnection_request_forwarded(from_node: StringName, from_port: int, to_node: StringName, to_port: int)
 signal view_changed(scroll_offset: Vector2, zoom: float)
+## Emitted when display_graph has finished rebuilding the visual graph (after async _rebuild_visual_graph).
+signal graph_display_completed()
 
 ## REFERENCES & STATE ##
 var node_registry: NodeTypeRegistry
@@ -54,8 +56,9 @@ func initialize(p_node_registry: NodeTypeRegistry, p_data_manager: QWGraphData, 
 func display_graph(graph_resource: QuestGraphResource):
 	_is_loading_graph = true
 	_is_connection_rebuild_scheduled = false
+	var expected_active_path: String = "" if not is_instance_valid(graph_resource) else data_manager.get_active_graph_path()
 	
-	await _rebuild_visual_graph(graph_resource)
+	await _rebuild_visual_graph(graph_resource, expected_active_path)
 	
 	if is_instance_valid(graph_resource):
 		set_zoom(graph_resource.editor_zoom)
@@ -63,6 +66,7 @@ func display_graph(graph_resource: QuestGraphResource):
 		set_scroll_offset(graph_resource.editor_scroll_offset)
 	
 	_is_loading_graph = false
+	graph_display_completed.emit()
 
 ## Converts the current mouse position to the logic graph coordinate system.
 func get_mouse_position_in_graph() -> Vector2:
@@ -82,8 +86,25 @@ func clear_backdrop_drag_state() -> void:
 	_last_backdrop_positions.clear()
 	_backdrop_drag_inner_nodes.clear()
 
+## Clears all visual nodes synchronously. Call before plugin shutdown to break signal lambdas
+## that capture node_data (GraphNodeResource), which would otherwise keep ConditionResource alive.
+func clear_visual_graph_sync() -> void:
+	_is_rebuilding_graph = true
+	_graph_resource_for_connection = null
+	_last_selected_visual_nodes.clear()
+	_last_backdrop_positions.clear()
+	_backdrop_drag_inner_nodes.clear()
+	clear_connections()
+	var to_free: Array[Node] = []
+	for child in get_children():
+		if child is GraphElement:
+			to_free.append(child)
+	for node in to_free:
+		node.free()
+	_is_rebuilding_graph = false
+
 ## Sets which nodes are "attached" to this backdrop for the current drag. Only these nodes will move with the backdrop.
-func set_backdrop_drag_inner_nodes(frame_id: StringName, inner_ids: Array) -> void:
+func set_backdrop_drag_inner_nodes(frame_id: StringName, inner_ids: Array[StringName]) -> void:
 	_backdrop_drag_inner_nodes[frame_id] = inner_ids.duplicate()
 
 ## Updates only the visual title font size of a backdrop (e.g. while dragging the slider). Does not change the resource.
@@ -107,7 +128,7 @@ func update_node_ports(graph_resource: QuestGraphResource, node_id: StringName):
 	if _is_rebuilding_graph: return
 	if not is_instance_valid(graph_resource): return
 	
-	var visual_node: GraphElement = get_node_or_null(String(node_id)) 
+	var visual_node: GraphElement = get_node_or_null(NodePath(node_id)) 
 	var node_data = graph_resource.nodes.get(node_id)
 	
 	if not (is_instance_valid(visual_node) and is_instance_valid(node_data)):
@@ -133,13 +154,13 @@ func update_node_ports(graph_resource: QuestGraphResource, node_id: StringName):
 
 # --- LOCALISED CONNECTION LOGIC ---
 
-func _disconnect_visuals_for_node(node_id: String):
+func _disconnect_visuals_for_node(node_id: StringName):
 	var all_connections = get_connection_list()
 	for conn in all_connections:
 		if conn.from_node == node_id or conn.to_node == node_id:
 			disconnect_node(conn.from_node, conn.from_port, conn.to_node, conn.to_port)
 
-func _restore_connections_for_node(graph_resource: QuestGraphResource, node_id: String):
+func _restore_connections_for_node(graph_resource: QuestGraphResource, node_id: StringName):
 	for connection in graph_resource.connections:
 		if connection.from_node == node_id or connection.to_node == node_id:
 			if _validate_connection_visually(connection.from_node, connection.from_port, connection.to_node, connection.to_port):
@@ -151,6 +172,7 @@ func _schedule_connection_rebuild(graph_resource: QuestGraphResource) -> void:
 	if _is_connection_rebuild_scheduled: return
 	_is_connection_rebuild_scheduled = true
 	
+	# Debounce: wait for nodes to be ready before rebuilding connections
 	await get_tree().process_frame
 	await get_tree().process_frame
 	
@@ -163,14 +185,14 @@ func _schedule_connection_rebuild(graph_resource: QuestGraphResource) -> void:
 
 func update_visual_node_position(graph_resource: QuestGraphResource, node_id: StringName):
 	if not is_instance_valid(graph_resource): return
-	var visual_node = get_node_or_null(String(node_id)) 
+	var visual_node = get_node_or_null(NodePath(node_id))
 	var node_data = graph_resource.nodes.get(node_id)
 	if is_instance_valid(visual_node) and is_instance_valid(node_data):
 		visual_node.position_offset = node_data.graph_position
 
 func update_summary_text(graph_resource: QuestGraphResource, node_id: StringName):
 	if _is_rebuilding_graph: return
-	var visual_node: QWGraphNode = get_node_or_null(String(node_id)) 
+	var visual_node: QWGraphNode = get_node_or_null(NodePath(node_id))
 	var node_data = graph_resource.nodes.get(node_id)
 	if is_instance_valid(visual_node) and is_instance_valid(node_data):
 		visual_node.summary_text = node_data.get_editor_summary()
@@ -180,7 +202,7 @@ func redraw_node_structure(graph_resource: QuestGraphResource, node_id: StringNa
 	update_node_ports(graph_resource, node_id)
 
 func create_single_visual_node(node_data: GraphNodeResource):
-	var node_id = String(node_data.id)
+	var node_id: StringName = node_data.id
 	if not has_node(NodePath(node_id)):
 		_create_visual_node(node_data)
 
@@ -206,12 +228,28 @@ func remove_visual_connection(from_node: StringName, from_port: int, to_node: St
 		disconnect_node(from_node, from_port, to_node, to_port)
 
 func select_visual_node(node_id: StringName) -> void:
-	var node = get_node_or_null(String(node_id)) 
+	var node = get_node_or_null(NodePath(node_id))
 	if node is GraphElement:
 		node.selected = true
 	for child in get_children():
 		if child is GraphElement and child.name != node_id:
 			child.selected = false
+
+## Returns currently selected GraphElements. Use for clear_selection, backdrop creation, etc.
+func get_selected_graph_elements() -> Array[GraphElement]:
+	var result: Array[GraphElement] = []
+	for child in get_children():
+		if child is GraphElement and child.selected:
+			result.append(child)
+	return result
+
+## Returns IDs of currently selected nodes. Use for delete, copy, etc.
+func get_selected_node_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for child in get_children():
+		if child is GraphElement and child.selected:
+			result.append(child.name)
+	return result
 
 func refresh_from_data(graph_resource: QuestGraphResource):
 	if not is_instance_valid(graph_resource):
@@ -223,7 +261,7 @@ func refresh_single_node_visuals(node_id: StringName) -> void:
 	var current_graph = data_manager.get_active_graph()
 	if not is_instance_valid(current_graph): return
 	var node_data = current_graph.nodes.get(node_id)
-	var visual_node = get_node_or_null(String(node_id)) 
+	var visual_node = get_node_or_null(NodePath(node_id))
 	if not (is_instance_valid(node_data) and is_instance_valid(visual_node)): return
 
 	if node_data.has_method("_update_ports_from_data"):
@@ -254,8 +292,8 @@ func refresh_single_node_visuals(node_id: StringName) -> void:
 func clear_visual_connections_from_port(node_id: StringName, port_index: int):
 	var connection_list = get_connection_list()
 	for connection in connection_list:
-		if connection.from == node_id and connection.from_port == port_index:
-			disconnect_node(connection.from, connection.from_port, connection.to, connection.to_port)
+		if connection.from_node == node_id and connection.from_port == port_index:
+			disconnect_node(connection.from_node, connection.from_port, connection.to_node, connection.to_port)
 
 func update_node_structure_and_connections(node_id: StringName) -> void:
 	if _is_rebuilding_graph: return
@@ -267,7 +305,7 @@ func update_node_structure_and_connections(node_id: StringName) -> void:
 
 func _synchronize_visual_graph(graph_resource: QuestGraphResource) -> void:
 	for node_id in graph_resource.nodes:
-		var visual_node = get_node_or_null(String(node_id))
+		var visual_node = get_node_or_null(NodePath(node_id))
 		
 		if is_instance_valid(visual_node):
 			refresh_single_node_visuals(node_id)
@@ -288,10 +326,10 @@ func _gui_input(event: InputEvent) -> void:
 	   (event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN) and \
 	   event.is_command_or_control_pressed():
 		
-		call_deferred("_emit_view_changed_signal")
+		call_deferred(&"_emit_view_changed_signal")
 	
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.is_released():
-		call_deferred("_emit_selection_finished")
+		call_deferred(&"_emit_selection_finished")
 
 func _emit_view_changed_signal():
 	if _is_loading_graph: return
@@ -345,7 +383,7 @@ func _build_node_internal_structure(visual_node: GraphNode, node_data: GraphNode
 			output_label.modulate.a = 1.0 if is_output_enabled else 0.4
 		row_container.add_child(output_label)
 
-func _rebuild_visual_graph(graph_resource: QuestGraphResource):
+func _rebuild_visual_graph(graph_resource: QuestGraphResource, expected_active_path: String = ""):
 	_is_rebuilding_graph = true
 	clear_connections()
 	# Remove all graph elements (GraphNode and GraphFrame/Backdrop) so backdrops don't appear in other quests.
@@ -361,6 +399,11 @@ func _rebuild_visual_graph(graph_resource: QuestGraphResource):
 		return
 		
 	await get_tree().process_frame
+	# Abort if active graph changed during await (e.g. "Close All" fired multiple display_graph calls)
+	if data_manager.get_active_graph_path() != expected_active_path:
+		_is_rebuilding_graph = false
+		return
+	
 	_nodes_to_be_ready = graph_resource.nodes.size()
 	_graph_resource_for_connection = graph_resource
 	
@@ -555,7 +598,7 @@ func _get_nodes_inside_frame(frame: GraphFrame) -> Array[StringName]:
 	var result: Array[StringName] = []
 	var frame_rect = Rect2(frame.position_offset, frame.size)
 	for child in get_children():
-		# GraphFrames dürfen andere GraphFrames nicht mitbewegen
+		# GraphFrames must not move other GraphFrames along with them
 		if child is GraphFrame:
 			continue
 		if child is GraphElement and child != frame:
@@ -581,13 +624,13 @@ func _on_view_node_moved(node_id: StringName):
 				var inner_node: GraphElement = get_node_or_null(NodePath(inner_id))
 				if is_instance_valid(inner_node):
 					inner_node.position_offset += delta
-	node_moved.emit(String(node_id), visual_node.position_offset)
+	node_moved.emit(node_id, visual_node.position_offset)
 
 func _on_view_node_selected(p_visual_node: Node):
 	if p_visual_node is GraphElement:
 		node_selection_requested.emit(p_visual_node.name)
 	# Store current selection so Backdrop menu can use it if right-click clears it.
-	call_deferred("_store_current_selection")
+	call_deferred(&"_store_current_selection")
 
 func _store_current_selection() -> void:
 	_last_selected_visual_nodes.clear()
@@ -596,17 +639,17 @@ func _store_current_selection() -> void:
 			_last_selected_visual_nodes.append(child)
 
 func _on_view_nodes_deleted(nodes: Array[StringName]):
-	var nodes_to_process: Array[StringName] = nodes.duplicate()
-
+	var nodes_to_process_set: Dictionary = {}
+	for n in nodes:
+		nodes_to_process_set[n] = true
 	for child in get_children():
 		if child is GraphFrame and child.selected:
-			if not nodes_to_process.has(child.name):
-				nodes_to_process.append(child.name)
+			nodes_to_process_set[child.name] = true
 
 	var final_deletion_list: Array[StringName] = []
 	var current_graph = data_manager.get_active_graph()
-	
-	for node_name in nodes_to_process:
+
+	for node_name in nodes_to_process_set:
 		var node_id = String(node_name)
 		var is_protected = false
 		

@@ -2,6 +2,9 @@
 class_name ResetProgressNodeExecutor
 extends NodeExecutor
 
+## Uses QuestController internals (_scope_manager, _node_definitions, _cleanup_node_runtime,
+## _mark_node_as_logically_complete, _activate_node) by design. Scope reset requires tight integration.
+
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var reset_node = node as ResetProgressNodeResource
 	if not is_instance_valid(reset_node): return
@@ -21,11 +24,12 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	var nodes_to_reset_ids: Array[String] = scope_manager.handle_reset_scope(reset_node, instance)
 	
 	if nodes_to_reset_ids.is_empty():
-		if logger: logger.warn("Flow", "ResetProgressNode: Scope '%s' is empty or invalid." % target_scope_id)
+		if is_instance_valid(logger):
+			logger.warn("Flow", "ResetProgressNode: Scope '%s' is empty or invalid." % target_scope_id)
 		controller.complete_node(reset_node)
 		return
 
-	if logger:
+	if is_instance_valid(logger):
 		logger.log("Flow", "Resetting %d nodes in scope '%s'." % [nodes_to_reset_ids.size(), target_scope_id])
 
 	for node_id in nodes_to_reset_ids:

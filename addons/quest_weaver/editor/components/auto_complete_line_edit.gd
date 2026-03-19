@@ -22,7 +22,7 @@ var text: String:
 		if is_instance_valid(filter_edit):
 			filter_edit.text = value
 		else:
-			call_deferred("set", "text", value)
+			call_deferred(&"set", "text", value)
 
 func _ready() -> void:
 	result_list.focus_mode = Control.FOCUS_NONE

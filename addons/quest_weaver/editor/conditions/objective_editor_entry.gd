@@ -31,7 +31,7 @@ signal move_down_requested
 var objective_resource: ObjectiveResource
 var _is_setting_up := false
 
-func _ready():
+func _ready() -> void:
 	if is_instance_valid(sort_editor):
 		sort_editor.move_up_requested.connect(move_up_requested.emit)
 		sort_editor.move_down_requested.connect(move_down_requested.emit)
@@ -61,7 +61,7 @@ func _ready():
 	for type_name in ObjectiveResource.TriggerType.keys():
 		trigger_type_picker.add_item(type_name)
 
-func set_objective(obj_res: ObjectiveResource):
+func set_objective(obj_res: ObjectiveResource) -> void:
 	_is_setting_up = true
 	self.objective_resource = obj_res
 	
@@ -82,8 +82,8 @@ func set_objective(obj_res: ObjectiveResource):
 		complete_on_delivery_checkbox.button_pressed = obj_res.complete_on_delivery
 	
 	# Defer complex UI building to ensure safe node state
-	call_deferred("_rebuild_trigger_param_ui")
-	call_deferred("_finish_setup")
+	call_deferred(&"_rebuild_trigger_param_ui")
+	call_deferred(&"_finish_setup")
 
 func update_sort_index(index: int, total_count: int) -> void:
 	if is_instance_valid(sort_editor):
@@ -247,7 +247,7 @@ func _on_req_key_changed(old_key, new_key_text):
 	
 	if objective_resource.requirements.has(new_key): 
 		push_warning("Requirement '%s' is already in the list." % new_key)
-		call_deferred("_rebuild_trigger_param_ui")
+		call_deferred(&"_rebuild_trigger_param_ui")
 		return
 	
 	var val = objective_resource.requirements[old_key]
@@ -255,7 +255,7 @@ func _on_req_key_changed(old_key, new_key_text):
 	objective_resource.requirements[new_key] = val
 	
 	_emit_req_update()
-	call_deferred("_rebuild_trigger_param_ui")
+	call_deferred(&"_rebuild_trigger_param_ui")
 
 func _on_req_val_changed(key, new_val):
 	objective_resource.requirements[key] = new_val
@@ -264,7 +264,7 @@ func _on_req_val_changed(key, new_val):
 func _on_req_deleted(key):
 	objective_resource.requirements.erase(key)
 	_emit_req_update()
-	call_deferred("_rebuild_trigger_param_ui")
+	call_deferred(&"_rebuild_trigger_param_ui")
 
 func _emit_req_update():
 	requirements_changed.emit(objective_resource.requirements.duplicate())
@@ -311,16 +311,10 @@ func _on_hidden_toggled(is_pressed: bool):
 	if is_instance_valid(objective_resource) and objective_resource.is_hidden != is_pressed:
 		direct_property_changed.emit("is_hidden", is_pressed)
 
-func _on_param_changed(new_value_text: String, param_name: String):
-	if _is_setting_up: return
-	# Always save as String in dictionary to support "{variables}"
-	if str(objective_resource.trigger_params.get(param_name, "")) != new_value_text:
-		trigger_param_changed.emit(param_name, new_value_text)
-
 func _on_copy_id_pressed():
 	DisplayServer.clipboard_set(id_line_edit.text)
 
-func add_param_row(label_text: String, control: Control):
+func add_param_row(label_text: String, control: Control) -> void:
 	var row = HBoxContainer.new()
 	var label = Label.new()
 	label.text = label_text + ":"

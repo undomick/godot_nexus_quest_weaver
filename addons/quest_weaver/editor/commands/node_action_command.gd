@@ -30,24 +30,18 @@ func execute() -> void:
 			# Similar to add_objective, undo is just removal.
 			pass
 
-		"remove_parallel_output":
-			var index = _payload.get("index")
-			_undo_data = {"port_data": _node_data.outputs[index].duplicate(true), "index": index}
-
-		"remove_random_output":
-			var index = _payload.get("index")
-			_undo_data = {"port_data": _node_data.outputs[index].duplicate(true), "index": index}
+		"remove_parallel_output", "remove_random_output", "remove_sync_output":
+			var index = _payload.get("index", -1)
+			if index >= 0 and index < _node_data.outputs.size():
+				_undo_data = {"port_data": _node_data.outputs[index].duplicate(true), "index": index}
 
 		"remove_sync_input":
-			var index = _payload.get("index")
-			_undo_data = {"port_data": _node_data.inputs[index].duplicate(true), "index": index}
-			
-		"remove_sync_output":
-			var index = _payload.get("index")
-			_undo_data = {"port_data": _node_data.outputs[index].duplicate(true), "index": index}
+			var index = _payload.get("index", -1)
+			if index >= 0 and index < _node_data.inputs.size():
+				_undo_data = {"port_data": _node_data.inputs[index].duplicate(true), "index": index}
 
 	# Execute the action on the node's data resource.
-	if _node_data.has_method(_action):
+	if _node_data.has_method(StringName(_action)):
 		_node_data.call(_action, _payload)
 
 func undo() -> void:
@@ -71,12 +65,12 @@ func undo() -> void:
 
 		"remove_parallel_output", "remove_random_output", "remove_sync_output":
 			var port_data = _undo_data.get("port_data")
-			var index = _undo_data.get("index")
-			if index > -1:
+			var index = _undo_data.get("index", -1)
+			if port_data != null and index >= 0:
 				_node_data.outputs.insert(index, port_data)
 		
 		"remove_sync_input":
 			var port_data = _undo_data.get("port_data")
-			var index = _undo_data.get("index")
-			if index > -1:
+			var index = _undo_data.get("index", -1)
+			if port_data != null and index >= 0:
 				_node_data.inputs.insert(index, port_data)

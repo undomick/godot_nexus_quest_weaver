@@ -1,3 +1,5 @@
+## Uses QuestController internals (_trigger_next_nodes_from_port) by design.
+## Branch output routing requires tight integration; these APIs are not exposed publicly.
 class_name BranchNodeExecutor
 extends NodeExecutor
 

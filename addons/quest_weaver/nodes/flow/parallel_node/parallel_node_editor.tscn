@@ -12,6 +12,14 @@ script = ExtResource("1_utiop")
 [node name="MainLayout" type="VBoxContainer" parent="." unique_id=1071694585]
 layout_mode = 2
 
+[node name="KeepListeningCheckbox" type="CheckBox" parent="MainLayout" unique_id=752897182]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Keep Listening (Loop)"
+
+[node name="HSeparator" type="HSeparator" parent="MainLayout" unique_id=1151218304]
+layout_mode = 2
+
 [node name="AddOutputButton" type="Button" parent="MainLayout" unique_id=1421685641]
 unique_name_in_owner = true
 layout_mode = 2

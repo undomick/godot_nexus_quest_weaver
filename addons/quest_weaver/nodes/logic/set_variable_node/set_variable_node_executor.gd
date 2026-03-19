@@ -2,15 +2,20 @@
 class_name SetVariableNodeExecutor
 extends NodeExecutor
 
+## Applies the configured operator to the GameState variable. Supports SET, ADD, SUBTRACT, MULTIPLY, DIVIDE, TOGGLE.
+## Value supports $variable references. Always completes the current node.
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var var_node = node as SetVariableNodeResource
-	if not is_instance_valid(var_node): return
+	if not is_instance_valid(var_node):
+		push_error("SetVariableNodeExecutor expects a SetVariableNodeResource.")
+		context.quest_controller.complete_node(node)
+		return
 	
 	var game_state = context.game_state
 	var logger = context.logger
 	
 	if var_node.variable_name.is_empty() or not is_instance_valid(game_state):
-		if logger:
+		if is_instance_valid(logger):
 			logger.warn("Executor", "SetVariableNode: variable_name is empty or GameState not found.")
 		context.quest_controller.complete_node(var_node)
 		return
@@ -24,7 +29,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		context.quest_controller.complete_node(var_node)
 		return
 
-	if logger:
+	if is_instance_valid(logger):
 		var op_name = var_node.Operator.keys()[var_node.operator]
 		logger.log("Executor", "SetVariableNode: '%s' %s %s" % [var_node.variable_name, op_name, str(value_to_apply)])
 
@@ -59,7 +64,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 			if current is bool:
 				game_state.set_variable(var_node.variable_name, not current)
 			else:
-				if logger:
+				if is_instance_valid(logger):
 					logger.warn("Executor", "SetVariableNode: TOGGLE operator expects a boolean variable.")
 	
 	context.quest_controller.complete_node(var_node)

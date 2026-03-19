@@ -6,11 +6,6 @@ extends RefCounted
 ## Holds the runtime state (variables, node progress, objective status)
 ## separate from the static definition (QuestGraphResource).
 
-# --- REFERENCES ---
-
-# The static blueprint defining the logic.
-var graph: QuestGraphResource
-
 # --- PERSISTENT STATE (Saved to disk) ---
 
 # The ID of the quest definition (e.g. "kill_rats_01")
@@ -22,6 +17,12 @@ var quest_id: StringName = &""
 # Current status of the quest (ACTIVE, COMPLETED, FAILED, etc.)
 # Uses QWEnums.QuestState
 var current_status: int = 0
+
+## True when the player explicitly rejected this quest (while it was AVAILABLE). Used for Quest Board filtering.
+var rejected_by_player: bool = false
+
+## When non-empty, the instance is in a custom pool (current_status = CUSTOM). Used for additional pools from settings.
+var custom_pool_id: StringName = &""
 
 # Local variables/parameters for this specific instance.
 var variables: Dictionary = {}
@@ -40,17 +41,20 @@ var node_states: Dictionary = {}
 # Use get_objective_progress_by_key / set_objective_progress_by_key for progress; avoid direct key access for portability.
 var objective_states: Dictionary = {}
 
-static var _resolver_regex: RegEx = null 
+static var _resolver_regex: RegEx = null
+const EXPR_CACHE_MAX = 32
+static var _expr_cache: Dictionary = {}
+static var _expr_cache_order: Array[String] = []
 
 # --- INITIALIZATION ---
 
-func _init(p_file_id: StringName, p_graph: QuestGraphResource = null):
+func _init(p_file_id: StringName) -> void:
 	self.file_id = p_file_id
-	self.graph = p_graph
 	self.current_status = QWEnums.QuestState.UNAVAILABLE
 
 # --- NODE STATE MANAGEMENT ---
 
+## Marks a node as active (e.g. Timer, EventListener) with optional meta.
 func set_node_active(node_id: StringName, is_active: bool, meta: Dictionary = {}) -> void:
 	if is_active:
 		active_node_ids[node_id] = meta
@@ -65,6 +69,7 @@ func set_node_data(node_id: StringName, key: StringName, value: Variant) -> void
 		node_states[node_id] = {}
 	node_states[node_id][key] = value
 
+## Gets stored data for a node by key.
 func get_node_data(node_id: StringName, key: StringName, default: Variant = null) -> Variant:
 	if node_states.has(node_id):
 		return node_states[node_id].get(key, default)
@@ -77,6 +82,8 @@ func clear_node_state(node_id: StringName) -> void:
 # --- OBJECTIVE STATE MANAGEMENT ---
 
 func _get_objective_state_by_id(objective_id: StringName):
+	if objective_states.has(objective_id):
+		return objective_states[objective_id]
 	var id_str = str(objective_id)
 	for k in objective_states:
 		if str(k) == id_str:
@@ -91,11 +98,13 @@ func _get_or_create_objective_state(objective_id: StringName):
 	objective_states[key_n] = { "status": ObjectiveResource.Status.ACTIVE, "progress": {} }
 	return objective_states[key_n]
 
+## Returns the status of an objective (ObjectiveResource.Status).
 func get_objective_status(objective_id: StringName) -> int:
 	if objective_states.has(objective_id):
 		return objective_states[objective_id].get("status", ObjectiveResource.Status.INACTIVE)
 	return ObjectiveResource.Status.INACTIVE
 
+## Sets the status of an objective.
 func set_objective_status(objective_id: StringName, status: int) -> void:
 	if not objective_states.has(objective_id):
 		objective_states[objective_id] = { "status": ObjectiveResource.Status.INACTIVE, "progress": 0 }
@@ -148,16 +157,19 @@ func set_objective_progress_by_key(objective_id: StringName, target_key: StringN
 	prog[StringName(target_key)] = value
 	state["status"] = ObjectiveResource.Status.ACTIVE
 
+## Sets the total progress for an objective (simple int).
 func set_objective_progress(objective_id: StringName, value: int) -> void:
 	if not objective_states.has(objective_id):
 		objective_states[objective_id] = { "status": ObjectiveResource.Status.ACTIVE, "progress": 0 }
 	objective_states[objective_id]["progress"] = value
 
+## Sets a runtime description override for an objective.
 func set_objective_description_override(objective_id: StringName, text: String) -> void:
 	if not objective_states.has(objective_id):
 		objective_states[objective_id] = { "status": ObjectiveResource.Status.INACTIVE, "progress": 0 }
 	objective_states[objective_id]["description_override"] = text
 
+## Returns the description override if set, otherwise the default blueprint text.
 func get_objective_description(objective_id: StringName, default_blueprint_text: String) -> String:
 	if objective_states.has(objective_id):
 		var override = objective_states[objective_id].get("description_override", "")
@@ -167,9 +179,11 @@ func get_objective_description(objective_id: StringName, default_blueprint_text:
 
 # --- VARIABLE / PARAMETER MANAGEMENT ---
 
+## Sets a variable for this instance.
 func set_variable(key: StringName, value: Variant) -> void:
 	variables[key] = value
 
+## Gets a variable from this instance.
 func get_variable(key: StringName, default: Variant = null) -> Variant:
 	return variables.get(key, default)
 
@@ -184,7 +198,10 @@ func resolve_text(text: String, context_obj: Resource = null) -> String:
 		_resolver_regex.compile("\\{(.*?)\\}") 
 
 	# 1. Prepare Context
-	var global_qw = Engine.get_main_loop().root.get_node_or_null("QuestWeaverGlobal")
+	var main_loop = Engine.get_main_loop()
+	if not main_loop or not main_loop.root:
+		return text
+	var global_qw = main_loop.root.get_node_or_null("QuestWeaverGlobal")
 	var context_wrapper = QWTextContext.new(global_qw, self, context_obj)
 	
 	var result = text
@@ -200,33 +217,46 @@ func resolve_text(text: String, context_obj: Resource = null) -> String:
 		
 		var replacement_value = full_placeholder # Default: Keep original if fail
 		
-		# STRATEGY A: Try Expression (Advanced)
-		var expr = Expression.new()
-		var parse_err = expr.parse(content)
-		
-		if parse_err == OK:
-			var exec_result = expr.execute([], context_wrapper, true)
-			if not expr.has_execute_failed():
-				replacement_value = str(exec_result)
-			else:
-				# STRATEGY B: Fallback to simple Variable Lookup
-				# (Expression might fail if it's just a variable name like "gold_amount" 
-				# because strictly it should be "var('gold_amount')" or member access, 
-				# but user expects "{gold_amount}")
-				var simple_lookup = get_variable(content, null)
-				if simple_lookup == null and global_qw:
-					simple_lookup = global_qw.get_variable(content, null)
-				
-				if simple_lookup != null:
-					replacement_value = str(simple_lookup)
-		else:
-			# Parse Error (e.g. invalid syntax) -> Try simple lookup
+		# Fast path: Simple variable (no ., (, [, space) - avoid Expression entirely
+		var is_simple_var = not content.contains(".") and not content.contains("(") and not content.contains("[") and not content.contains(" ")
+		if is_simple_var:
 			var simple_lookup = get_variable(content, null)
 			if simple_lookup == null and global_qw:
 				simple_lookup = global_qw.get_variable(content, null)
-			
 			if simple_lookup != null:
 				replacement_value = str(simple_lookup)
+		else:
+			# Expression path: use cached Expression to avoid repeated parse()
+			var expr: Expression = _expr_cache.get(content)
+			if expr == null:
+				expr = Expression.new()
+				var parse_err = expr.parse(content)
+				if parse_err == OK:
+					_expr_cache[content] = expr
+					_expr_cache_order.append(content)
+					if _expr_cache_order.size() > EXPR_CACHE_MAX:
+						var evict_key = _expr_cache_order.pop_front()
+						_expr_cache.erase(evict_key)
+				else:
+					# Parse failed - try simple lookup as fallback
+					var simple_lookup = get_variable(content, null)
+					if simple_lookup == null and global_qw:
+						simple_lookup = global_qw.get_variable(content, null)
+					if simple_lookup != null:
+						replacement_value = str(simple_lookup)
+					expr = null
+			
+			if expr != null:
+				var exec_result = expr.execute([], context_wrapper, true)
+				if not expr.has_execute_failed():
+					replacement_value = str(exec_result)
+				else:
+					# Execute failed (e.g. variable name) - fallback to simple lookup
+					var simple_lookup = get_variable(content, null)
+					if simple_lookup == null and global_qw:
+						simple_lookup = global_qw.get_variable(content, null)
+					if simple_lookup != null:
+						replacement_value = str(simple_lookup)
 
 		# Apply replacement
 		if replacement_value != full_placeholder:
@@ -312,16 +342,24 @@ func get_save_data() -> Dictionary:
 		"file_id": file_id,
 		"quest_id": quest_id,
 		"status": current_status,
+		"custom_pool_id": custom_pool_id,
+		"rejected_by_player": rejected_by_player,
 		"variables": variables.duplicate(),
 		"active_node_ids": active_node_ids.duplicate(),
 		"node_states": node_states.duplicate(true),
 		"objective_states": objective_states_serializable
 	}
 
+## Restores instance state from a previously saved dictionary.
 func load_save_data(data: Dictionary) -> void:
+	if data == null:
+		push_warning("QuestInstance: load_save_data called with null.")
+		return
 	self.file_id = StringName(data.get("file_id", &""))
 	self.quest_id = StringName(data.get("quest_id", &""))
 	self.current_status = int(data.get("status", QWEnums.QuestState.UNAVAILABLE))
+	self.custom_pool_id = StringName(data.get("custom_pool_id", &""))
+	self.rejected_by_player = data.get("rejected_by_player", false)
 	self.variables = data.get("variables", {}).duplicate() 
 	
 	self.active_node_ids = {}

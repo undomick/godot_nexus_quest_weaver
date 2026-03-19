@@ -2,6 +2,8 @@
 class_name QuestNodeExecutor
 extends NodeExecutor
 
+## Applies the configured quest action (Complete/Fail/Start/Mark Available/Move to Custom Pool) to the target quest.
+## Always completes the current node to advance the graph.
 func execute(context: ExecutionContext, node: GraphNodeResource, _instance: QuestInstance) -> void:
 	var quest_node = node as QuestNodeResource
 	if not is_instance_valid(quest_node):
@@ -9,7 +11,9 @@ func execute(context: ExecutionContext, node: GraphNodeResource, _instance: Ques
 		context.quest_controller.complete_node(node)
 		return
 
-	# Sets status of ANOTHER quest
-	context.quest_controller.set_quest_status(quest_node.target_quest_id, quest_node.action)
-	
+	if quest_node.action == QuestNodeResource.QuestAction.MOVE_TO_CUSTOM_POOL:
+		context.quest_controller.move_quest_to_custom_pool(quest_node.target_quest_id, quest_node.custom_pool_id)
+	else:
+		context.quest_controller.set_quest_status(quest_node.target_quest_id, quest_node.action)
+
 	context.quest_controller.complete_node(node)

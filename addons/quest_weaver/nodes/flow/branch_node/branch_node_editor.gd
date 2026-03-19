@@ -36,7 +36,7 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 		operator_picker.add_item(op_name)
 	operator_picker.select(node_data.operator)
 	
-	call_deferred("_rebuild_conditions_list")
+	call_deferred(&"_rebuild_conditions_list")
 	_is_setting_up = false
 
 func _rebuild_conditions_list() -> void:

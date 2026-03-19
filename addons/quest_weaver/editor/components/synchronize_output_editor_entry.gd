@@ -23,13 +23,6 @@ func _ready() -> void:
 	port_name_edit.text_submitted.connect(func(_text): _on_port_name_confirmed())
 	port_name_edit.focus_exited.connect(_on_port_name_confirmed)
 	
-	# Relay signals
-	condition_editor.property_changed.connect(
-		func(n, v, r=null): # optional param for backwards compat if needed, but SyncCondEditor is simpler
-			# SyncCondEditor uses a specific editor that we might need to update too? 
-			# Ah, check_type_picker etc.
-			pass
-	)
 	condition_editor.rebuild_requested.connect(func(): type_changed.emit(null))
 
 func display_data(p_output_port: SynchronizeOutputPort) -> void:
@@ -50,6 +43,7 @@ func display_data(p_output_port: SynchronizeOutputPort) -> void:
 	)
 
 func _on_port_name_confirmed() -> void:
+	if not is_instance_valid(output_port): return
 	var new_name = port_name_edit.text
 	if _port_name_undo_value != new_name:
 		name_changed.emit(new_name)

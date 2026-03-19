@@ -67,6 +67,16 @@ const DEFINITIONS = [
 		"editor": preload("res://addons/quest_weaver/nodes/flow/anchor_node/anchor_node_editor.tscn")
 	},
 	{
+		"resource": preload("res://addons/quest_weaver/nodes/flow/all_complete_node/all_complete_node_resource.gd"),
+		"executor": preload("res://addons/quest_weaver/nodes/flow/all_complete_node/all_complete_node_executor.gd"),
+		"editor": preload("res://addons/quest_weaver/nodes/flow/all_complete_node/all_complete_node_editor.tscn")
+	},
+	{
+		"resource": preload("res://addons/quest_weaver/nodes/flow/any_complete_node/any_complete_node_resource.gd"),
+		"executor": preload("res://addons/quest_weaver/nodes/flow/any_complete_node/any_complete_node_executor.gd"),
+		"editor": preload("res://addons/quest_weaver/nodes/flow/any_complete_node/any_complete_node_editor.tscn")
+	},
+	{
 		"resource": preload("res://addons/quest_weaver/nodes/flow/branch_node/branch_node_resource.gd"),
 		"executor": preload("res://addons/quest_weaver/nodes/flow/branch_node/branch_node_executor.gd"),
 		"editor": preload("res://addons/quest_weaver/nodes/flow/branch_node/branch_node_editor.tscn")
@@ -97,6 +107,11 @@ const DEFINITIONS = [
 		"editor": preload("res://addons/quest_weaver/nodes/flow/synchronize_node/synchronize_node_editor.tscn")
 	},
 	{
+		"resource": preload("res://addons/quest_weaver/nodes/flow/switch_node/switch_node_resource.gd"),
+		"executor": preload("res://addons/quest_weaver/nodes/flow/switch_node/switch_node_executor.gd"),
+		"editor": preload("res://addons/quest_weaver/nodes/flow/switch_node/switch_node_editor.tscn")
+	},
+	{
 		"resource": preload("res://addons/quest_weaver/nodes/flow/timer_node/timer_node_resource.gd"),
 		"executor": preload("res://addons/quest_weaver/nodes/flow/timer_node/timer_node_executor.gd"),
 		"editor": preload("res://addons/quest_weaver/nodes/flow/timer_node/timer_node_editor.tscn")
@@ -108,6 +123,11 @@ const DEFINITIONS = [
 	},
 
 	# --- LOGIC ---
+	{
+		"resource": preload("res://addons/quest_weaver/nodes/logic/cancel_scope_node/cancel_scope_node_resource.gd"),
+		"executor": preload("res://addons/quest_weaver/nodes/logic/cancel_scope_node/cancel_scope_node_executor.gd"),
+		"editor": preload("res://addons/quest_weaver/nodes/logic/cancel_scope_node/cancel_scope_node_editor.tscn")
+	},
 	{
 		"resource": preload("res://addons/quest_weaver/nodes/logic/end_scope_node/end_scope_node_resource.gd"),
 		"executor": null,

@@ -1,4 +1,4 @@
-# res://addons/quest_weaver/ui/editors/quest_control_node_editor.gd
+# res://addons/quest_weaver/editor/quest_control_node_editor.gd
 @tool
 extends NodePropertyEditorBase
 
@@ -12,13 +12,17 @@ func _ready() -> void:
 
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
-	quest_path_edit.text = node_data.get("quest_path")
+	quest_path_edit.text = node_data.get("quest_path") or ""
 
 func _on_path_changed(new_path: String) -> void:
+	if not is_instance_valid(edited_node_data):
+		return
 	property_update_requested.emit(edited_node_data.id, "quest_path", new_path, null, {})
 
 func _on_browse_pressed() -> void:
+	if not is_instance_valid(edited_node_data):
+		return
 	var dialog = QWConstants.QuestFileDialogScene.instantiate()
 	get_tree().root.add_child(dialog)
 	dialog.path_confirmed.connect(func(path): _on_path_changed(path); quest_path_edit.text = path)
-	dialog.prompt(QuestFileDialog.Mode.OPEN_FILE)
+	dialog.show_for_mode(QuestFileDialog.QuestDialogMode.OPEN_FILE)

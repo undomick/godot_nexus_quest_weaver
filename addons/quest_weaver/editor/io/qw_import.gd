@@ -10,7 +10,7 @@ func _get_visible_name() -> String:
 	return "Quest Graph"
 
 func _get_recognized_extensions() -> PackedStringArray:
-	return [QWConstants.FILE_EXTENSION]
+	return PackedStringArray([QWConstants.FILE_EXTENSION])
 
 func _get_save_extension() -> String:
 	return "tres"
@@ -46,8 +46,11 @@ func _import(source_file: String, save_path: String, options: Dictionary, platfo
 		return ERR_PARSE_ERROR
 
 	var quest_graph_resource = QuestGraphResource.new()
-	
 	quest_graph_resource.from_dictionary(data)
+
+	if quest_graph_resource.nodes.is_empty():
+		push_error("QuestWeaver Importer: File '%s' produced no valid nodes." % source_file)
+		return ERR_PARSE_ERROR
 
 	var full_save_path = "%s.%s" % [save_path, _get_save_extension()]
 	

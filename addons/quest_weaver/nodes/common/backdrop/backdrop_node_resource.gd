@@ -31,11 +31,13 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.title = data.get("title", "")
-	self.text = data.get("text", "")
-	self.color = data.get("color", Color(0.2, 0.23, 0.3, 0.6))
-	self.node_size = data.get("node_size", Vector2(400, 300))
-	self.title_font_size = data.get("title_font_size", 16)
+	self.title = str(data.get("title", ""))
+	self.text = str(data.get("text", ""))
+	var color_val = data.get("color", Color(0.2, 0.23, 0.3, 0.6))
+	self.color = color_val if color_val is Color else Color(0.2, 0.23, 0.3, 0.6)
+	var size_val = data.get("node_size", Vector2(400, 300))
+	self.node_size = size_val if size_val is Vector2 else Vector2(400, 300)
+	self.title_font_size = int(data.get("title_font_size", 16))
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.LARGE

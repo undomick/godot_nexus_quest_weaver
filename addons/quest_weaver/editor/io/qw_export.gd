@@ -3,6 +3,9 @@
 class_name QuestWeaverExportPlugin
 extends EditorExportPlugin
 
+## Placeholder for future QuestWeaver-specific export handling.
+## .quest files are exported as-is by Godot's default behavior.
+## This hook can be used later for e.g. validation or format conversion on export.
 
 func _get_name() -> String:
 	return "QuestWeaverExport"

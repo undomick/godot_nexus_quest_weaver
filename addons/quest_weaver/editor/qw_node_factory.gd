@@ -55,13 +55,13 @@ func show_add_node_menu(graph_position: Vector2, connect_from_data: Dictionary =
 	_add_node_menu.popup(Rect2i(get_viewport().get_mouse_position(), Vector2.ZERO))
 
 
-func _on_node_selected_from_menu(type_name: String) -> void:
+func _on_node_selected_from_menu(type_name: StringName) -> void:
 	# Use call_deferred to ensure the menu is closed and the editor state is stable
 	# before proceeding with the complex node creation logic.
-	call_deferred("_create_new_node", type_name)
+	call_deferred(&"_create_new_node", type_name)
 
 
-func _create_new_node(type_name: String) -> void:
+func _create_new_node(type_name: StringName) -> void:
 	var editable_graph = _data_manager.make_active_graph_editable()
 	if not is_instance_valid(editable_graph):
 		return
@@ -81,24 +81,20 @@ func _create_new_node(type_name: String) -> void:
 	var node_script = _node_registry.get_script_for_name(type_name)
 	if not is_instance_valid(node_script):
 		return
-		
-	var new_node_data: GraphNodeResource = node_script.new()
-	
-	# Generate a unique ID for the new node based on its type and current timestamp.
-	new_node_data.id = "%s_%d_%d" % [type_name.to_snake_case(), Time.get_unix_time_from_system(), randi() & 0xFFFF]
-	new_node_data.graph_position = _pending_node_creation_pos
-	
+
 	# Create and execute the command to add the node to the graph.
 	var command = QWActionHandler.CreateNodeCommand.new(_editor, editable_graph, node_script, _pending_node_creation_pos, _pending_connection_data)
 	_history.execute_command(command)
-	
+
 	# Clean up the state after the command has been created.
 	_pending_connection_data.clear()
-	
+
 	# Disable the connecting line visual aid in the graph controller.
 	_graph_controller.set_is_connecting(false)
-	
+
 	await get_tree().process_frame
-	
-	# Instruct the editor to select and inspect the newly created node.
-	_editor.select_and_inspect_node(new_node_data.id)
+
+	# Use the ID from the command (it generates the ID in execute())
+	var created_id = command.get_created_node_id()
+	if not created_id.is_empty():
+		_editor.select_and_inspect_node(created_id)

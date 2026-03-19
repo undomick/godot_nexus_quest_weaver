@@ -22,7 +22,7 @@ func _init() -> void:
 
 func to_dictionary() -> Dictionary:
 	var data: Dictionary = {
-		"@script_path": get_script().get_path(),
+		"@script_path": get_script().resource_path,
 		"port_name": port_name,
 		"patterns": patterns
 	}
@@ -43,7 +43,7 @@ func from_dictionary(data: Dictionary) -> void:
 	
 	var condition_data: Variant = data.get("condition")
 	if condition_data is Dictionary:
-		var script: Script = load(condition_data.get("@script_path"))
-		if is_instance_valid(script):
-			condition = script.new()
+		var new_cond = GraphNodeResource.new_condition_from_path(condition_data.get("@script_path"))
+		if is_instance_valid(new_cond):
+			condition = new_cond as ConditionResource
 			condition.from_dictionary(condition_data)

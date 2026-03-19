@@ -17,7 +17,7 @@ func set_node_data(node_data: GraphNodeResource):
 	super.set_node_data(node_data)
 	if not node_data is RandomNodeResource: return
 	
-	call_deferred("_rebuild_outputs_list")
+	call_deferred(&"_rebuild_outputs_list")
 
 func _rebuild_outputs_list():
 	for child in outputs_container.get_children():
@@ -48,12 +48,12 @@ func _rebuild_outputs_list():
 
 func _on_add_output_pressed():
 	complex_action_requested.emit(edited_node_data.id, "add_random_output", {})
-	call_deferred("_rebuild_outputs_list")
+	call_deferred(&"_rebuild_outputs_list")
 
 func _on_remove_output_pressed(index: int):
 	var payload = {"index": index}
 	complex_action_requested.emit(edited_node_data.id, "remove_random_output", payload)
-	call_deferred("_rebuild_outputs_list")
+	call_deferred(&"_rebuild_outputs_list")
 
 func _on_output_name_confirmed(index: int, name_edit: LineEdit):
 	var new_name = name_edit.text

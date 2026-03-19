@@ -1,4 +1,5 @@
-# res://addons/quest_weaver/nodes/flow/jump_node/jump_node_executor.gd
+## Uses QuestController internals (_mark_node_as_logically_complete, jump_to_anchor) by design.
+## Jump flow requires tight integration; these APIs are not exposed publicly.
 class_name JumpNodeExecutor
 extends NodeExecutor
 
@@ -10,7 +11,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, _instance: Ques
 	var logger = context.logger
 	
 	if jump_node.target_anchor_name.is_empty():
-		if logger:
+		if is_instance_valid(logger):
 			logger.warn("Flow", "JumpNode '%s' has no target anchor name." % jump_node.id)
 		# Terminate the node without jumping (Dead end)
 		controller._mark_node_as_logically_complete(jump_node)

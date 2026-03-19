@@ -52,7 +52,7 @@ func to_dictionary() -> Dictionary:
 		"complete_on_delivery": self.complete_on_delivery
 	}
 
-func from_dictionary(data: Dictionary):
+func from_dictionary(data: Dictionary) -> void:
 	self.id = StringName(data.get("id", &""))
 	self.description = data.get("description", "")
 	self.trigger_type = _defensive_load(data, "trigger_type", TriggerType.keys(), TriggerType.MANUAL)
@@ -77,7 +77,7 @@ func from_dictionary(data: Dictionary):
 	else:
 		self.trigger_params = old_params
 
-	self.track_progress_since_activation = data.get("track_progress_since_activation", false)
+	self.track_progress_since_activation = data.get("track_progress_since_activation", true)
 	self.show_counter = data.get("show_counter", true)
 	self.is_optional = data.get("is_optional", false)
 	self.is_hidden = data.get("is_hidden", false)

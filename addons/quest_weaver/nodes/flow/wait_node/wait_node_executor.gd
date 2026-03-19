@@ -8,11 +8,13 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	var controller = context.quest_controller
 	var logger = context.logger
 	
-	logger.log("Executor", "WaitNode '%s': Waiting %s s..." % [wait_node.id, wait_node.wait_duration])
+	if is_instance_valid(logger):
+		logger.log("Executor", "WaitNode '%s': Waiting %s s..." % [wait_node.id, wait_node.wait_duration])
 	
 	await controller.get_tree().create_timer(wait_node.wait_duration).timeout
 	
 	# Check if node is still active in THIS instance (it might have been reset or skipped)
 	if instance.is_node_active(wait_node.id):
-		logger.log("Executor", "  - Wait finished.")
+		if is_instance_valid(logger):
+			logger.log("Executor", "  - Wait finished.")
 		controller.complete_node(wait_node)

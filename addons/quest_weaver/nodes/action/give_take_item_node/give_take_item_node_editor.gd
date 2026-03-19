@@ -213,7 +213,7 @@ func _on_item_key_changed(old_key: StringName, new_key_text: String):
 
 	if node.items.has(new_key): 
 		push_warning("Item '%s' is already in the list." % new_key)
-		call_deferred("_rebuild_ui")
+		call_deferred(&"_rebuild_ui")
 		return
 	
 	var val = node.items[old_key]
@@ -221,7 +221,7 @@ func _on_item_key_changed(old_key: StringName, new_key_text: String):
 	node.items[new_key] = val
 	
 	_emit_items_update()
-	call_deferred("_rebuild_ui")
+	call_deferred(&"_rebuild_ui")
 
 func _on_item_val_changed(key, new_val):
 	if _is_setting_up: return # GUARD
@@ -234,7 +234,7 @@ func _on_item_deleted(key):
 	var node = edited_node_data as GiveTakeItemNodeResource
 	node.items.erase(key)
 	_emit_items_update()
-	call_deferred("_rebuild_ui")
+	call_deferred(&"_rebuild_ui")
 
 func _emit_items_update():
 	var node = edited_node_data as GiveTakeItemNodeResource

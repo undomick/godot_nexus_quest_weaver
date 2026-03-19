@@ -12,7 +12,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	# --- 1. Suppression Check ---
 	var global_bus = context.services.get_tree().root.get_node_or_null("QuestWeaverGlobal")
 	if is_instance_valid(global_bus) and global_bus.are_notifications_suppressed:
-		if logger:
+		if is_instance_valid(logger):
 			logger.log("Flow", "Suppressed UI Message '%s' due to global setting." % msg_node.id)
 		# Skip logic and complete immediately
 		controller.complete_node(msg_node)
@@ -23,7 +23,7 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	var final_title = instance.resolve_text(msg_node.title_override)
 	var final_message = instance.resolve_text(msg_node.message_override)
 
-	if logger:
+	if is_instance_valid(logger):
 		logger.log("Executor", "ShowUIMessage: '%s' - '%s'" % [final_title, final_message])
 
 	var presentation_manager = null
@@ -76,12 +76,12 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		while true:
 			# Safety: Break if manager was destroyed (e.g. scene change)
 			if not is_instance_valid(presentation_manager):
-				if logger: logger.warn("Executor", "PresentationManager lost during wait. Aborting wait.")
+				if is_instance_valid(logger): logger.warn("Executor", "PresentationManager lost during wait. Aborting wait.")
 				break
 			
 			# Safety: Break if timeout exceeded
 			if (Time.get_ticks_msec() - start_time) > timeout_ms:
-				if logger: logger.warn("Executor", "ShowUIMessage timed out (Signal lost?). Force continuing.")
+				if is_instance_valid(logger): logger.warn("Executor", "ShowUIMessage timed out (Signal lost?). Force continuing.")
 				break
 			
 			var finished_id = await presentation_manager.presentation_completed

@@ -7,9 +7,7 @@ signal inventory_changed
 # Our simple in-memory inventory.
 # Format: { "item_id": quantity }
 var _inventory: Dictionary = {
-	"health_potion": 3,
-	"mana_potion": 5,
-	"gold_coin": 100
+	"gold": 1
 }
 
 # Prints the current inventory to the console.
@@ -20,6 +18,10 @@ func print_inventory():
 	print("----------------------------\n")
 
 # --- PUBLIC API FOR THE ADAPTER ---
+
+## Returns a snapshot of all items. Format: { "item_id": quantity }
+func get_all_items() -> Dictionary:
+	return _inventory.duplicate()
 
 func count_item(item_id: String) -> int:
 	return _inventory.get(item_id, 0)

@@ -15,6 +15,7 @@ func _init(p_dictionary: Dictionary, p_key: Variant, p_new_value: Variant):
 	self._new_value = p_new_value
 
 func execute() -> void:
+	if _target_dictionary == null: return
 	_key_existed = _target_dictionary.has(_key)
 	if _key_existed:
 		_old_value = _target_dictionary.get(_key)
@@ -22,6 +23,7 @@ func execute() -> void:
 	_target_dictionary[_key] = _new_value
 
 func undo() -> void:
+	if _target_dictionary == null: return
 	if _key_existed:
 		_target_dictionary[_key] = _old_value
 	else:

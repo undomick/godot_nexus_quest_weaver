@@ -8,6 +8,7 @@ extends RefCounted
 var _objective: ObjectiveResource
 var _item_registry: Resource
 
+## Creates proxy for the given objective. item_registry used for display_name and icon lookup.
 func _init(p_objective: ObjectiveResource, p_item_registry: Resource) -> void:
 	_objective = p_objective
 	_item_registry = p_item_registry

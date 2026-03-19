@@ -7,7 +7,7 @@ extends Resource
 
 @export_group("Integration")
 ## Quest Objectives might need Inventory Logic. The Inventory Adapter provides a way to let 
-## your Inventory talk with Quest Weaver, without rewrite some Quest Weaver itself. 
+## your Inventory talk with Quest Weaver, without rewriting Quest Weaver itself. 
 ## Your Adapter has to extend 'QuestInventoryAdapterBase'!
 @export_file("*.gd") var inventory_adapter_script: String
 
@@ -33,6 +33,11 @@ extends Resource
 ## Useful for "Master Quest" that listen for global events.
 @export_file("*.quest", "res://") var auto_start_quests: Array[String] = []
 
+@export_subgroup("Pools")
+## Optional: Script paths for additional quest pools (e.g. "Daily", "Seasonal").
+## Each script must extend BaseQuestPool. Pool ID is derived from filename (e.g. "daily_pool.gd" -> "daily_pool").
+@export var additional_pool_scripts: Array[String] = []
+
 @export_subgroup("Localization")
 ## Optional: Path to a CSV file for localization keys.
 ## If set, the 'Update Localization Keys' button will scan your quests and append new text keys to this file.
@@ -52,5 +57,9 @@ extends Resource
 
 func _validate_property(property: Dictionary) -> void:
 	# Hide internal paths from the Inspector, but keep them strictly serializable (STORAGE).
-	if property.name in ["quest_registry_path", "editor_data_path"]:
+	if property.name in [&"quest_registry_path", &"editor_data_path"]:
 		property.usage = PROPERTY_USAGE_STORAGE
+	# Enable drag & drop / file picker for additional_pool_scripts (Array[String])
+	if property.name == &"additional_pool_scripts":
+		property.hint = PROPERTY_HINT_TYPE_STRING
+		property.hint_string = "%d/%d:*.gd" % [TYPE_STRING, PROPERTY_HINT_FILE]

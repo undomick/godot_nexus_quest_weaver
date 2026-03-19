@@ -12,7 +12,7 @@ extends RefCounted
 signal kills_updated
 
 ## Returns the TOTAL number of kills for a specific enemy (e.g. game-wide statistic).
-func count_kill(enemy_id: String) -> int:
+func count_kill(enemy_id: StringName) -> int:
 	push_warning("The count_kill function has not been implemented in the concrete kill adapter.")
 	return 0
 

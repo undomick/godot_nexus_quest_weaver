@@ -41,5 +41,11 @@ func from_dictionary(data: Dictionary):
 	self.animation_name = data.get("animation_name", &"")
 	self.wait_for_completion = data.get("wait_for_completion", true)
 
+func _validate(_context: Dictionary) -> Array[ValidationResult]:
+	var results: Array[ValidationResult] = []
+	if animation_name.is_empty():
+		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Play Cutscene: Animation name is not set.", id))
+	return results
+
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL

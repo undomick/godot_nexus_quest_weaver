@@ -90,7 +90,11 @@ func _format_condition_summary(condition: ConditionResource) -> String:
 				return "CHECK_ITEM:\n(ID missing)"
 			return "CHECK_ITEM:\n%d x '%s'" % [condition.amount, condition.item_id.get_file()]
 		ConditionResource.ConditionType.CHECK_QUEST_STATUS:
-			var status_name = QWEnums.QuestState.keys()[condition.expected_status].capitalize()
+			var status_name: String
+			if condition.expected_status == QWEnums.QuestState.CUSTOM and not condition.expected_custom_pool_id.is_empty():
+				status_name = str(condition.expected_custom_pool_id)
+			else:
+				status_name = QWEnums.QuestState.keys()[condition.expected_status].capitalize()
 			return "QUEST_CHECK:\n'%s' is %s" % [condition.quest_id, status_name]
 		ConditionResource.ConditionType.CHECK_VARIABLE:
 			var op_keys = ["==", "!=", ">", "<", ">=", "<="]
@@ -155,9 +159,8 @@ func from_dictionary(data: Dictionary):
 	
 	self.conditions.clear()
 	for c_data in data.get("conditions", []):
-		var script = load(c_data.get("@script_path"))
-		if script:
-			var new_c = script.new()
+		var new_c = GraphNodeResource.new_condition_from_path(c_data.get("@script_path"))
+		if is_instance_valid(new_c):
 			new_c.from_dictionary(c_data)
 			self.conditions.append(new_c)
 

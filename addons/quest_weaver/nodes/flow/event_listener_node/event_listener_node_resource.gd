@@ -54,9 +54,9 @@ func from_dictionary(data: Dictionary):
 	
 	var cond_data = data.get("payload_condition")
 	if cond_data is Dictionary:
-		var script = load(cond_data.get("@script_path"))
-		if script:
-			self.payload_condition = script.new()
+		var new_cond = GraphNodeResource.new_condition_from_path(cond_data.get("@script_path"))
+		if is_instance_valid(new_cond):
+			self.payload_condition = new_cond as ConditionResource
 			self.payload_condition.from_dictionary(cond_data)
 
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
