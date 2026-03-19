@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Build addon zip
+        run: |
+          ZIP_NAME="QuestWeaver-v${{ steps.version.outputs.version }}.zip"
+          zip -r "$ZIP_NAME" addons/
+          echo "zip_name=$ZIP_NAME" >> $GITHUB_ENV
+          ls -la "$ZIP_NAME"
+
+      - name: Extract changelog
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [ -f docs/CHANGELOG.md ]; then
+            sed -n "/^## \[$VERSION\]/,/^## \[/p" docs/CHANGELOG.md | sed '$d' > changelog_section.md
+            echo "body<<CHANGELOG_EOF" >> $GITHUB_OUTPUT
+          cat changelog_section.md >> $GITHUB_OUTPUT
+            echo "CHANGELOG_EOF" >> $GITHUB_OUTPUT
+          else
+            echo "body=No changelog found." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ steps.version.outputs.version }}
+          body: ${{ steps.changelog.outputs.body }}
+          files: ${{ env.zip_name }}
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

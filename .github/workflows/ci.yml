@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Godot
+        uses: solarlabyrinth/action-setup-godot@v2
+        with:
+          version: 4.6.1-stable
+
+      - name: Validate project
+        run: |
+          godot --headless --quit-after 2
+        env:
+          GODOT_DISABLE_LEAK_CHECKS: 1
