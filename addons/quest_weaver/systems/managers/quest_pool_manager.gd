@@ -7,6 +7,7 @@ extends RefCounted
 
 var _controller_weak: WeakRef
 
+
 func _init(p_controller: QuestController) -> void:
 	_controller_weak = weakref(p_controller)
 

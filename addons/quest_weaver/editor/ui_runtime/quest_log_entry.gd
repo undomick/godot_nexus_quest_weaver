@@ -5,7 +5,6 @@ extends PanelContainer
 
 signal selected(quest_id: StringName)
 
-
 @export var stylebox_idle: StyleBox
 
 @export var stylebox_active: StyleBox
@@ -15,6 +14,7 @@ var _quest_id: StringName = &""
 @onready var background_panel: PanelContainer = self
 
 @onready var _title_label: Label = $MarginContainer/QuestTitleLabel
+
 
 func get_quest_id() -> StringName:
 	return _quest_id
@@ -32,7 +32,11 @@ func set_quest_data(quest_data: Dictionary) -> void:
 
 
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
+	if (
+		event is InputEventMouseButton
+		and event.button_index == MOUSE_BUTTON_LEFT
+		and event.is_pressed()
+	):
 		selected.emit(_quest_id)
 
 
@@ -47,4 +51,3 @@ func set_active_state(is_active: bool) -> void:
 	else:
 		if stylebox_idle:
 			background_panel.add_theme_stylebox_override("panel", stylebox_idle)
-

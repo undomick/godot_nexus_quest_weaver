@@ -5,7 +5,9 @@ class_name EventListenerNodeResource
 
 extends GraphNodeResource
 
-enum SimpleOperator { EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_OR_EQUAL, LESS_OR_EQUAL, HAS }
+enum SimpleOperator {
+	EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_OR_EQUAL, LESS_OR_EQUAL, HAS
+}
 
 @export var event_name: StringName = &"my_game_event"
 
@@ -13,9 +15,10 @@ enum SimpleOperator { EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_OR_EQ
 
 @export var use_simple_conditions: bool = true
 
-@export var simple_conditions: Array[Dictionary] = [] # Format: [{"key": "", "op": 0, "value": ""}]
+@export var simple_conditions: Array[Dictionary] = []  # Format: [{"key": "", "op": 0, "value": ""}]
 
 @export var keep_listening: bool = false
+
 
 func _init() -> void:
 	category = "Flow"
@@ -74,11 +77,14 @@ func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 
 	if event_name.is_empty():
-		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Event Listener: Event Name is not set.", id))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.ERROR, "Event Listener: Event Name is not set.", id
+			)
+		)
 
 	return results
 
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.LARGE
-

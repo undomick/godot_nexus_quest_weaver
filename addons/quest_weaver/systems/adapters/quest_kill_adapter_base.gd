@@ -11,10 +11,12 @@ extends RefCounted
 
 signal kills_updated
 
+
 ## Returns the TOTAL number of kills for a specific enemy (e.g. game-wide statistic).
 func count_kill(_enemy_id: StringName) -> int:
 	push_warning("The count_kill function has not been implemented in the concrete kill adapter.")
 	return 0
+
 
 ## Is called by the QuestController when the adapter is initialized.
 func initialize() -> void:

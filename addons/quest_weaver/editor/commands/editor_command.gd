@@ -3,8 +3,10 @@
 class_name EditorCommand
 extends RefCounted
 
+
 func execute() -> void:
 	pass
+
 
 func undo() -> void:
 	pass

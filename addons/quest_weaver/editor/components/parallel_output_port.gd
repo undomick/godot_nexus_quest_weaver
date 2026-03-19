@@ -15,16 +15,14 @@ extends Resource
 
 ## The name displayed on the port in the GraphEdit.
 
+
 func _init() -> void:
 	condition = ConditionResource.new()
 	condition.type = ConditionResource.ConditionType.BOOL
 
 
 func to_dictionary() -> Dictionary:
-	var data: Dictionary = {
-		"@script_path": get_script().resource_path,
-		"port_name": port_name
-		}
+	var data: Dictionary = {"@script_path": get_script().resource_path, "port_name": port_name}
 
 	if is_instance_valid(condition):
 		data["condition"] = condition.to_dictionary()
@@ -41,4 +39,3 @@ func from_dictionary(data: Dictionary) -> void:
 		if is_instance_valid(new_cond):
 			condition = new_cond as ConditionResource
 			condition.from_dictionary(condition_data)
-

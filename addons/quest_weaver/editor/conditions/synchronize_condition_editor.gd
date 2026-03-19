@@ -7,7 +7,6 @@ extends VBoxContainer
 # It doesn't need a 'rebuild_requested' signal as its structure is static.
 signal property_changed(property_name: String, new_value: Variant)
 
-
 var edited_condition: ConditionResource
 
 var _value_undo_value: int = 0
@@ -15,6 +14,7 @@ var _value_undo_value: int = 0
 @onready var check_type_picker: OptionButton = %CheckTypePicker
 
 @onready var value_spinbox: SpinBox = %ValueSpinBox
+
 
 func _ready() -> void:
 	check_type_picker.clear()
@@ -58,9 +58,9 @@ func _on_value_spinbox_focus_entered() -> void:
 
 
 func _on_value_spinbox_focus_exited() -> void:
-	if not is_instance_valid(edited_condition): return
+	if not is_instance_valid(edited_condition):
+		return
 
 	var new_value = int(value_spinbox.value)
 	if _value_undo_value != new_value:
 		property_changed.emit("sync_value", new_value)
-

@@ -6,6 +6,7 @@ extends NodeExecutor
 # res://addons/quest_weaver/nodes/action/give_take_item_node/give_take_item_node_executor.gd
 ## Uses QuestController internals (_trigger_next_nodes_from_port, _mark_node_as_logically_complete,
 
+
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var item_node = node as GiveTakeItemNodeResource
 	if not is_instance_valid(item_node):
@@ -38,7 +39,13 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 				if amount > 0:
 					adapter.give_item(item_id, amount)
 					if is_instance_valid(logger):
-						logger.log("Inventory", "  - Gave reward %d x %s (from quest '%s')" % [amount, item_id, item_node.target_quest_id])
+						logger.log(
+							"Inventory",
+							(
+								"  - Gave reward %d x %s (from quest '%s')"
+								% [amount, item_id, item_node.target_quest_id]
+							)
+						)
 			exit_port = 0
 
 	elif item_node.action == item_node.Action.ITEMS_FROM_OBJECTIVE:
@@ -47,10 +54,18 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 				logger.warn("Inventory", "ItemsFromObjective has no Target Objective ID.")
 			exit_port = 1
 		else:
-			var obj_res = controller.get_objective_manager().get_objective_resource(item_node.target_objective_id)
+			var obj_res = controller.get_objective_manager().get_objective_resource(
+				item_node.target_objective_id
+			)
 			if not obj_res or obj_res.requirements.is_empty():
 				if is_instance_valid(logger):
-					logger.warn("Inventory", "Target Objective '%s' not found or has no requirements." % item_node.target_objective_id)
+					logger.warn(
+						"Inventory",
+						(
+							"Target Objective '%s' not found or has no requirements."
+							% item_node.target_objective_id
+						)
+					)
 				exit_port = 1
 			else:
 				var dynamic_requirements = {}
@@ -60,25 +75,61 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 					var current = instance.get_objective_progress_by_key(obj_res.id, item_key)
 					var needed = max(0, target - current)
 					if is_instance_valid(logger):
-						logger.log("Inventory", "  - Snapshot for '%s' in '%s': current=%d target=%d needed=%d" % [item_key, obj_res.id, current, target, needed])
+						logger.log(
+							"Inventory",
+							(
+								"  - Snapshot for '%s' in '%s': current=%d target=%d needed=%d"
+								% [item_key, obj_res.id, current, target, needed]
+							)
+						)
 					if needed > 0:
 						dynamic_requirements[item_key] = needed
 						is_already_done = false
 
 				if is_already_done:
 					if is_instance_valid(logger):
-						logger.log("Inventory", "Objective '%s' already fulfilled. Taking nothing." % obj_res.id)
+						logger.log(
+							"Inventory",
+							"Objective '%s' already fulfilled. Taking nothing." % obj_res.id
+						)
 					if item_node.complete_objective_on_success:
-						_complete_objective_if_requested(controller, instance, item_node.target_objective_id)
+						_complete_objective_if_requested(
+							controller, instance, item_node.target_objective_id
+						)
 					exit_port = 0
 				else:
-					var result = _process_take_logic(adapter, dynamic_requirements, item_node.allow_partial_deposit, instance, obj_res.id, logger, controller)
+					var result = _process_take_logic(
+						adapter,
+						dynamic_requirements,
+						item_node.allow_partial_deposit,
+						instance,
+						obj_res.id,
+						logger,
+						controller
+					)
 					exit_port = _take_result_to_port(result, item_node)
-					var port_name = item_node.output_ports[exit_port] if exit_port < item_node.output_ports.size() else str(exit_port)
+					var port_name = (
+						item_node.output_ports[exit_port]
+						if exit_port < item_node.output_ports.size()
+						else str(exit_port)
+					)
 					if is_instance_valid(logger):
-						logger.log("Inventory", "GiveTakeItem '%s' (objective '%s') -> %s (port %d)" % [item_node.id, item_node.target_objective_id, port_name, exit_port])
+						logger.log(
+							"Inventory",
+							(
+								"GiveTakeItem '%s' (objective '%s') -> %s (port %d)"
+								% [
+									item_node.id,
+									item_node.target_objective_id,
+									port_name,
+									exit_port
+								]
+							)
+						)
 					if exit_port == 0 and item_node.complete_objective_on_success:
-						_complete_objective_if_requested(controller, instance, item_node.target_objective_id)
+						_complete_objective_if_requested(
+							controller, instance, item_node.target_objective_id
+						)
 
 	elif item_node.items.is_empty():
 		if is_instance_valid(logger):
@@ -94,17 +145,34 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		exit_port = 0
 
 	elif item_node.action == item_node.Action.TAKE:
-		var result = _process_take_logic(adapter, item_node.items, item_node.allow_partial_deposit, instance, &"", logger, controller)
+		var result = _process_take_logic(
+			adapter,
+			item_node.items,
+			item_node.allow_partial_deposit,
+			instance,
+			&"",
+			logger,
+			controller
+		)
 		exit_port = _take_result_to_port(result, item_node)
 		if is_instance_valid(logger):
-			var port_name = item_node.output_ports[exit_port] if exit_port < item_node.output_ports.size() else str(exit_port)
-			logger.log("Inventory", "GiveTakeItem '%s' (TAKE) -> %s (port %d)" % [item_node.id, port_name, exit_port])
+			var port_name = (
+				item_node.output_ports[exit_port]
+				if exit_port < item_node.output_ports.size()
+				else str(exit_port)
+			)
+			logger.log(
+				"Inventory",
+				"GiveTakeItem '%s' (TAKE) -> %s (port %d)" % [item_node.id, port_name, exit_port]
+			)
 
 	if exit_port >= 0:
 		_finish_give_take(controller, item_node, exit_port)
 
 
-func _finish_give_take(controller: QuestController, item_node: GiveTakeItemNodeResource, port: int) -> void:
+func _finish_give_take(
+	controller: QuestController, item_node: GiveTakeItemNodeResource, port: int
+) -> void:
 	controller._trigger_next_nodes_from_port(item_node, port)
 	controller._mark_node_as_logically_complete(item_node)
 
@@ -114,6 +182,7 @@ func _finish_give_take(controller: QuestController, item_node: GiveTakeItemNodeR
 # ==============================================================================
 
 # Returns: 0 = full success, 1 = partial (some taken), 2 = failure (nothing taken)
+
 
 func _process_take_logic(
 	adapter: QuestInventoryAdapterBase,
@@ -128,7 +197,8 @@ func _process_take_logic(
 	if not partial:
 		for item_id in requirements:
 			if not adapter.check_item(item_id, requirements[item_id]):
-				if is_instance_valid(logger): logger.log("Inventory", "  - Atomic check failed. Missing: %s" % item_id)
+				if is_instance_valid(logger):
+					logger.log("Inventory", "  - Atomic check failed. Missing: %s" % item_id)
 				return 2  # FAILURE
 
 	var something_taken = false
@@ -154,7 +224,8 @@ func _process_take_logic(
 			adapter.take_item(item_id, to_take)
 			something_taken = true
 
-			if is_instance_valid(logger): logger.log("Inventory", "  - Taken %d x %s" % [to_take, item_id])
+			if is_instance_valid(logger):
+				logger.log("Inventory", "  - Taken %d x %s" % [to_take, item_id])
 
 			# Auto-Update Objective Logic
 			if update_obj_id != &"":
@@ -174,7 +245,11 @@ func _process_take_logic(
 		return 2  # FAILURE
 	# Success only when objective is fully met (all targets reached). Otherwise Partial.
 	if update_obj_id != &"":
-		var objective_def = controller.get_objective_manager().get_objective_resource(update_obj_id) if is_instance_valid(controller) else null
+		var objective_def = (
+			controller.get_objective_manager().get_objective_resource(update_obj_id)
+			if is_instance_valid(controller)
+			else null
+		)
 		if is_instance_valid(objective_def):
 			var all_met = true
 			for req_key in objective_def.requirements:
@@ -193,14 +268,19 @@ func _process_take_logic(
 	return 0  # SUCCESS
 
 
-func _complete_objective_if_requested(controller: QuestController, instance: QuestInstance, objective_id: StringName) -> void:
-	if objective_id == &"": return
+func _complete_objective_if_requested(
+	controller: QuestController, instance: QuestInstance, objective_id: StringName
+) -> void:
+	if objective_id == &"":
+		return
 	instance.set_objective_status(objective_id, ObjectiveResource.Status.COMPLETED)
 	var signal_id = instance.quest_id if instance.quest_id != &"" else instance.file_id
 	controller.quest_data_changed.emit(signal_id)
 	var global_bus = controller.get_tree().root.get_node_or_null("QuestWeaverGlobal")
 	if is_instance_valid(global_bus):
-		global_bus.quest_objective_state_changed.emit(signal_id, objective_id, ObjectiveResource.Status.COMPLETED)
+		global_bus.quest_objective_state_changed.emit(
+			signal_id, objective_id, ObjectiveResource.Status.COMPLETED
+		)
 	controller._check_tasks_in_instance(instance)
 
 
@@ -213,4 +293,3 @@ func _take_result_to_port(result: int, item_node: GiveTakeItemNodeResource) -> i
 		return result  # 0=Success, 1=Partial, 2=Failure
 	# Two ports: map partial to success
 	return 0 if result <= 1 else 1
-

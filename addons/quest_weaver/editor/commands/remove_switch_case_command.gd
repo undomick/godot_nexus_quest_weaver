@@ -8,12 +8,14 @@ var _case_to_remove: SwitchCasePort
 var _original_index: int = -1
 var _removed_connections_data: Array[Dictionary] = []
 
+
 func _init(p_graph: QuestGraphResource, p_node_data: SwitchNodeResource, p_index: int) -> void:
 	_graph = p_graph
 	_node_data = p_node_data
 	if p_index >= 0 and p_index < p_node_data.cases.size():
 		_case_to_remove = p_node_data.cases[p_index]
 		_original_index = p_index
+
 
 func execute() -> void:
 	if _case_to_remove == null:
@@ -30,6 +32,7 @@ func execute() -> void:
 			conn.from_port -= 1
 	_node_data.cases.erase(_case_to_remove)
 	_node_data._update_ports_from_data()
+
 
 func undo() -> void:
 	if _case_to_remove == null or _original_index == -1:

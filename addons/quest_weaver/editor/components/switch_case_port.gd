@@ -7,12 +7,14 @@ extends Resource
 @export var value_string: String = ""
 @export var port_name: StringName = &"Case"
 
+
 func to_dictionary() -> Dictionary:
 	return {
 		"@script_path": get_script().resource_path,
 		"value_string": value_string,
 		"port_name": port_name
 	}
+
 
 func from_dictionary(data: Dictionary) -> void:
 	value_string = str(data.get("value_string", ""))

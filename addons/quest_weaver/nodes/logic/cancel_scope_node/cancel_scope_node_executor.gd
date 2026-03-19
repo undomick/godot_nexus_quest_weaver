@@ -5,6 +5,7 @@ extends NodeExecutor
 ## Uses QuestController internals (_scope_manager, _cleanup_node_runtime, _mark_node_as_logically_complete).
 ## Cancels a scope by cleaning up all nodes without restarting.
 
+
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var cancel_node = node as CancelScopeNodeResource
 	if not is_instance_valid(cancel_node):
@@ -21,16 +22,22 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		controller.complete_node(cancel_node)
 		return
 
-	var nodes_to_cleanup: Array[StringName] = scope_manager.get_nodes_for_scope_cleanup(target_scope_id)
+	var nodes_to_cleanup: Array[StringName] = scope_manager.get_nodes_for_scope_cleanup(
+		target_scope_id
+	)
 
 	if nodes_to_cleanup.is_empty():
 		if is_instance_valid(logger):
-			logger.warn("Flow", "CancelScopeNode: Scope '%s' is empty or invalid." % target_scope_id)
+			logger.warn(
+				"Flow", "CancelScopeNode: Scope '%s' is empty or invalid." % target_scope_id
+			)
 		controller.complete_node(cancel_node)
 		return
 
 	if is_instance_valid(logger):
-		logger.log("Flow", "Canceling scope '%s' (%d nodes)." % [target_scope_id, nodes_to_cleanup.size()])
+		logger.log(
+			"Flow", "Canceling scope '%s' (%d nodes)." % [target_scope_id, nodes_to_cleanup.size()]
+		)
 
 	for node_id in nodes_to_cleanup:
 		if instance.is_node_active(node_id):

@@ -14,6 +14,7 @@ static var _last_quest_registry_path: String = ""
 ## Callable that returns the current active graph (set by editor). Used for refresh on first focus.
 static var _get_active_graph_callback: Callable = Callable()
 
+
 ## Returns custom pool IDs from QuestWeaverSettings.additional_pool_scripts.
 ## Pool ID is derived from script filename (e.g. "daily_pool.gd" -> "daily_pool").
 ## Resolves UID strings (uid://...) to paths so human-readable names are shown.
@@ -91,7 +92,8 @@ static func refresh_quest_id_completer_from_active_graph(completer: AutoComplete
 ## Merges quest IDs from the graph's QuestContextNodes into the cache.
 ## Enables autocomplete for current/unsaved quests. Call on active_graph_changed.
 static func refresh_quest_id_cache_for_graph(graph: QuestGraphResource) -> void:
-	if not is_instance_valid(graph): return
+	if not is_instance_valid(graph):
+		return
 	if not _quest_registry_loaded:
 		_load_quest_registry_data()
 	for node_data in graph.nodes.values():
@@ -138,11 +140,17 @@ static func _load_quest_registry_data() -> void:
 	var settings = QWConstants.get_settings()
 	_last_quest_registry_path = settings.quest_registry_path if is_instance_valid(settings) else ""
 
-	if not is_instance_valid(settings) or settings.quest_registry_path.is_empty() or not ResourceLoader.exists(settings.quest_registry_path):
+	if (
+		not is_instance_valid(settings)
+		or settings.quest_registry_path.is_empty()
+		or not ResourceLoader.exists(settings.quest_registry_path)
+	):
 		_cached_quest_ids.append("!Error: Quest Registry path not set!")
 		return
 
-	var registry: QuestRegistry = ResourceLoader.load(settings.quest_registry_path, "QuestRegistry", ResourceLoader.CACHE_MODE_REPLACE)
+	var registry: QuestRegistry = ResourceLoader.load(
+		settings.quest_registry_path, "QuestRegistry", ResourceLoader.CACHE_MODE_REPLACE
+	)
 
 	if is_instance_valid(registry):
 		if registry.quest_path_map.is_empty():

@@ -4,14 +4,18 @@ extends NodePropertyEditorBase
 
 @onready var text_edit: TabFocusTextEdit = %TextEdit
 
+
 func _ready() -> void:
 	text_edit.focus_exited.connect(_on_text_confirmed)
 
+
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
-	if not node_data is CommentNodeResource: return
+	if not node_data is CommentNodeResource:
+		return
 
 	text_edit.text = node_data.text
+
 
 func _on_text_confirmed() -> void:
 	# Check if the text has actually changed before creating a history entry.

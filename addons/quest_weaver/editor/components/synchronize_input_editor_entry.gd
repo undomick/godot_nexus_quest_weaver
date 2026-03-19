@@ -15,6 +15,7 @@ var _port_name_undo_value: String = ""
 
 @onready var remove_button: Button = %RemoveButton
 
+
 func _ready() -> void:
 	port_name_edit.focus_entered.connect(func(): _port_name_undo_value = port_name_edit.text)
 	port_name_edit.text_submitted.connect(func(_text): _on_port_name_confirmed())
@@ -31,4 +32,3 @@ func _on_port_name_confirmed() -> void:
 	var new_name = port_name_edit.text
 	if _port_name_undo_value != new_name:
 		name_changed.emit(new_name)
-

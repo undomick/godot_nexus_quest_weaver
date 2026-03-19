@@ -2,8 +2,10 @@
 @tool
 extends EditorInspectorPlugin
 
+
 func _can_handle(object: Object) -> bool:
 	return object is QuestRegistry
+
 
 func _parse_begin(object: Object) -> void:
 	var btn = Button.new()
@@ -15,11 +17,14 @@ func _parse_begin(object: Object) -> void:
 
 	add_custom_control(btn)
 
+
 func _on_update_pressed(registry: QuestRegistry) -> void:
 	var settings = QWConstants.get_settings()
 
 	if not settings or settings.quest_scan_folder.is_empty():
-		push_error("QuestWeaver: Cannot update registry. 'Quest Scan Folder' is not set in QuestWeaverSettings.")
+		push_error(
+			"QuestWeaver: Cannot update registry. 'Quest Scan Folder' is not set in QuestWeaverSettings."
+		)
 		return
 
 	QuestRegistrar.update_registry_from_project(registry, settings.quest_scan_folder)

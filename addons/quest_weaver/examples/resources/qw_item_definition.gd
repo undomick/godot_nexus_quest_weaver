@@ -15,7 +15,5 @@ extends Resource
 ## A short description of the item.
 @export_multiline var description: String
 
-
 ## The maximum number of this item that can be in a single stack.
 @export_range(1, 999) var max_stack_size: int = 1
-

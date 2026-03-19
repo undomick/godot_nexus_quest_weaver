@@ -9,7 +9,12 @@ var _start_positions: Dictionary
 var _end_positions: Dictionary
 
 
-func _init(p_graph: QuestGraphResource, p_graph_controller: QuestWeaverGraphController, p_start_positions: Dictionary, p_end_positions: Dictionary):
+func _init(
+	p_graph: QuestGraphResource,
+	p_graph_controller: QuestWeaverGraphController,
+	p_start_positions: Dictionary,
+	p_end_positions: Dictionary
+):
 	self._graph = p_graph
 	self._graph_controller = p_graph_controller
 	self._start_positions = p_start_positions

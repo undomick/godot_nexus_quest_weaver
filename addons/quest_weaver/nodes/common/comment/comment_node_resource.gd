@@ -48,4 +48,3 @@ func from_dictionary(data: Dictionary):
 	self.text = str(data.get("text", "My Comment"))
 	var size_val = data.get("node_size", Vector2(200, 150))
 	self.node_size = size_val if size_val is Vector2 else Vector2(200, 150)
-

@@ -6,6 +6,7 @@ extends NodeExecutor
 # res://addons/quest_weaver/nodes/flow/all_complete_node/all_complete_node_executor.gd
 ## Continues only when all inputs have been received. Tracks which ports fired per instance.
 
+
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var all_node = node as AllCompleteNodeResource
 	if not is_instance_valid(all_node):
@@ -31,4 +32,3 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 			instance.set_node_data(all_node.id, &"_all_complete_received", [])
 		else:
 			controller._mark_node_as_logically_complete(all_node)
-

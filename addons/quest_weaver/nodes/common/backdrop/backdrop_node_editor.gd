@@ -6,7 +6,6 @@ extends NodePropertyEditorBase
 # --- Signals (preview = live update during drag, no undo) ---
 signal property_preview_requested(node_id: StringName, property_name: String, value: Variant)
 
-
 # --- State for Undo/Redo ---
 # Stores the font size value before a slider drag starts to create a clean undo action.
 var _font_size_undo_value: int = 24
@@ -24,6 +23,7 @@ var _font_size_undo_value: int = 24
 
 # --- Godot Functions ---
 
+
 func _ready() -> void:
 	# Connect signals for all property controls.
 	title_edit.text_submitted.connect(func(_text): _on_title_confirmed())
@@ -37,14 +37,15 @@ func _ready() -> void:
 	font_size_slider.drag_ended.connect(_on_font_size_drag_ended)
 
 
-
 # --- Public API ---
 
 # Populates the editor controls with data from the given node resource.
 
+
 func set_node_data(node_data: GraphNodeResource) -> void:
 	super.set_node_data(node_data)
-	if not node_data is BackdropNodeResource: return
+	if not node_data is BackdropNodeResource:
+		return
 
 	title_edit.text = node_data.title
 	text_edit.text = node_data.text
@@ -56,10 +57,10 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 	font_size_label.text = str(node_data.title_font_size)
 
 
-
 # --- Signal Handlers ---
 
 # Called when the user confirms the title by pressing Enter or losing focus.
+
 
 func _on_title_confirmed() -> void:
 	var current_text = title_edit.text
@@ -111,4 +112,3 @@ func _on_font_size_drag_ended(value_was_changed: bool) -> void:
 
 	if is_instance_valid(edited_node_data) and _font_size_undo_value != final_size:
 		property_update_requested.emit(edited_node_data.id, "title_font_size", final_size, null, {})
-

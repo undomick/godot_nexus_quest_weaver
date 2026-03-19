@@ -23,7 +23,6 @@ enum QuestType { MAIN, SIDE }
 ## The initial description of the quest.
 @export_multiline var quest_description: String = ""
 
-
 ## (Optional) An initial log entry added when the quest starts.
 @export_multiline var log_on_start: String = ""
 
@@ -105,12 +104,14 @@ func from_dictionary(data: Dictionary):
 		var old_dict = data.get("rewards_summary", {})
 		if old_dict is Dictionary:
 			for k in old_dict:
-				self.rewards.append({
-					"id": StringName(k),
-					"amount": int(old_dict[k]),
-					"linked_objective_id": &"",
-					"description": ""
-				})
+				self.rewards.append(
+					{
+						"id": StringName(k),
+						"amount": int(old_dict[k]),
+						"linked_objective_id": &"",
+						"description": ""
+					}
+				)
 
 
 ## PRIVATE METHOD: Checks if an integer value is valid for the enum type.
@@ -127,7 +128,11 @@ func _validate(context: Dictionary) -> Array[ValidationResult]:
 
 	# 1. Check ID
 	if quest_id.is_empty():
-		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Quest Context: Quest ID is not set.", id))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.ERROR, "Quest Context: Quest ID is not set.", id
+			)
+		)
 
 	# 2. Check Rewards
 	if not rewards.is_empty() and is_instance_valid(item_registry):
@@ -138,7 +143,8 @@ func _validate(context: Dictionary) -> Array[ValidationResult]:
 			if "item_definitions" in item_registry:
 				# Fallback for simple array based registries
 				for def in item_registry.item_definitions:
-					if def.id == item_id: return true
+					if def.id == item_id:
+						return true
 			return false
 
 		for i in range(rewards.size()):
@@ -146,13 +152,24 @@ func _validate(context: Dictionary) -> Array[ValidationResult]:
 			if reward is Dictionary:
 				var r_id = str(reward.get("id", ""))
 				if r_id.is_empty():
-					results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Reward #%d: Item ID is missing." % (i + 1), id))
+					results.append(
+						ValidationResult.new(
+							ValidationResult.Severity.ERROR,
+							"Reward #%d: Item ID is missing." % (i + 1),
+							id
+						)
+					)
 				elif not check_item_exists.call(r_id):
-					results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Reward #%d: Item '%s' not found in Registry." % [i + 1, r_id], id))
+					results.append(
+						ValidationResult.new(
+							ValidationResult.Severity.WARNING,
+							"Reward #%d: Item '%s' not found in Registry." % [i + 1, r_id],
+							id
+						)
+					)
 
 	return results
 
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.LARGE
-

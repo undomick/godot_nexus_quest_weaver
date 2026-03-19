@@ -5,6 +5,7 @@ extends RefCounted
 
 const MAX_SCAN_FILES := 2000
 
+
 static func update_registry_from_project(registry: QuestRegistry, scan_folder: String) -> void:
 	if not is_instance_valid(registry):
 		push_error("QuestRegistrar: The provided QuestRegistry resource is invalid.")
@@ -26,13 +27,19 @@ static func update_registry_from_project(registry: QuestRegistry, scan_folder: S
 
 	while not directories_to_scan.is_empty():
 		if files_scanned >= MAX_SCAN_FILES:
-			push_warning("QuestRegistrar: Scan limited to %d files. Some quests may be omitted." % MAX_SCAN_FILES)
+			push_warning(
+				(
+					"QuestRegistrar: Scan limited to %d files. Some quests may be omitted."
+					% MAX_SCAN_FILES
+				)
+			)
 			break
 
 		var current_dir_path = directories_to_scan.pop_front()
 
 		var dir = DirAccess.open(current_dir_path)
-		if not dir: continue
+		if not dir:
+			continue
 
 		dir.list_dir_begin()
 		var item_name = dir.get_next()
@@ -62,7 +69,13 @@ static func update_registry_from_project(registry: QuestRegistry, scan_folder: S
 		if not registry.resource_path.is_empty():
 			var save_error = ResourceSaver.save(registry, registry.resource_path)
 			if save_error != OK:
-				push_error("QuestRegistrar: Failed to save the Quest Registry! Error: %s" % error_string(save_error))
+				push_error(
+					(
+						"QuestRegistrar: Failed to save the Quest Registry! Error: %s"
+						% error_string(save_error)
+					)
+				)
+
 
 static func _scan_file_for_id(file_path: String, out_map: Dictionary) -> void:
 	var file = FileAccess.open(file_path, FileAccess.READ)
@@ -89,6 +102,11 @@ static func _scan_file_for_id(file_path: String, out_map: Dictionary) -> void:
 				if not quest_id.is_empty():
 					# If LogicID differs from FileID, map it too
 					if out_map.has(quest_id) and out_map[quest_id] != file_path:
-						push_warning("QuestRegistrar: Duplicate ID collision! '%s' exists in '%s' and '%s'." % [quest_id, out_map[quest_id], file_path])
+						push_warning(
+							(
+								"QuestRegistrar: Duplicate ID collision! '%s' exists in '%s' and '%s'."
+								% [quest_id, out_map[quest_id], file_path]
+							)
+						)
 
 					out_map[quest_id] = file_path

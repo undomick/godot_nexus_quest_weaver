@@ -13,7 +13,6 @@ signal validation_requested
 
 signal result_selected(node_id: StringName, source_quest_path: String)
 
-
 # Runtime debug overlay categories; used to build the checkbox UI in this dock.
 const DEBUG_CATEGORIES = ["System", "Flow", "Executor", "Inventory", "Animation", "SaveLoad"]
 
@@ -31,6 +30,7 @@ var _get_open_files: Callable
 @onready var results_tree: Tree = %ResultsTree
 
 @onready var category_list: VBoxContainer = %CategoryList
+
 
 func set_open_files_provider(getter: Callable) -> void:
 	_get_open_files = getter
@@ -54,8 +54,8 @@ func _ready() -> void:
 	results_tree.set_column_expand(1, true)
 	results_tree.set_column_expand(2, true)
 	results_tree.set_column_expand(3, false)
-	results_tree.set_column_expand_ratio(1, 1)   # Quest: 33%
-	results_tree.set_column_expand_ratio(2, 2)   # Message: 66%
+	results_tree.set_column_expand_ratio(1, 1)  # Quest: 33%
+	results_tree.set_column_expand_ratio(2, 2)  # Message: 66%
 
 	results_tree.set_column_custom_minimum_width(0, 150)
 	results_tree.set_column_custom_minimum_width(1, 130)
@@ -89,7 +89,11 @@ func display_results(results: Array[ValidationResult]) -> void:
 
 	for result in results:
 		var item = results_tree.create_item(root)
-		var quest_name: String = result.source_quest_path.get_file().get_basename() if not result.source_quest_path.is_empty() else ""
+		var quest_name: String = (
+			result.source_quest_path.get_file().get_basename()
+			if not result.source_quest_path.is_empty()
+			else ""
+		)
 		item.set_text(1, quest_name)
 		item.set_text(2, result.message)
 		item.set_text(3, result.node_id)
@@ -127,10 +131,15 @@ func _on_validate_side_panel_pressed() -> void:
 				if p is String and not p.is_empty():
 					paths.append(p)
 	if paths.is_empty():
-		var warning_result = ValidationResult.new(
-			ValidationResult.Severity.WARNING,
-			"No quests are currently opened in the side panel. Open at least one quest file to validate.",
-			&"", "", ""
+		var warning_result = (
+			ValidationResult
+			. new(
+				ValidationResult.Severity.WARNING,
+				"No quests are currently opened in the side panel. Open at least one quest file to validate.",
+				&"",
+				"",
+				""
+			)
 		)
 		display_results([warning_result])
 		return
@@ -151,7 +160,8 @@ func _on_validate_all_button_pressed() -> void:
 # Forwards the item selection signal to the editor to focus the node.
 func _on_results_tree_item_selected() -> void:
 	var selected_item = results_tree.get_selected()
-	if not selected_item: return
+	if not selected_item:
+		return
 
 	var meta = selected_item.get_metadata(0)
 	var node_id: StringName = &""
@@ -169,6 +179,7 @@ func _on_results_tree_item_selected() -> void:
 
 # Loads the settings resource or creates it if it doesn't exist.
 
+
 func _load_debug_settings() -> void:
 	if ResourceLoader.exists(QWConstants.DEBUG_SETTINGS_PATH):
 		_debug_settings = ResourceLoader.load(QWConstants.DEBUG_SETTINGS_PATH)
@@ -182,7 +193,7 @@ func _load_debug_settings() -> void:
 	var settings_changed := false
 	for category in DEBUG_CATEGORIES:
 		if not _debug_settings.active_categories.has(category):
-			_debug_settings.active_categories[category] = true # Default new categories to 'on'.
+			_debug_settings.active_categories[category] = true  # Default new categories to 'on'.
 			settings_changed = true
 
 	if settings_changed:
@@ -205,10 +216,10 @@ func _build_debug_ui() -> void:
 
 # Called when any checkbox is toggled by the user.
 func _on_debug_category_toggled(is_pressed: bool, category: String) -> void:
-	if not is_instance_valid(_debug_settings): return
+	if not is_instance_valid(_debug_settings):
+		return
 
 	# Update the value in our settings resource...
 	_debug_settings.active_categories[category] = is_pressed
 	# ...and save the change back to the .tres file immediately.
 	ResourceSaver.save(_debug_settings, QWConstants.DEBUG_SETTINGS_PATH)
-

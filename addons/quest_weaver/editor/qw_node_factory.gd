@@ -14,13 +14,13 @@ var _data_manager: QWGraphData
 var _history: QWEditorHistory
 var _graph_controller: QuestWeaverGraphController
 var _add_node_menu: NodeSelectionMenu
-var _editor: QuestWeaverEditor # Reference to the main editor for selection/inspection logic
+var _editor: QuestWeaverEditor  # Reference to the main editor for selection/inspection logic
 
 # --- State ---
-var _pending_node_creation_pos: Vector2 # Position for the new node
-var _pending_connection_data: Dictionary # Connection data for the new node
-var _is_initialized := false # Flag to check if the node factory is initialized
-var _pending_selected_visual_nodes: Array[GraphElement] = [] # Selection at menu open (right-click); used for Backdrop so selection isn't lost when menu gets focus.
+var _pending_node_creation_pos: Vector2  # Position for the new node
+var _pending_connection_data: Dictionary  # Connection data for the new node
+var _is_initialized := false  # Flag to check if the node factory is initialized
+var _pending_selected_visual_nodes: Array[GraphElement] = []  # Selection at menu open (right-click); used for Backdrop so selection isn't lost when menu gets focus.
 
 
 func initialize(
@@ -56,7 +56,11 @@ func show_add_node_menu(graph_position: Vector2, connect_from_data: Dictionary =
 			_pending_selected_visual_nodes.append(node)
 	if _pending_selected_visual_nodes.is_empty():
 		for node in _graph_controller.get_last_selected_visual_nodes():
-			if is_instance_valid(node) and is_instance_valid(node.get_parent()) and node.get_parent() == _graph_controller:
+			if (
+				is_instance_valid(node)
+				and is_instance_valid(node.get_parent())
+				and node.get_parent() == _graph_controller
+			):
 				_pending_selected_visual_nodes.append(node)
 
 	_add_node_menu.popup(Rect2i(get_viewport().get_mouse_position(), Vector2.ZERO))
@@ -75,7 +79,9 @@ func _create_new_node(type_name: StringName) -> void:
 
 	# Backdrop wraps the nodes selected by right-click (snapshot from show_add_node_menu).
 	if type_name == "Backdrop":
-		var backdrop_cmd = CreateBackdropCommand.new(editable_graph, _pending_selected_visual_nodes, _pending_node_creation_pos)
+		var backdrop_cmd = CreateBackdropCommand.new(
+			editable_graph, _pending_selected_visual_nodes, _pending_node_creation_pos
+		)
 		_history.execute_command(backdrop_cmd)
 		_pending_connection_data.clear()
 		_graph_controller.set_is_connecting(false)
@@ -90,7 +96,9 @@ func _create_new_node(type_name: StringName) -> void:
 		return
 
 	# Create and execute the command to add the node to the graph.
-	var command = QWActionHandler.CreateNodeCommand.new(_editor, editable_graph, node_script, _pending_node_creation_pos, _pending_connection_data)
+	var command = QWActionHandler.CreateNodeCommand.new(
+		_editor, editable_graph, node_script, _pending_node_creation_pos, _pending_connection_data
+	)
 	_history.execute_command(command)
 
 	# Clean up the state after the command has been created.

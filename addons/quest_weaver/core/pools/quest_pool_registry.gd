@@ -45,11 +45,14 @@ func _init() -> void:
 
 func _load_additional_pools() -> void:
 	var settings = QWConstants.get_settings()
-	if not is_instance_valid(settings): return
-	if not settings.additional_pool_scripts is Array: return
+	if not is_instance_valid(settings):
+		return
+	if not settings.additional_pool_scripts is Array:
+		return
 
 	for path_or_uid in settings.additional_pool_scripts:
-		if not path_or_uid is String or path_or_uid.is_empty(): continue
+		if not path_or_uid is String or path_or_uid.is_empty():
+			continue
 		var path = _resolve_path_or_uid(path_or_uid)
 		if path.is_empty():
 			push_warning("QuestPoolRegistry: Could not resolve pool script: %s" % path_or_uid)
@@ -57,7 +60,9 @@ func _load_additional_pools() -> void:
 		if not ResourceLoader.exists(path):
 			push_warning("QuestPoolRegistry: Additional pool script not found: %s" % path)
 			continue
-		var script = ResourceLoader.load(path, "GDScript", ResourceLoader.CACHE_MODE_REPLACE) as GDScript
+		var script = (
+			ResourceLoader.load(path, "GDScript", ResourceLoader.CACHE_MODE_REPLACE) as GDScript
+		)
 		if not script:
 			push_warning("QuestPoolRegistry: Could not load script as GDScript: %s" % path)
 			continue
@@ -113,7 +118,9 @@ func get_all_pool_ids() -> Array[StringName]:
 
 func move_instance_to_pool(instance: QuestInstance, target_state: int) -> void:
 	if not is_instance_valid(instance) or instance.file_id == &"":
-		push_error("QuestPoolRegistry: Cannot move invalid instance or instance with empty file_id.")
+		push_error(
+			"QuestPoolRegistry: Cannot move invalid instance or instance with empty file_id."
+		)
 		return
 	if not _pools_by_state.has(target_state):
 		push_error("QuestPoolRegistry: Invalid target state %d." % target_state)
@@ -124,7 +131,9 @@ func move_instance_to_pool(instance: QuestInstance, target_state: int) -> void:
 
 func move_instance_to_custom_pool(instance: QuestInstance, pool_id: StringName) -> void:
 	if not is_instance_valid(instance) or instance.file_id == &"":
-		push_error("QuestPoolRegistry: Cannot move invalid instance or instance with empty file_id.")
+		push_error(
+			"QuestPoolRegistry: Cannot move invalid instance or instance with empty file_id."
+		)
 		return
 	var target_pool = get_pool_by_id(pool_id)
 	if not target_pool:
@@ -134,7 +143,12 @@ func move_instance_to_custom_pool(instance: QuestInstance, pool_id: StringName) 
 	_transfer_instance_to_pool(instance, target_pool, QWEnums.QuestState.CUSTOM, pool_id)
 
 
-func _transfer_instance_to_pool(instance: QuestInstance, target_pool: BaseQuestPool, target_status: int, custom_pool_id: StringName) -> void:
+func _transfer_instance_to_pool(
+	instance: QuestInstance,
+	target_pool: BaseQuestPool,
+	target_status: int,
+	custom_pool_id: StringName
+) -> void:
 	var file_id: StringName = instance.file_id
 	_remove_from_any_pool(file_id)
 	target_pool.add_instance(instance)

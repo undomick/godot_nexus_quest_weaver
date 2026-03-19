@@ -10,12 +10,14 @@ signal move_down_requested
 @onready var down_button: Button = %Down
 @onready var index_label: Label = %Index
 
+
 func _ready() -> void:
 	up_button.pressed.connect(move_up_requested.emit)
 	down_button.pressed.connect(move_down_requested.emit)
 
+
 func set_index(index: int, total_count: int) -> void:
-	index_label.text = str(index + 1) # Display as 1-based index
+	index_label.text = str(index + 1)  # Display as 1-based index
 
 	# Disable buttons if at boundaries
 	up_button.disabled = (index == 0)

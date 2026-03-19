@@ -11,6 +11,7 @@ var _is_setting_up := false
 
 @onready var input_count_spin: SpinBox = %InputCountSpin
 
+
 func _ready() -> void:
 	if is_instance_valid(keep_listening_checkbox):
 		keep_listening_checkbox.toggled.connect(_on_keep_listening_toggled)
@@ -49,4 +50,3 @@ func _on_input_count_changed(new_value: float) -> void:
 		var int_val := int(new_value)
 		if edited_node_data.input_count != int_val:
 			property_update_requested.emit(edited_node_data.id, "input_count", int_val, null, {})
-

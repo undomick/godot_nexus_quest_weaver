@@ -26,7 +26,9 @@ const _ICON_QUEST = preload("res://addons/quest_weaver/assets/icons/icon.svg")
 
 const _ICON_SAVE_ALL = preload("res://addons/quest_weaver/assets/icons/save_all.svg")
 
-const _START_NODE_SCRIPT = preload("res://addons/quest_weaver/nodes/common/start_node/start_node_resource.gd")
+const _START_NODE_SCRIPT = preload(
+	"res://addons/quest_weaver/nodes/common/start_node/start_node_resource.gd"
+)
 
 # Context Menu IDs (0-9: File Ops, 10-19: Category Ops, 20-29: Utilities)
 const CMID_CLOSE_CATEGORY := 10
@@ -48,11 +50,11 @@ var open_dir_dialog: FileDialog
 # Internal State
 var _open_files: Array[String] = []
 
-var _category_cache: Dictionary = {} # Path -> Category String
+var _category_cache: Dictionary = {}  # Path -> Category String
 
-var _tree_items_by_path: Dictionary = {} # Path -> TreeItem
+var _tree_items_by_path: Dictionary = {}  # Path -> TreeItem
 
-var _category_collapse_state: Dictionary = {} # Category name -> collapsed (true/false), persisted across redraws
+var _category_collapse_state: Dictionary = {}  # Category name -> collapsed (true/false), persisted across redraws
 
 var _context_menu_target_path: String = ""
 
@@ -66,11 +68,11 @@ var _search_icon: Texture2D
 
 var _clear_icon: Texture2D
 
-var _open_files_uids: Dictionary = {} # { int(UID) : String(Path) }
+var _open_files_uids: Dictionary = {}  # { int(UID) : String(Path) }
 
-var _path_to_uid: Dictionary = {} # { String(Path) : int(UID) } for O(1) lookup
+var _path_to_uid: Dictionary = {}  # { String(Path) : int(UID) } for O(1) lookup
 
-var _editor_interface_ref = null # type Variant for avoiding parsing error in exported game
+var _editor_interface_ref = null  # type Variant for avoiding parsing error in exported game
 
 var _filter_debounce_timer: Timer = null
 
@@ -104,6 +106,7 @@ var _file_list_debounce_timer: Timer = null
 
 @onready var docs_button: Button = %DocsButton
 
+
 func initialize(p_data_manager: QWGraphData, p_editor_interface = null) -> void:
 	self.data_manager = p_data_manager
 	self._editor_interface_ref = p_editor_interface
@@ -123,7 +126,11 @@ func _ready() -> void:
 	_setup_ui_connections()
 	_build_context_menu()
 
-	tree.set_drag_forwarding(Callable(self, "_tree_get_drag_data"), Callable(self, "_tree_can_drop_data"), Callable(self, "_tree_drop_data")) # drag & drop
+	tree.set_drag_forwarding(
+		Callable(self, "_tree_get_drag_data"),
+		Callable(self, "_tree_can_drop_data"),
+		Callable(self, "_tree_drop_data")
+	)  # drag & drop
 
 	# Initial draw
 	_redraw_tree()
@@ -191,13 +198,15 @@ func _setup_ui_connections() -> void:
 	save_all_button.pressed.connect(save_all_files_requested.emit)
 	localization_button.pressed.connect(_on_scan_keys_pressed)
 	donate_button.pressed.connect(func(): OS.shell_open("https://ko-fi.com/jundrie"))
-	docs_button.pressed.connect(func(): OS.shell_open("https://github.com/undomick/godot_nexus_quest_weaver/wiki"))
+	docs_button.pressed.connect(
+		func(): OS.shell_open("https://github.com/undomick/godot_nexus_quest_weaver/wiki")
+	)
 
 	filter_edit.text_changed.connect(_on_filter_text_changed)
 	filter_edit.gui_input.connect(_on_filter_gui_input)
 
-	tree.item_activated.connect(_on_tree_item_activated) # Double click
-	tree.item_mouse_selected.connect(_on_tree_item_mouse_selected) # Right click logic
+	tree.item_activated.connect(_on_tree_item_activated)  # Double click
+	tree.item_mouse_selected.connect(_on_tree_item_mouse_selected)  # Right click logic
 	tree.empty_clicked.connect(func(_pos, _btn): tree.deselect_all())
 
 	quick_create_edit.visible = false
@@ -212,6 +221,7 @@ func _setup_ui_connections() -> void:
 # ==============================================================================
 # TREE BUILDING & LOGIC
 # ==============================================================================
+
 
 func _on_new_button_toggled() -> void:
 	quick_create_edit.visible = !quick_create_edit.visible
@@ -261,7 +271,12 @@ func _on_quick_create_submitted(new_name: String) -> void:
 
 	var file = FileAccess.open(full_path, FileAccess.WRITE)
 	if file == null:
-		push_error("QuestWeaver: Could not create file at '%s'. Error: %s" % [full_path, error_string(FileAccess.get_open_error())])
+		push_error(
+			(
+				"QuestWeaver: Could not create file at '%s'. Error: %s"
+				% [full_path, error_string(FileAccess.get_open_error())]
+			)
+		)
 		return
 
 	# Store the dictionary representation directly, matching QWFormat logic.
@@ -275,15 +290,15 @@ func _on_quick_create_submitted(new_name: String) -> void:
 
 
 func _on_scan_keys_pressed() -> void:
-	if not Engine.is_editor_hint(): return
+	if not Engine.is_editor_hint():
+		return
 
 	var settings = QWConstants.get_settings()
-	if not settings: return
+	if not settings:
+		return
 
 	LocalizationKeyScanner.update_localization_file(
-		settings.quest_scan_folder,
-		settings.localization_csv_path,
-		settings.supported_locales
+		settings.quest_scan_folder, settings.localization_csv_path, settings.supported_locales
 	)
 
 	# Refresh FileSystem dock
@@ -310,7 +325,8 @@ func _safe_open_new_file(path: String) -> void:
 
 
 func add_file_to_open_list(path: String) -> void:
-	if path.is_empty(): return
+	if path.is_empty():
+		return
 	if not _open_files.has(path):
 		_open_files.append(path)
 
@@ -338,7 +354,6 @@ func remove_file_from_open_list(path: String) -> void:
 
 
 func check_for_moved_files_via_uid() -> void:
-
 	var redraw_needed = false
 	var uids = _open_files_uids.keys()
 
@@ -367,7 +382,10 @@ func check_for_moved_files_via_uid() -> void:
 					_category_cache[current_real_path] = cat
 
 				# 4. inform DataManager
-				if is_instance_valid(data_manager) and data_manager.get_active_graph_path() == old_path:
+				if (
+					is_instance_valid(data_manager)
+					and data_manager.get_active_graph_path() == old_path
+				):
 					data_manager.set_active_graph(current_real_path)
 
 				redraw_needed = true
@@ -414,7 +432,8 @@ func _update_save_all_button_state() -> void:
 
 
 func update_selection(active_path: String) -> void:
-	if not is_instance_valid(tree): return
+	if not is_instance_valid(tree):
+		return
 	if not is_instance_valid(data_manager):
 		tree.deselect_all()
 		save_button.disabled = true
@@ -423,7 +442,8 @@ func update_selection(active_path: String) -> void:
 		var item = _tree_items_by_path[active_path]
 		# Ensure category is expanded
 		var parent = item.get_parent()
-		if parent: parent.collapsed = false
+		if parent:
+			parent.collapsed = false
 
 		tree.set_selected(item, 0)
 		tree.scroll_to_item(item)
@@ -452,7 +472,7 @@ func _redraw_tree() -> void:
 	var filter = filter_edit.text.to_lower()
 
 	# 1. Organize files by Category
-	var categorized_files: Dictionary = {} # "CategoryName": [path1, path2]
+	var categorized_files: Dictionary = {}  # "CategoryName": [path1, path2]
 
 	for path in _open_files:
 		# Filter check
@@ -551,19 +571,27 @@ func is_uid_valid_for_path(path: String) -> bool:
 # FOLDER SCAN & DRAG DROP
 # ==============================================================================
 
+
 func _on_folder_selected_to_load(dir_path: String) -> void:
 	var found_files = _scan_folder_recursive(dir_path, [0])
 	if found_files.size() >= MAX_SCAN_FILES:
-		push_warning("QuestWeaver: Folder scan limited to %d files. Some .quest files may be omitted." % MAX_SCAN_FILES)
+		push_warning(
+			(
+				"QuestWeaver: Folder scan limited to %d files. Some .quest files may be omitted."
+				% MAX_SCAN_FILES
+			)
+		)
 
 	if found_files.size() > 20:
 		var confirm = ConfirmationDialog.new()
 		confirm.title = "Load many files?"
 		confirm.dialog_text = "Found %d quest files. Open all?" % found_files.size()
 		add_child(confirm)
-		confirm.confirmed.connect(func():
-			for f in found_files: add_file_to_open_list(f)
-			confirm.queue_free()
+		confirm.confirmed.connect(
+			func():
+				for f in found_files:
+					add_file_to_open_list(f)
+				confirm.queue_free()
 		)
 		confirm.canceled.connect(func(): confirm.queue_free())
 		confirm.popup_centered()
@@ -584,7 +612,9 @@ func _scan_folder_recursive(path: String, accumulated_count: Array) -> Array[Str
 				return results
 			if dir.current_is_dir():
 				if file_name != "." and file_name != "..":
-					results.append_array(_scan_folder_recursive(path.path_join(file_name), accumulated_count))
+					results.append_array(
+						_scan_folder_recursive(path.path_join(file_name), accumulated_count)
+					)
 			elif file_name.ends_with(".quest"):
 				results.append(path.path_join(file_name))
 				accumulated_count[0] += 1
@@ -594,9 +624,11 @@ func _scan_folder_recursive(path: String, accumulated_count: Array) -> Array[Str
 
 
 func _build_drag_data_for_item(item: TreeItem) -> Variant:
-	if not item: return null
+	if not item:
+		return null
 	var meta = item.get_metadata(0)
-	if not meta or meta.type != "file": return null
+	if not meta or meta.type != "file":
+		return null
 	var file_path: String = meta.path
 	return {"type": "files", "files": [file_path], "from": self}
 
@@ -610,7 +642,8 @@ func _create_drag_preview_for_path(file_path: String) -> Label:
 func _tree_get_drag_data(at_position: Vector2) -> Variant:
 	var item = tree.get_item_at_position(at_position)
 	var data = _build_drag_data_for_item(item)
-	if data == null: return null
+	if data == null:
+		return null
 	set_drag_preview(_create_drag_preview_for_path(data.files[0]))
 	return data
 
@@ -634,6 +667,7 @@ func _tree_drop_data(_at_position: Vector2, data: Variant) -> void:
 # ==============================================================================
 # CONTEXT MENU
 # ==============================================================================
+
 
 func _build_context_menu() -> void:
 	context_menu.clear()
@@ -661,15 +695,18 @@ func _build_context_menu() -> void:
 
 
 func _on_tree_item_mouse_selected(pos: Vector2, mouse_btn: int) -> void:
-	if mouse_btn != MOUSE_BUTTON_RIGHT: return
+	if mouse_btn != MOUSE_BUTTON_RIGHT:
+		return
 
 	var item = tree.get_item_at_position(pos)
-	if not item: return
+	if not item:
+		return
 
 	item.select(0)
 
 	var meta = item.get_metadata(0)
-	if not meta: return
+	if not meta:
+		return
 
 	_context_menu_target_path = ""
 	_context_menu_target_category = ""
@@ -679,14 +716,18 @@ func _on_tree_item_mouse_selected(pos: Vector2, mouse_btn: int) -> void:
 		_context_menu_target_category = _get_category_for_path(meta.path)
 
 		context_menu.set_item_disabled(context_menu.get_item_index(CMID_CLOSE_CATEGORY), true)
-		context_menu.set_item_disabled(context_menu.get_item_index(CMID_COLLAPSE_OTHER_CATEGORIES), false)
+		context_menu.set_item_disabled(
+			context_menu.get_item_index(CMID_COLLAPSE_OTHER_CATEGORIES), false
+		)
 		context_menu.set_item_disabled(context_menu.get_item_index(CMID_SHOW_IN_FILESYSTEM), false)
 
 	elif meta.type == "category":
 		_context_menu_target_category = meta.name
 
 		context_menu.set_item_disabled(context_menu.get_item_index(CMID_CLOSE_CATEGORY), false)
-		context_menu.set_item_disabled(context_menu.get_item_index(CMID_COLLAPSE_OTHER_CATEGORIES), false)
+		context_menu.set_item_disabled(
+			context_menu.get_item_index(CMID_COLLAPSE_OTHER_CATEGORIES), false
+		)
 		context_menu.set_item_disabled(context_menu.get_item_index(CMID_SHOW_IN_FILESYSTEM), true)
 
 	context_menu.popup(Rect2i(get_global_mouse_position(), Vector2i.ZERO))
@@ -694,28 +735,29 @@ func _on_tree_item_mouse_selected(pos: Vector2, mouse_btn: int) -> void:
 
 func _on_context_menu_id_pressed(id: int) -> void:
 	match id:
-		0: # Open
+		0:  # Open
 			if not _context_menu_target_path.is_empty():
 				bookmark_selected.emit(_context_menu_target_path)
-		1: # Save
+		1:  # Save
 			if not _context_menu_target_path.is_empty():
 				save_single_file_requested.emit(_context_menu_target_path)
-		2: # Save All
+		2:  # Save All
 			save_all_files_requested.emit()
-		3: # Close
+		3:  # Close
 			if not _context_menu_target_path.is_empty():
 				close_bookmark_requested.emit(_context_menu_target_path)
-		4: # Close Others
+		4:  # Close Others
 			if not _context_menu_target_path.is_empty():
 				for p in _open_files.duplicate():
-					if p != _context_menu_target_path: close_bookmark_requested.emit(p)
-		5: # Close All
+					if p != _context_menu_target_path:
+						close_bookmark_requested.emit(p)
+		5:  # Close All
 			close_all_requested.emit()
 
-		10: # Close Category
+		10:  # Close Category
 			if not _context_menu_target_category.is_empty():
 				_close_files_in_category(_context_menu_target_category)
-		11: # Close Other Categories
+		11:  # Close Other Categories
 			if not _context_menu_target_category.is_empty():
 				# Batch-prefetch categories (max 20 per action to avoid UI freeze)
 				var prefetched = 0
@@ -729,17 +771,22 @@ func _on_context_menu_id_pressed(id: int) -> void:
 					var c = _get_category_for_path(p)
 					if c != _context_menu_target_category:
 						close_bookmark_requested.emit(p)
-		12: # Collapse All Other Categories
+		12:  # Collapse All Other Categories
 			if not _context_menu_target_category.is_empty():
 				_collapse_all_other_categories(_context_menu_target_category)
 
-		20: # Show in FileSystem
-			if not _context_menu_target_path.is_empty() and is_instance_valid(_editor_interface_ref):
-				_editor_interface_ref.get_file_system_dock().navigate_to_path(_context_menu_target_path)
-		21: # Copy Path
+		20:  # Show in FileSystem
+			if (
+				not _context_menu_target_path.is_empty()
+				and is_instance_valid(_editor_interface_ref)
+			):
+				_editor_interface_ref.get_file_system_dock().navigate_to_path(
+					_context_menu_target_path
+				)
+		21:  # Copy Path
 			if not _context_menu_target_path.is_empty():
 				DisplayServer.clipboard_set(_context_menu_target_path)
-		22: # Copy UID
+		22:  # Copy UID
 			if not _context_menu_target_path.is_empty():
 				var uid = ResourceLoader.get_resource_uid(_context_menu_target_path)
 				if uid != -1:
@@ -762,7 +809,7 @@ func _collapse_all_other_categories(keep_expanded: String) -> void:
 	var category_item = root_item.get_first_child()
 	while category_item:
 		var cat_name: String = category_item.get_text(0)
-		var should_collapse: bool = (cat_name != keep_expanded)
+		var should_collapse: bool = cat_name != keep_expanded
 		category_item.collapsed = should_collapse
 		_category_collapse_state[cat_name] = should_collapse
 		category_item = category_item.get_next()
@@ -770,9 +817,11 @@ func _collapse_all_other_categories(keep_expanded: String) -> void:
 
 func _on_tree_item_activated() -> void:
 	var item = tree.get_selected()
-	if not item: return
+	if not item:
+		return
 	var meta = item.get_metadata(0)
-	if not meta: return
+	if not meta:
+		return
 	if meta.type == "file":
 		bookmark_selected.emit(meta.path)
 	elif meta.type == "category":
@@ -782,6 +831,7 @@ func _on_tree_item_activated() -> void:
 # ==============================================================================
 # FILTER & SEARCH
 # ==============================================================================
+
 
 func _on_filter_text_changed(new_text: String) -> void:
 	filter_edit.right_icon = _clear_icon if not new_text.is_empty() else _search_icon
@@ -794,8 +844,13 @@ func _on_filter_debounce_timeout() -> void:
 
 
 func _on_filter_gui_input(event: InputEvent) -> void:
-	if filter_edit.text.is_empty(): return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
+	if filter_edit.text.is_empty():
+		return
+	if (
+		event is InputEventMouseButton
+		and event.button_index == MOUSE_BUTTON_LEFT
+		and event.is_pressed()
+	):
 		# Logic to detect click on clear icon (simplified approximation)
 		if event.position.x > filter_edit.size.x - 30:
 			filter_edit.clear()
@@ -806,10 +861,12 @@ func _on_filter_gui_input(event: InputEvent) -> void:
 # DRAG & DROP (SIDE_PANEL TO PROPERTIES_PANEL)
 # ==============================================================================
 
+
 func _get_drag_data(at_position: Vector2) -> Variant:
 	var item = tree.get_item_at_position(at_position)
 	var data = _build_drag_data_for_item(item)
-	if data == null: return null
+	if data == null:
+		return null
 	set_drag_preview(_create_drag_preview_for_path(data.files[0]))
 	return data
 
@@ -819,6 +876,7 @@ func _get_drag_data(at_position: Vector2) -> Variant:
 # ==============================================================================
 
 ## Called when a quest file is renamed/moved (e.g. from FileSystem dock).
+
 
 ## Use this for explicit path updates; check_for_moved_files_via_uid handles UID-based detection.
 func update_moved_files(old_path: String, new_path: String) -> void:
@@ -845,4 +903,3 @@ func update_moved_files(old_path: String, new_path: String) -> void:
 		data_manager.set_active_graph(new_path)
 
 	_request_tree_redraw()
-

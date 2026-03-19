@@ -8,17 +8,23 @@ extends RefCounted
 var _controller_weak: WeakRef
 var _deferred_scheduled: Dictionary = {}  # Key: "node_id|file_id" -> true
 
+
 func _init(p_controller: QuestController):
 	self._controller_weak = weakref(p_controller)
+
 
 func _get_controller() -> QuestController:
 	return _controller_weak.get_ref() as QuestController
 
+
 ## Called by SynchronizeNodeExecutor when an input is received.
 ## Collects inputs and processes them deferred to bundle signals from the same frame.
-func handle_input(node_def: SynchronizeNodeResource, instance: QuestInstance, received_on_port: int) -> void:
+func handle_input(
+	node_def: SynchronizeNodeResource, instance: QuestInstance, received_on_port: int
+) -> void:
 	var controller = _get_controller()
-	if not controller: return
+	if not controller:
+		return
 
 	var node_id = node_def.id
 	var logger = controller._get_logger()
@@ -31,7 +37,10 @@ func handle_input(node_def: SynchronizeNodeResource, instance: QuestInstance, re
 		if has_fired:
 			return
 
-	if logger: logger.log("Flow", "Synchronizer '%s' received input on port %d." % [node_id, received_on_port])
+	if logger:
+		logger.log(
+			"Flow", "Synchronizer '%s' received input on port %d." % [node_id, received_on_port]
+		)
 
 	# 1. Add to pending
 	var pending: Array = instance.get_node_data(node_id, &"_sync_pending", [])
@@ -47,10 +56,12 @@ func handle_input(node_def: SynchronizeNodeResource, instance: QuestInstance, re
 		_deferred_scheduled[key] = true
 		controller.call_deferred(&"_process_sync_node_batch", node_id, instance)
 
+
 ## Called deferred to process all inputs collected in the current frame.
 func process_pending(node_id: StringName, instance: QuestInstance) -> void:
 	var controller = _get_controller()
-	if not controller: return
+	if not controller:
+		return
 
 	var key = "%s|%s" % [node_id, instance.file_id]
 	_deferred_scheduled.erase(key)
@@ -94,7 +105,8 @@ func process_pending(node_id: StringName, instance: QuestInstance) -> void:
 
 	# 4. Fire & Reset
 	if not matched_indices.is_empty():
-		if logger: logger.log("Flow", "  - Synchronizer matched outputs: %s" % str(matched_indices))
+		if logger:
+			logger.log("Flow", "  - Synchronizer matched outputs: %s" % str(matched_indices))
 
 		var state_snapshot = inputs_received.duplicate()
 
@@ -108,7 +120,9 @@ func process_pending(node_id: StringName, instance: QuestInstance) -> void:
 			instance.set_node_data(node_id, &"_sync_has_fired", true)
 			controller.complete_node(sync_node)
 	else:
-		if logger: logger.log("Flow", "  - No pattern matched yet (Waiting).")
+		if logger:
+			logger.log("Flow", "  - No pattern matched yet (Waiting).")
+
 
 func _does_pattern_match(pattern: Array, current_inputs: Array) -> bool:
 	var limit = min(pattern.size(), current_inputs.size())
@@ -119,23 +133,32 @@ func _does_pattern_match(pattern: Array, current_inputs: Array) -> bool:
 
 		match requirement:
 			SynchronizeNodeResource.InputState.REQUIRED:
-				if not is_active: return false
+				if not is_active:
+					return false
 			SynchronizeNodeResource.InputState.FORBIDDEN:
-				if is_active: return false
+				if is_active:
+					return false
 			SynchronizeNodeResource.InputState.IGNORE:
 				pass
 
 	return true
 
-func _fire_output(node_def: SynchronizeNodeResource, instance: QuestInstance, output_index: int, inputs_state: Array, controller: QuestController) -> void:
+
+func _fire_output(
+	node_def: SynchronizeNodeResource,
+	instance: QuestInstance,
+	output_index: int,
+	inputs_state: Array,
+	controller: QuestController
+) -> void:
 	var connections = controller._node_connections.get(node_def.id, [])
 	var output_port = node_def.outputs[output_index]
 
 	# Check Output Condition (if any)
 	if is_instance_valid(output_port.condition):
-		var check_context = { "sync_inputs_received_array": inputs_state }
+		var check_context = {"sync_inputs_received_array": inputs_state}
 		if not output_port.condition.check(check_context, instance):
-			return # Condition failed
+			return  # Condition failed
 
 	for connection in connections:
 		if connection.get("from_port", -1) == output_index:
@@ -144,6 +167,7 @@ func _fire_output(node_def: SynchronizeNodeResource, instance: QuestInstance, ou
 			if next_node_def:
 				var to_port = connection.get("to_port", 0)
 				controller._activate_node(next_node_def, to_port)
+
 
 func clear():
 	_deferred_scheduled.clear()

@@ -12,6 +12,7 @@ extends GraphNodeResource
 
 @export_file("*.tres", "*.quest") var quest_graph_path: String
 
+
 func _init():
 	category = "Logic"
 	input_ports = ["In"]
@@ -57,12 +58,21 @@ func from_dictionary(data: Dictionary):
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	if quest_graph_path.is_empty():
-		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Sub Graph: Quest graph path is not set.", id))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.ERROR, "Sub Graph: Quest graph path is not set.", id
+			)
+		)
 	elif not ResourceLoader.exists(quest_graph_path):
-		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Sub Graph: File not found at '%s'." % quest_graph_path, id))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.ERROR,
+				"Sub Graph: File not found at '%s'." % quest_graph_path,
+				id
+			)
+		)
 	return results
 
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL
-

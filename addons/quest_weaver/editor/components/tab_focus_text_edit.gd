@@ -7,6 +7,7 @@ extends TextEdit
 ## Instead of inserting a tab character, it moves focus to the next/previous
 ## control, making it suitable for forms. It handles both Tab and Shift+Tab.
 
+
 func _gui_input(event: InputEvent) -> void:
 	# Intercept keyboard events that are not echoes (e.g., from holding a key down).
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():

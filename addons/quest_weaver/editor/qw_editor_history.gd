@@ -56,4 +56,3 @@ func cleanup() -> void:
 	_undo_stack.clear()
 	_redo_stack.clear()
 	_editor = null
-

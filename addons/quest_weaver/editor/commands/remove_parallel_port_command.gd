@@ -10,6 +10,7 @@ var _original_index: int = -1
 
 var _removed_connections_data: Array[Dictionary] = []
 
+
 func _init(p_graph: QuestGraphResource, p_node_data: ParallelNodeResource, p_index: int):
 	self._graph = p_graph
 	self._node_data = p_node_data
@@ -18,8 +19,10 @@ func _init(p_graph: QuestGraphResource, p_node_data: ParallelNodeResource, p_ind
 		self._port_to_remove = p_node_data.outputs[p_index]
 		self._original_index = p_index
 
+
 func execute() -> void:
-	if not is_instance_valid(_port_to_remove): return
+	if not is_instance_valid(_port_to_remove):
+		return
 
 	_removed_connections_data = _graph.connections.filter(
 		func(c): return c.from_node == _node_data.id and c.from_port == _original_index
@@ -35,8 +38,10 @@ func execute() -> void:
 	_node_data.outputs.erase(_port_to_remove)
 	_node_data._update_ports_from_data()
 
+
 func undo() -> void:
-	if not is_instance_valid(_port_to_remove) or _original_index == -1: return
+	if not is_instance_valid(_port_to_remove) or _original_index == -1:
+		return
 
 	_node_data.outputs.insert(_original_index, _port_to_remove)
 

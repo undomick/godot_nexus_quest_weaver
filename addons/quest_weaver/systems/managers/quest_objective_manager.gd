@@ -8,6 +8,7 @@ extends RefCounted
 
 var _controller_weak: WeakRef
 
+
 func _init(p_controller: QuestController) -> void:
 	_controller_weak = weakref(p_controller)
 
@@ -37,7 +38,9 @@ func get_active_objectives_for_quest(query_id: StringName) -> Array[ObjectiveRes
 					var ui_obj = bp_obj.duplicate()
 					ui_obj.current_progress = obj_progress
 					ui_obj.status = obj_status
-					ui_obj.description = instance.get_objective_description(bp_obj.id, bp_obj.description)
+					ui_obj.description = instance.get_objective_description(
+						bp_obj.id, bp_obj.description
+					)
 					objectives.append(ui_obj)
 
 	return objectives
@@ -61,14 +64,16 @@ func get_active_objective_markers() -> Array:
 			if instance.get_objective_status(obj.id) != ObjectiveResource.Status.ACTIVE:
 				continue
 			var signal_id = controller._get_signal_id_for_instance(instance)
-			markers.append({
-				"type": "location",
-				"target": str(target_key),
-				"quest_id": str(signal_id),
-				"objective_id": str(obj.id),
-				"description": instance.get_objective_description(obj.id, obj.description),
-				"file_id": str(instance.file_id)
-			})
+			markers.append(
+				{
+					"type": "location",
+					"target": str(target_key),
+					"quest_id": str(signal_id),
+					"objective_id": str(obj.id),
+					"description": instance.get_objective_description(obj.id, obj.description),
+					"file_id": str(instance.file_id)
+				}
+			)
 
 	for target_key in controller._execution_context.interact_objective_listeners:
 		var wrappers = controller._execution_context.interact_objective_listeners[target_key]
@@ -80,14 +85,16 @@ func get_active_objective_markers() -> Array:
 			if instance.get_objective_status(obj.id) != ObjectiveResource.Status.ACTIVE:
 				continue
 			var signal_id = controller._get_signal_id_for_instance(instance)
-			markers.append({
-				"type": "interact",
-				"target": str(target_key),
-				"quest_id": str(signal_id),
-				"objective_id": str(obj.id),
-				"description": instance.get_objective_description(obj.id, obj.description),
-				"file_id": str(instance.file_id)
-			})
+			markers.append(
+				{
+					"type": "interact",
+					"target": str(target_key),
+					"quest_id": str(signal_id),
+					"objective_id": str(obj.id),
+					"description": instance.get_objective_description(obj.id, obj.description),
+					"file_id": str(instance.file_id)
+				}
+			)
 
 	return markers
 

@@ -7,6 +7,7 @@ enum LogicOperator { AND, OR, NAND, NOR }
 @export var operator: LogicOperator = LogicOperator.AND
 @export var conditions: Array[ConditionResource] = []
 
+
 func _init() -> void:
 	category = "Flow"
 	input_ports = ["In"]
@@ -14,6 +15,7 @@ func _init() -> void:
 
 	if id.is_empty() and conditions.is_empty():
 		add_condition({})
+
 
 func check_all_conditions(context: ExecutionContext, instance: QuestInstance) -> bool:
 	if conditions.is_empty():
@@ -32,19 +34,20 @@ func check_all_conditions(context: ExecutionContext, instance: QuestInstance) ->
 					return true
 			return false
 
-		LogicOperator.NAND: # Not AND
+		LogicOperator.NAND:  # Not AND
 			for condition in conditions:
 				if not is_instance_valid(condition) or not condition.check(context, instance):
 					return true
 			return false
 
-		LogicOperator.NOR: # Not OR
+		LogicOperator.NOR:  # Not OR
 			for condition in conditions:
 				if is_instance_valid(condition) and condition.check(context, instance):
 					return false
 			return true
 
 	return false
+
 
 func get_editor_summary() -> String:
 	if conditions.is_empty():
@@ -70,11 +73,14 @@ func get_editor_summary() -> String:
 
 	return "\n".join(summary_lines)
 
+
 func get_description() -> String:
 	return "Splits the flow based on conditions (e.g. check variables, items, or quest states)."
 
+
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/branch.svg")
+
 
 func _format_condition_summary(condition: ConditionResource) -> String:
 	if not is_instance_valid(condition):
@@ -93,7 +99,10 @@ func _format_condition_summary(condition: ConditionResource) -> String:
 				result = "CHECK_ITEM:\n%d x '%s'" % [condition.amount, condition.item_id.get_file()]
 		ConditionResource.ConditionType.CHECK_QUEST_STATUS:
 			var status_name: String
-			if condition.expected_status == QWEnums.QuestState.CUSTOM and not condition.expected_custom_pool_id.is_empty():
+			if (
+				condition.expected_status == QWEnums.QuestState.CUSTOM
+				and not condition.expected_custom_pool_id.is_empty()
+			):
 				status_name = str(condition.expected_custom_pool_id)
 			else:
 				status_name = QWEnums.QuestState.keys()[condition.expected_status].capitalize()
@@ -101,24 +110,34 @@ func _format_condition_summary(condition: ConditionResource) -> String:
 		ConditionResource.ConditionType.CHECK_VARIABLE:
 			var op_keys = ["==", "!=", ">", "<", ">=", "<="]
 			var op_symbol = op_keys[condition.operator]
-			result = "VAR:\n%s %s %s" % [condition.variable_name, op_symbol, condition.expected_value_string]
+			result = (
+				"VAR:\n%s %s %s"
+				% [condition.variable_name, op_symbol, condition.expected_value_string]
+			)
 		ConditionResource.ConditionType.CHECK_OBJECTIVE_STATUS:
-			var status_name = ObjectiveResource.Status.keys()[condition.expected_objective_status].capitalize()
+			var status_name = (
+				ObjectiveResource.Status.keys()[condition.expected_objective_status].capitalize()
+			)
 			result = "OBJECTIVE:\n...%s is %s" % [condition.objective_id.right(4), status_name]
 		ConditionResource.ConditionType.COMPOUND:
 			var op_name = condition.LogicOperator.keys()[condition.logic_operator]
 			result = "COMPOUND:\n%s (%d sub)" % [op_name, condition.sub_conditions.size()]
 		ConditionResource.ConditionType.CHECK_SYNCHRONIZER:
-			var check_name = condition.CheckType.keys()[condition.check_type].replace("_", " ").capitalize()
+			var check_name = (
+				condition.CheckType.keys()[condition.check_type].replace("_", " ").capitalize()
+			)
 			result = "SYNC:\n%s" % check_name
 		ConditionResource.ConditionType.CHECK_OBJECTIVE_REQUIREMENT:
-			var id_text = condition.objective_id if not condition.objective_id.is_empty() else "(Missing ID)"
+			var id_text = (
+				condition.objective_id if not condition.objective_id.is_empty() else "(Missing ID)"
+			)
 			var inv_hint = " (+Inv)" if condition.include_inventory_holdings else ""
 			var any_hint = " (any)" if condition.has_any_progress else ""
 			result = "REQ MET:\n'%s'%s%s" % [id_text, inv_hint, any_hint]
 		_:
 			result = "Unknown Condition"
 	return result
+
 
 func add_condition(payload: Dictionary) -> void:
 	if payload.has("condition_instance"):
@@ -134,6 +153,7 @@ func add_condition(payload: Dictionary) -> void:
 	var new_condition = ConditionResource.new()
 	conditions.append(new_condition)
 
+
 func remove_condition(payload: Dictionary) -> void:
 	if payload.has("condition"):
 		var condition_instance = payload.get("condition")
@@ -146,14 +166,17 @@ func remove_condition(payload: Dictionary) -> void:
 		if index >= 0 and index < conditions.size():
 			conditions.remove_at(index)
 
+
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
 	data["operator"] = self.operator
 	var conditions_data = []
 	for c in self.conditions:
-		if is_instance_valid(c): conditions_data.append(c.to_dictionary())
+		if is_instance_valid(c):
+			conditions_data.append(c.to_dictionary())
 	data["conditions"] = conditions_data
 	return data
+
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
@@ -166,11 +189,13 @@ func from_dictionary(data: Dictionary):
 			new_c.from_dictionary(c_data)
 			self.conditions.append(new_c)
 
+
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
 	var val = data.get(prop, default_val)
 	if val is int and val >= 0 and val < keys.size():
 		return val
 	return default_val
+
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.LARGE

@@ -2,9 +2,11 @@
 class_name ShowUIMessageNodeExecutor
 extends NodeExecutor
 
+
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var msg_node = node as ShowUIMessageNodeResource
-	if not is_instance_valid(msg_node): return
+	if not is_instance_valid(msg_node):
+		return
 
 	var controller = context.quest_controller
 	var logger = context.logger
@@ -42,20 +44,16 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 
 	# --- 4. Queue Presentation ---
 	var presentation_data = {
-		"_node_id": msg_node.id, # Token for signal matching
-
+		"_node_id": msg_node.id,  # Token for signal matching
 		"type": msg_node.message_type,
 		"title": final_title,
 		"message": final_message,
-
 		"anim_in": msg_node.animation_in,
 		"ease_in": msg_node.ease_in,
 		"per_character_in": msg_node.per_character_in,
-
 		"anim_out": msg_node.animation_out,
 		"ease_out": msg_node.ease_out,
 		"per_character_out": msg_node.per_character_out,
-
 		"duration_in": msg_node.duration_in,
 		"duration_out": msg_node.duration_out,
 		"delay_title_message": msg_node.delay_title_message,
@@ -68,7 +66,9 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 	# --- 5. Wait or Continue ---
 	if msg_node.wait_for_completion:
 		# Calculate a safety timeout to prevent infinite loops (Expected duration + 5s buffer)
-		var expected_duration = msg_node.duration_in + msg_node.hold_duration + msg_node.duration_out
+		var expected_duration = (
+			msg_node.duration_in + msg_node.hold_duration + msg_node.duration_out
+		)
 		var timeout_ms = (expected_duration + 5.0) * 1000.0
 		var start_time = Time.get_ticks_msec()
 
@@ -76,12 +76,16 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		while true:
 			# Safety: Break if manager was destroyed (e.g. scene change)
 			if not is_instance_valid(presentation_manager):
-				if is_instance_valid(logger): logger.warn("Executor", "PresentationManager lost during wait. Aborting wait.")
+				if is_instance_valid(logger):
+					logger.warn("Executor", "PresentationManager lost during wait. Aborting wait.")
 				break
 
 			# Safety: Break if timeout exceeded
 			if (Time.get_ticks_msec() - start_time) > timeout_ms:
-				if is_instance_valid(logger): logger.warn("Executor", "ShowUIMessage timed out (Signal lost?). Force continuing.")
+				if is_instance_valid(logger):
+					logger.warn(
+						"Executor", "ShowUIMessage timed out (Signal lost?). Force continuing."
+					)
 				break
 
 			var finished_id = await presentation_manager.presentation_completed

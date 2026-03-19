@@ -5,7 +5,6 @@ extends Node
 
 signal presentation_completed(request_id: StringName)
 
-
 var _queue: Array[Dictionary] = []  # Presentation request data dicts
 
 var _is_displaying := false
@@ -18,13 +17,14 @@ var _panel_scene_cache: Dictionary = {}  # scene_path -> PackedScene
 
 var _current_request_id: StringName = &""
 
-var _current_panel_instance: BaseUIPanel = null # Reference for skipping
+var _current_panel_instance: BaseUIPanel = null  # Reference for skipping
 
 ## Manages a queue of UI presentations (dialogs, messages, etc.).
 ## Requires a valid PresentationRegistry at settings.presentation_registry_path.
 ## Without a valid registry, no presentations are shown and queue_presentation calls are effectively no-ops.
 
 # The signal carries the ID of the node that requested the message
+
 
 func _ready() -> void:
 	var settings = QWConstants.get_settings()
@@ -47,7 +47,9 @@ func force_close_current() -> void:
 	if is_instance_valid(_current_panel_instance):
 		var panel = _current_panel_instance
 		# Disconnect defensively; callback uses CONNECT_ONE_SHOT but may not have fired yet
-		panel.presentation_completed.disconnect(Callable(self, "_on_panel_completed_from_panel").bind(panel))
+		panel.presentation_completed.disconnect(
+			Callable(self, "_on_panel_completed_from_panel").bind(panel)
+		)
 		# Abort animation before free to avoid orphan StringNames during shutdown
 		if panel.has_method("abort_presentation"):
 			panel.abort_presentation()
@@ -82,7 +84,12 @@ func _show_next_in_queue() -> void:
 	var presentation_type = data.get("type", "Default")
 	var template: UIPanelTemplateResource = _registry.entries.get(presentation_type)
 	if not is_instance_valid(template):
-		push_warning("PresentationManager: No template found for type '%s'. Skipping presentation." % presentation_type)
+		push_warning(
+			(
+				"PresentationManager: No template found for type '%s'. Skipping presentation."
+				% presentation_type
+			)
+		)
 		_on_panel_completed()
 		return
 
@@ -109,7 +116,9 @@ func _show_next_in_queue() -> void:
 		return
 
 	get_tree().root.add_child(panel_instance)
-	panel_instance.presentation_completed.connect(_on_panel_completed_from_panel.bind(panel_instance), CONNECT_ONE_SHOT)
+	panel_instance.presentation_completed.connect(
+		_on_panel_completed_from_panel.bind(panel_instance), CONNECT_ONE_SHOT
+	)
 	panel_instance.present(data)
 
 
@@ -125,4 +134,3 @@ func _on_panel_completed_from_panel(panel_instance: BaseUIPanel = null) -> void:
 	_current_panel_instance = null
 	presentation_completed.emit(_current_request_id)
 	_show_next_in_queue()
-

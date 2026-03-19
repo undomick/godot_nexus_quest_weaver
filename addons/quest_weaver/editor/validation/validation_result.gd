@@ -13,7 +13,14 @@ var node_type: String = ""
 ## For batch validation (validate_all_quests_in_registry): path to the quest file containing this result.
 var source_quest_path: String = ""
 
-func _init(p_severity: Severity, p_message: String, p_node_id: StringName = &"", p_source_quest_path: String = "", p_node_type: String = ""):
+
+func _init(
+	p_severity: Severity,
+	p_message: String,
+	p_node_id: StringName = &"",
+	p_source_quest_path: String = "",
+	p_node_type: String = ""
+):
 	self.severity = p_severity
 	self.message = p_message
 	self.node_id = p_node_id

@@ -6,6 +6,7 @@ extends RefCounted
 
 var _controller: QuestController
 
+
 func _init(controller: QuestController) -> void:
 	_controller = controller
 
@@ -31,9 +32,17 @@ func complete_active_tasks(query_id: StringName) -> void:
 		var node_def = _controller._node_definitions.get(node_id)
 		if node_def is TaskNodeResource:
 			for objective in node_def.objectives:
-				if instance.get_objective_status(objective.id) != ObjectiveResource.Status.COMPLETED:
+				if (
+					instance.get_objective_status(objective.id)
+					!= ObjectiveResource.Status.COMPLETED
+				):
 					instance.set_objective_status(objective.id, ObjectiveResource.Status.COMPLETED)
-					print("[QW Debug] Force completed objective '%s' in quest '%s'" % [objective.id, query_id])
+					print(
+						(
+							"[QW Debug] Force completed objective '%s' in quest '%s'"
+							% [objective.id, query_id]
+						)
+					)
 					modified = true
 
 	if modified:
@@ -61,7 +70,14 @@ func list_quests() -> void:
 		var instance = _controller._pool_registry.get_instance_by_file_id(file_id)
 		var status_str := "not loaded"
 		if instance:
-			status_str = QWEnums.QuestState.keys()[instance.current_status] if instance.current_status >= 0 and instance.current_status < QWEnums.QuestState.size() else str(instance.current_status)
+			status_str = (
+				QWEnums.QuestState.keys()[instance.current_status]
+				if (
+					instance.current_status >= 0
+					and instance.current_status < QWEnums.QuestState.size()
+				)
+				else str(instance.current_status)
+			)
 		print("  %s -> %s [%s]" % [quest_id, path, status_str])
 
 
@@ -73,8 +89,17 @@ func list_active_instances() -> void:
 		return
 	for instance in all_instances:
 		var file_id = instance.file_id
-		var status_str = QWEnums.QuestState.keys()[instance.current_status] if instance.current_status >= 0 and instance.current_status < QWEnums.QuestState.size() else str(instance.current_status)
+		var status_str = (
+			QWEnums.QuestState.keys()[instance.current_status]
+			if instance.current_status >= 0 and instance.current_status < QWEnums.QuestState.size()
+			else str(instance.current_status)
+		)
 		var active_keys: Array = []
 		for k in instance.active_node_ids:
 			active_keys.append(str(k))
-		print("  file_id=%s quest_id=%s status=%s active_nodes=%s" % [file_id, instance.quest_id, status_str, active_keys])
+		print(
+			(
+				"  file_id=%s quest_id=%s status=%s active_nodes=%s"
+				% [file_id, instance.quest_id, status_str, active_keys]
+			)
+		)

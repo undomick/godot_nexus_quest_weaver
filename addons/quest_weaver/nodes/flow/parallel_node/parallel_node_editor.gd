@@ -9,7 +9,6 @@ signal ports_need_refresh
 
 signal connections_from_port_removal_requested(port_index: int)
 
-
 var _is_setting_up := false
 
 @onready var keep_listening_checkbox: CheckBox = %KeepListeningCheckbox
@@ -17,6 +16,7 @@ var _is_setting_up := false
 @onready var outputs_container: VBoxContainer = %OutputsContainer
 
 @onready var add_output_button: Button = %AddOutputButton
+
 
 func _ready():
 	if is_instance_valid(keep_listening_checkbox):
@@ -49,7 +49,8 @@ func _rebuild_outputs_list():
 		child.queue_free()
 
 	var parallel_node: ParallelNodeResource = edited_node_data
-	if not is_instance_valid(parallel_node): return
+	if not is_instance_valid(parallel_node):
+		return
 
 	for i in range(parallel_node.outputs.size()):
 		var output_info = parallel_node.outputs[i]
@@ -68,7 +69,9 @@ func _rebuild_outputs_list():
 
 func _make_parallel_condition_property_handler(output_index: int):
 	return func(prop: String, val: Variant, _target: Resource):
-		property_update_requested.emit(edited_node_data.id, prop, val, null, {"output_index": output_index})
+		property_update_requested.emit(
+			edited_node_data.id, prop, val, null, {"output_index": output_index}
+		)
 
 
 func _on_add_output_pressed() -> void:
@@ -83,4 +86,3 @@ func _on_remove_output_pressed(index: int) -> void:
 func _on_output_name_changed(new_name: String, index: int) -> void:
 	var payload = {"index": index, "new_name": new_name}
 	complex_action_requested.emit(edited_node_data.id, "update_parallel_port_name", payload)
-

@@ -7,8 +7,9 @@ extends NodePropertyEditorBase
 
 signal ports_need_refresh(node_id: String)
 
-
-const OutputEntryScene = preload("res://addons/quest_weaver/editor/components/random_output_editor_entry.tscn")
+const OutputEntryScene = preload(
+	"res://addons/quest_weaver/editor/components/random_output_editor_entry.tscn"
+)
 
 # --- Specific handlers for the weight SpinBox ---
 
@@ -18,13 +19,15 @@ var _weight_undo_value: int = 0
 
 @onready var add_output_button: Button = %AddOutputButton
 
+
 func _ready():
 	add_output_button.pressed.connect(_on_add_output_pressed)
 
 
 func set_node_data(node_data: GraphNodeResource):
 	super.set_node_data(node_data)
-	if not node_data is RandomNodeResource: return
+	if not node_data is RandomNodeResource:
+		return
 
 	call_deferred(&"_rebuild_outputs_list")
 
@@ -34,7 +37,8 @@ func _rebuild_outputs_list():
 		child.queue_free()
 
 	var random_node: RandomNodeResource = edited_node_data
-	if not is_instance_valid(random_node): return
+	if not is_instance_valid(random_node):
+		return
 
 	for i in range(random_node.outputs.size()):
 		var output_port = random_node.outputs[i]
@@ -47,7 +51,9 @@ func _rebuild_outputs_list():
 
 		var weight_spinbox: SpinBox = entry_instance.get_node("WeightSpinBox")
 		weight_spinbox.focus_entered.connect(_on_weight_edit_started.bind(output_port))
-		weight_spinbox.focus_exited.connect(_on_weight_edit_finished.bind(i, output_port, weight_spinbox))
+		weight_spinbox.focus_exited.connect(
+			_on_weight_edit_finished.bind(i, output_port, weight_spinbox)
+		)
 		# value_changed is used for live UI updates without creating history
 		weight_spinbox.value_changed.connect(_on_weight_value_changed_live.bind(i))
 
@@ -85,11 +91,10 @@ func _on_weight_value_changed_live(new_weight: float, index: int):
 	if is_instance_valid(random_node) and index < random_node.outputs.size():
 		# Directly change the data for live updates of port percentages
 		random_node.outputs[index].weight = int(new_weight)
-		random_node._update_ports_from_data() # Update internal port names
+		random_node._update_ports_from_data()  # Update internal port names
 
 		# The 'ports_need_refresh' signal now expects the node's ID as an argument.
 		ports_need_refresh.emit(edited_node_data.id)
-
 
 
 func _on_weight_edit_finished(index: int, output_port: RandomOutputPort, spinbox: SpinBox):
@@ -100,5 +105,6 @@ func _on_weight_edit_finished(index: int, output_port: RandomOutputPort, spinbox
 
 	if _weight_undo_value != final_weight:
 		# Use output_index so the action handler resolves the target from the editable graph
-		property_update_requested.emit(edited_node_data.id, "weight", final_weight, null, {"output_index": index})
-
+		property_update_requested.emit(
+			edited_node_data.id, "weight", final_weight, null, {"output_index": index}
+		)

@@ -20,10 +20,12 @@ enum Action { GIVE, TAKE, REWARD_FROM_QUEST, ITEMS_FROM_OBJECTIVE }
 # When Success output triggers, automatically mark the target objective as COMPLETED
 @export var complete_objective_on_success: bool = false
 
+
 func _init() -> void:
 	category = &"Action"
 	input_ports = [&"In"]
 	_update_ports_from_data()
+
 
 func _update_ports_from_data() -> void:
 	if is_terminal:
@@ -32,6 +34,7 @@ func _update_ports_from_data() -> void:
 		output_ports = [&"Success", &"Partial", &"Failure"]
 	else:
 		output_ports = [&"Success", &"Failure"]
+
 
 func get_editor_summary() -> String:
 	var action_text = Action.keys()[action].capitalize()
@@ -55,11 +58,14 @@ func get_editor_summary() -> String:
 
 	return "%s:\n%s" % [action_text, info_text]
 
+
 func get_description() -> String:
 	return "Adds/removes multiple items or distributes rewards defined in another quest's Context Node."
 
+
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/give_take.svg")
+
 
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
@@ -71,6 +77,7 @@ func to_dictionary() -> Dictionary:
 	data["allow_partial_deposit"] = self.allow_partial_deposit
 	data["complete_objective_on_success"] = self.complete_objective_on_success
 	return data
+
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
@@ -96,23 +103,39 @@ func from_dictionary(data: Dictionary):
 
 	_update_ports_from_data()
 
+
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 
 	match action:
 		Action.REWARD_FROM_QUEST:
 			if target_quest_id.is_empty():
-				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Reward: No Target Quest ID specified.", id))
+				results.append(
+					ValidationResult.new(
+						ValidationResult.Severity.ERROR, "Reward: No Target Quest ID specified.", id
+					)
+				)
 
 		Action.ITEMS_FROM_OBJECTIVE:
 			if target_objective_id.is_empty():
-				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Items From Objective: No Target Objective ID specified.", id))
+				results.append(
+					ValidationResult.new(
+						ValidationResult.Severity.ERROR,
+						"Items From Objective: No Target Objective ID specified.",
+						id
+					)
+				)
 
 		Action.GIVE, Action.TAKE:
 			if items.is_empty():
-				results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Give/Take: Item list is empty.", id))
+				results.append(
+					ValidationResult.new(
+						ValidationResult.Severity.WARNING, "Give/Take: Item list is empty.", id
+					)
+				)
 
 	return results
+
 
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
 	var val = data.get(prop, default_val)

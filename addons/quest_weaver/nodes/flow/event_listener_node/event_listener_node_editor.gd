@@ -3,9 +3,13 @@
 
 extends NodePropertyEditorBase
 
-const SimpleConditionEntryScene = preload("res://addons/quest_weaver/editor/components/simple_condition_entry.tscn")
+const SimpleConditionEntryScene = preload(
+	"res://addons/quest_weaver/editor/components/simple_condition_entry.tscn"
+)
 
-const AdvancedConditionEditorScene = preload("res://addons/quest_weaver/editor/conditions/condition_editor.tscn")
+const AdvancedConditionEditorScene = preload(
+	"res://addons/quest_weaver/editor/conditions/condition_editor.tscn"
+)
 
 var _is_setting_up := false
 
@@ -20,6 +24,7 @@ var _is_setting_up := false
 @onready var add_simple_condition_button: Button = %AddSimpleConditionButton
 
 @onready var advanced_condition_container: VBoxContainer = %ConditionContainer
+
 
 func _ready() -> void:
 	event_name_edit.text_submitted.connect(func(_text): _on_event_name_confirmed())
@@ -45,7 +50,8 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 
 
 func _on_keep_listening_toggled(pressed: bool) -> void:
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	if is_instance_valid(edited_node_data):
 		property_update_requested.emit(edited_node_data.id, "keep_listening", pressed, null, {})
 
@@ -83,7 +89,10 @@ func _rebuild_advanced_condition_editor():
 		child.queue_free()
 
 	var listener_node = edited_node_data as EventListenerNodeResource
-	if not is_instance_valid(listener_node) or not is_instance_valid(listener_node.payload_condition):
+	if (
+		not is_instance_valid(listener_node)
+		or not is_instance_valid(listener_node.payload_condition)
+	):
 		return
 
 	var editor_instance = AdvancedConditionEditorScene.instantiate()
@@ -93,40 +102,55 @@ func _rebuild_advanced_condition_editor():
 
 	editor_instance.property_changed.connect(
 		func(prop_name, new_value, _target_res):
-			property_update_requested.emit(edited_node_data.id, prop_name, new_value, null, {"payload_condition": true})
+			property_update_requested.emit(
+				edited_node_data.id, prop_name, new_value, null, {"payload_condition": true}
+			)
 	)
 
 	editor_instance.rebuild_requested.connect(_rebuild_advanced_condition_editor)
 
 
 func _on_event_name_confirmed():
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	var new_text = event_name_edit.text
 	if is_instance_valid(edited_node_data) and edited_node_data.event_name != new_text:
-		property_update_requested.emit(edited_node_data.id, "event_name", StringName(new_text), null, {})
+		property_update_requested.emit(
+			edited_node_data.id, "event_name", StringName(new_text), null, {}
+		)
 
 
 func _on_simple_mode_toggled(is_pressed: bool):
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	if is_instance_valid(edited_node_data) and edited_node_data.use_simple_conditions != is_pressed:
-		property_update_requested.emit(edited_node_data.id, "use_simple_conditions", is_pressed, null, {})
+		property_update_requested.emit(
+			edited_node_data.id, "use_simple_conditions", is_pressed, null, {}
+		)
 	_rebuild_ui()
 
 
 func _on_add_simple_condition_pressed():
-	if _is_setting_up: return
-	if not is_instance_valid(edited_node_data): return
+	if _is_setting_up:
+		return
+	if not is_instance_valid(edited_node_data):
+		return
 	complex_action_requested.emit(edited_node_data.id, "add_simple_condition", {})
 
 
 func _on_simple_condition_changed(new_data: Dictionary, index: int):
-	if _is_setting_up: return
-	if not is_instance_valid(edited_node_data): return
-	complex_action_requested.emit(edited_node_data.id, "update_simple_condition", {"index": index, "new_data": new_data})
+	if _is_setting_up:
+		return
+	if not is_instance_valid(edited_node_data):
+		return
+	complex_action_requested.emit(
+		edited_node_data.id, "update_simple_condition", {"index": index, "new_data": new_data}
+	)
 
 
 func _on_simple_condition_removed(index: int):
-	if _is_setting_up: return
-	if not is_instance_valid(edited_node_data): return
+	if _is_setting_up:
+		return
+	if not is_instance_valid(edited_node_data):
+		return
 	complex_action_requested.emit(edited_node_data.id, "remove_simple_condition", {"index": index})
-

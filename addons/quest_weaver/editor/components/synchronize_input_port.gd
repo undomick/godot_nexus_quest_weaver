@@ -11,6 +11,7 @@ extends Resource
 
 ## The name displayed on the port in the GraphEdit.
 
+
 func to_dictionary() -> Dictionary:
 	var data: Dictionary = {
 		"@script_path": get_script().resource_path,
@@ -21,4 +22,3 @@ func to_dictionary() -> Dictionary:
 
 func from_dictionary(data: Dictionary) -> void:
 	port_name = StringName(data.get("port_name", &"In"))
-

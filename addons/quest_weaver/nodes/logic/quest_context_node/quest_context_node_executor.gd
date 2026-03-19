@@ -2,6 +2,7 @@
 class_name QuestContextNodeExecutor
 extends NodeExecutor
 
+
 ## Starts the quest via QuestController and completes the node to continue the flow.
 func execute(context: ExecutionContext, node: GraphNodeResource, _instance: QuestInstance) -> void:
 	var context_node = node as QuestContextNodeResource

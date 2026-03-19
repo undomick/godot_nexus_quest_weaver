@@ -10,7 +10,12 @@ var _pasted_nodes: Array[GraphNodeResource]
 var _pasted_connections: Array[Dictionary]
 
 
-func _init(p_editor: QuestWeaverEditor, p_graph: QuestGraphResource, p_graph_controller: QuestWeaverGraphController, p_paste_data: Dictionary):
+func _init(
+	p_editor: QuestWeaverEditor,
+	p_graph: QuestGraphResource,
+	p_graph_controller: QuestWeaverGraphController,
+	p_paste_data: Dictionary
+):
 	self._editor = p_editor
 	self._graph = p_graph
 	self._graph_controller = p_graph_controller

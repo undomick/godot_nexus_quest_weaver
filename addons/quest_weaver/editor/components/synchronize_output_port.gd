@@ -16,21 +16,22 @@ extends Resource
 ## [0: IGNORE, 1: REQUIRED, 2: FORBIDDEN]
 @export var patterns: Array[int] = []
 
+
 func _init() -> void:
 	condition = ConditionResource.new()
-	condition.type = ConditionResource.ConditionType.BOOL # Default to always true if pattern matches
+	condition.type = ConditionResource.ConditionType.BOOL  # Default to always true if pattern matches
+
 
 func to_dictionary() -> Dictionary:
 	var data: Dictionary = {
-		"@script_path": get_script().resource_path,
-		"port_name": port_name,
-		"patterns": patterns
+		"@script_path": get_script().resource_path, "port_name": port_name, "patterns": patterns
 	}
 
 	if is_instance_valid(condition):
 		data["condition"] = condition.to_dictionary()
 
 	return data
+
 
 func from_dictionary(data: Dictionary) -> void:
 	port_name = StringName(data.get("port_name", &"Out"))
@@ -39,7 +40,8 @@ func from_dictionary(data: Dictionary) -> void:
 	if pat_data is Array:
 		# JSON numbers come as floats often, force int
 		patterns.clear()
-		for val in pat_data: patterns.append(int(val))
+		for val in pat_data:
+			patterns.append(int(val))
 
 	var condition_data: Variant = data.get("condition")
 	if condition_data is Dictionary:

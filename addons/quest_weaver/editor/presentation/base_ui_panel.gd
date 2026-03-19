@@ -5,7 +5,9 @@ extends MarginContainer
 
 signal presentation_completed
 
-const QWCharAnimationEffect = preload("res://addons/quest_weaver/editor/presentation/qw_char_animation_effect.gd")
+const QWCharAnimationEffect = preload(
+	"res://addons/quest_weaver/editor/presentation/qw_char_animation_effect.gd"
+)
 
 var _active_tween: Tween = null
 
@@ -14,6 +16,7 @@ var _is_aborted: bool = false
 @onready var title_label: RichTextLabel = %TitleLabel
 
 @onready var message_label: RichTextLabel = %MessageLabel
+
 
 ## Stops any running animation and clears effects. Call before queue_free during shutdown.
 func abort_presentation() -> void:
@@ -88,11 +91,17 @@ func _set_initial_state(preset: int) -> void:
 	message_label.modulate.a = 0.0
 
 	match preset:
-		ShowUIMessageNodeResource.AnimationPreset.SLIDE_UP: position.y = 50
-		ShowUIMessageNodeResource.AnimationPreset.SLIDE_DOWN: position.y = -50
-		ShowUIMessageNodeResource.AnimationPreset.SCALE_UP: scale = Vector2(0.8, 0.8)
-		ShowUIMessageNodeResource.AnimationPreset.SCALE_DOWN: scale = Vector2(1.2, 1.2)
-		ShowUIMessageNodeResource.AnimationPreset.SLIDE_ROTATED: position.x = -50; rotation_degrees = -5
+		ShowUIMessageNodeResource.AnimationPreset.SLIDE_UP:
+			position.y = 50
+		ShowUIMessageNodeResource.AnimationPreset.SLIDE_DOWN:
+			position.y = -50
+		ShowUIMessageNodeResource.AnimationPreset.SCALE_UP:
+			scale = Vector2(0.8, 0.8)
+		ShowUIMessageNodeResource.AnimationPreset.SCALE_DOWN:
+			scale = Vector2(1.2, 1.2)
+		ShowUIMessageNodeResource.AnimationPreset.SLIDE_ROTATED:
+			position.x = -50
+			rotation_degrees = -5
 
 
 func _play_animation(data: Dictionary, is_in: bool) -> Tween:
@@ -104,8 +113,10 @@ func _play_animation(data: Dictionary, is_in: bool) -> Tween:
 	var duration = data.get(duration_key, 0.4)
 	var ease_type = data.get(ease_key, Tween.EASE_IN_OUT)
 
-	var has_container_animation = (preset != ShowUIMessageNodeResource.AnimationPreset.NONE)
-	var has_text_animation = (is_in and (not title_label.text.is_empty() or not message_label.text.is_empty()))
+	var has_container_animation = preset != ShowUIMessageNodeResource.AnimationPreset.NONE
+	var has_text_animation = (
+		is_in and (not title_label.text.is_empty() or not message_label.text.is_empty())
+	)
 
 	if not has_container_animation and not has_text_animation:
 		return null
@@ -142,7 +153,9 @@ func _play_animation(data: Dictionary, is_in: bool) -> Tween:
 		tween.set_parallel().set_ease(ease_type)
 		tween.tween_property(self, "modulate:a", 0.0, duration)
 
-		var target_pos = position; var target_scale = scale; var target_rot = rotation_degrees
+		var target_pos = position
+		var target_scale = scale
+		var target_rot = rotation_degrees
 		match preset:
 			ShowUIMessageNodeResource.AnimationPreset.SLIDE_UP:
 				target_pos.y = -50
@@ -152,17 +165,25 @@ func _play_animation(data: Dictionary, is_in: bool) -> Tween:
 				target_scale = Vector2(1.2, 1.2)
 			ShowUIMessageNodeResource.AnimationPreset.SCALE_DOWN:
 				target_scale = Vector2(0.8, 0.8)
-			ShowUIMessageNodeResource.AnimationPreset.SLIDE_ROTATED: target_pos.x = 50; target_rot = 5
+			ShowUIMessageNodeResource.AnimationPreset.SLIDE_ROTATED:
+				target_pos.x = 50
+				target_rot = 5
 
-		if target_pos != position: tween.tween_property(self, "position", target_pos, duration)
-		if target_scale != scale: tween.tween_property(self, "scale", target_scale, duration)
-		if target_rot != rotation_degrees: tween.tween_property(self, "rotation_degrees", target_rot, duration)
+		if target_pos != position:
+			tween.tween_property(self, "position", target_pos, duration)
+		if target_scale != scale:
+			tween.tween_property(self, "scale", target_scale, duration)
+		if target_rot != rotation_degrees:
+			tween.tween_property(self, "rotation_degrees", target_rot, duration)
 
 	return tween
 
 
-func _animate_text(tween: Tween, label: RichTextLabel, data: Dictionary, is_in: bool, delay: float) -> void:
-	if label.text.is_empty(): return
+func _animate_text(
+	tween: Tween, label: RichTextLabel, data: Dictionary, is_in: bool, delay: float
+) -> void:
+	if label.text.is_empty():
+		return
 
 	var per_char_key = "per_character_in" if is_in else "per_character_out"
 	var use_per_char = data.get(per_char_key, false)
@@ -185,10 +206,11 @@ func _animate_text(tween: Tween, label: RichTextLabel, data: Dictionary, is_in: 
 		var total_chars = label.get_total_character_count()
 		var total_duration = char_effect.duration + (char_effect.stagger * max(0, total_chars - 1))
 
-		var property_tweener = tween.tween_property(char_effect, "elapsed_time", total_duration, total_duration)
+		var property_tweener = tween.tween_property(
+			char_effect, "elapsed_time", total_duration, total_duration
+		)
 		if delay > 0.0:
 			property_tweener.set_delay(delay)
-
 
 	else:
 		label.modulate.a = 0.0
@@ -198,4 +220,3 @@ func _animate_text(tween: Tween, label: RichTextLabel, data: Dictionary, is_in: 
 		var property_tweener = tween.tween_property(label, "modulate:a", target_alpha, duration)
 		if delay > 0.0:
 			property_tweener.set_delay(delay)
-

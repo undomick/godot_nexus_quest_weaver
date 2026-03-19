@@ -9,6 +9,7 @@ var _instances_tree: Tree
 var _details_text: TextEdit
 var _file_id_to_item: Dictionary = {}
 
+
 func _get_status_name(status: int) -> String:
 	if status >= 0 and status < QWEnums.QuestState.size():
 		return QWEnums.QuestState.keys()[status]
@@ -60,6 +61,7 @@ func on_capture(message: String, data: Array) -> bool:
 func clear_display() -> void:
 	_clear_all()
 
+
 func _clear_all() -> void:
 	_file_id_to_item.clear()
 	if _instances_tree:
@@ -92,14 +94,17 @@ func _apply_instance_data(payload: Dictionary) -> void:
 	item.set_text(0, display_name)
 	item.set_text(1, status_name)
 	item.set_text(2, str(active_nodes.size()))
-	item.set_metadata(0, {
-		"file_id": file_id,
-		"quest_id": quest_id,
-		"status": status,
-		"variables": variables,
-		"active_node_ids": active_nodes,
-		"objective_states": objective_states
-	})
+	item.set_metadata(
+		0,
+		{
+			"file_id": file_id,
+			"quest_id": quest_id,
+			"status": status,
+			"variables": variables,
+			"active_node_ids": active_nodes,
+			"objective_states": objective_states
+		}
+	)
 
 
 func _on_tree_item_selected() -> void:

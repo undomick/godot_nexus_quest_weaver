@@ -16,18 +16,23 @@ var kill_counts: Dictionary = {}
 # res://addons/quest_weaver/core/quest_weaver_game_state.gd
 ## Autoload singleton for game state: variables, quest status, and kill counts.
 
+
 func _ready() -> void:
 	var services = get_tree().root.get_node_or_null("QuestWeaverServices")
 	if services:
 		services.register_game_state(self)
 	var global_bus = get_tree().root.get_node_or_null("QuestWeaverGlobal")
-	if is_instance_valid(global_bus) and not global_bus.enemy_was_killed.is_connected(_on_enemy_was_killed):
+	if (
+		is_instance_valid(global_bus)
+		and not global_bus.enemy_was_killed.is_connected(_on_enemy_was_killed)
+	):
 		global_bus.enemy_was_killed.connect(_on_enemy_was_killed)
 
 
 # --- Variable Management ---
 
 ## Gets a variable from the game state.
+
 
 ## Example: QWGameState.get_variable("player_level")
 func get_variable(key: StringName, default = null) -> Variant:
@@ -50,6 +55,7 @@ func has_variable(key: StringName) -> bool:
 
 ## Gets the status of a quest.
 
+
 ## Example: QWGameState.get_quest_status("main_quest_act1")
 func get_quest_status(quest_id: StringName) -> int:
 	return quest_states.get(quest_id, QWEnums.QuestState.UNAVAILABLE)
@@ -65,6 +71,7 @@ func set_quest_status(quest_id: StringName, status: int) -> void:
 
 ## Returns the kill count for the given enemy_id. Used by KILL objectives.
 
+
 func count_kill(enemy_id: StringName) -> int:
 	return kill_counts.get(str(enemy_id), 0)
 
@@ -78,6 +85,7 @@ func _on_enemy_was_killed(enemy_id: StringName) -> void:
 # --- Save/Load Support ---
 
 ## Normalizes dictionary keys to StringName (JSON often yields String keys).
+
 
 static func _normalize_keys_to_stringname(d: Dictionary) -> Dictionary:
 	var out: Dictionary = {}
@@ -106,4 +114,3 @@ func load_from_data(data: Dictionary) -> void:
 	variables = _normalize_keys_to_stringname(v if v is Dictionary else {}).duplicate(true)
 	quest_states = _normalize_keys_to_stringname(qs if qs is Dictionary else {}).duplicate(true)
 	kill_counts = _normalize_keys_to_stringname(kc if kc is Dictionary else {}).duplicate()
-

@@ -3,8 +3,11 @@
 class_name LocalizationKeyScanner
 extends RefCounted
 
+
 ## Analyzes the project, reads the existing CSV, adds missing columns/keys, and rewrites the file.
-static func update_localization_file(scan_folder: String, csv_path: String, target_languages: Array[String]) -> void:
+static func update_localization_file(
+	scan_folder: String, csv_path: String, target_languages: Array[String]
+) -> void:
 	if scan_folder.is_empty() or csv_path.is_empty():
 		push_warning("Key Scanner: Scan folder or CSV path not configured in settings.")
 		return
@@ -26,7 +29,7 @@ static func update_localization_file(scan_folder: String, csv_path: String, targ
 	var added_key_count = 0
 	for key in found_quest_keys:
 		if not existing_data.has(key):
-			existing_data[key] = {} # New entry, no translations yet
+			existing_data[key] = {}  # New entry, no translations yet
 			added_key_count += 1
 
 	# 4. Write everything back to disk (handling new columns automatically)
@@ -41,7 +44,9 @@ static func update_localization_file(scan_folder: String, csv_path: String, targ
 	else:
 		push_error("Key Scanner: Failed to write CSV file.")
 
+
 # --- STEP 1: SCANNING ---
+
 
 static func _scan_all_quest_files(root_path: String) -> Dictionary:
 	var found_strings: Dictionary = {}
@@ -50,7 +55,8 @@ static func _scan_all_quest_files(root_path: String) -> Dictionary:
 	while not directories_to_scan.is_empty():
 		var current_dir_path = directories_to_scan.pop_front()
 		var dir = DirAccess.open(current_dir_path)
-		if not dir: continue
+		if not dir:
+			continue
 
 		for item_name in dir.get_files():
 			var full_path = current_dir_path.path_join(item_name)
@@ -62,13 +68,16 @@ static func _scan_all_quest_files(root_path: String) -> Dictionary:
 
 	return found_strings
 
+
 static func _scan_single_file(path: String, results: Dictionary):
 	var file = FileAccess.open(path, FileAccess.READ)
-	if not file: return
+	if not file:
+		return
 	var data = file.get_var(true)
 	file.close()
 
-	if not data is Dictionary or not data.has("nodes"): return
+	if not data is Dictionary or not data.has("nodes"):
+		return
 
 	for node_data in data.get("nodes").values():
 		var script_path = node_data.get("@script_path", "").get_file().replace(".gd", "")
@@ -85,27 +94,32 @@ static func _scan_single_file(path: String, results: Dictionary):
 				if not text.is_empty():
 					results[text] = true
 
+
 # --- STEP 2: READING ---
+
 
 static func _read_existing_csv(path: String) -> Dictionary:
 	var data = {}
 	var file = FileAccess.open(path, FileAccess.READ)
-	if not file: return data
+	if not file:
+		return data
 
 	# Header: ["keys", "en", "de", ...]
 	var headers = file.get_csv_line()
 
 	# Determine mapping: index -> language code
 	var lang_indices = {}
-	for i in range(1, headers.size()): # Skip index 0 ("keys")
+	for i in range(1, headers.size()):  # Skip index 0 ("keys")
 		lang_indices[i] = headers[i]
 
 	while not file.eof_reached():
 		var line = file.get_csv_line()
-		if line.size() < 1: continue
+		if line.size() < 1:
+			continue
 
 		var key = line[0]
-		if key.is_empty(): continue
+		if key.is_empty():
+			continue
 
 		data[key] = {}
 
@@ -117,14 +131,21 @@ static func _read_existing_csv(path: String) -> Dictionary:
 
 	return data
 
+
 # --- STEP 3: WRITING (MERGE) ---
+
 
 static func _write_merged_csv(path: String, data: Dictionary, languages: Array[String]) -> bool:
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		var err = FileAccess.get_open_error()
 		if err == ERR_FILE_ALREADY_IN_USE or err == ERR_UNAVAILABLE:
-			push_warning("Key Scanner: Could not write to '%s'. The file is currently open in another program (e.g. Excel/LibreOffice). Please close it and try again." % path.get_file())
+			push_warning(
+				(
+					"Key Scanner: Could not write to '%s'. The file is currently open in another program (e.g. Excel/LibreOffice). Please close it and try again."
+					% path.get_file()
+				)
+			)
 		else:
 			push_error("Key Scanner: Could not open file for writing. Error Code: %d" % err)
 		return false

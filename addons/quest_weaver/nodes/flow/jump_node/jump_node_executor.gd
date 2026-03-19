@@ -3,9 +3,11 @@
 class_name JumpNodeExecutor
 extends NodeExecutor
 
+
 func execute(context: ExecutionContext, node: GraphNodeResource, _instance: QuestInstance) -> void:
 	var jump_node = node as JumpNodeResource
-	if not is_instance_valid(jump_node): return
+	if not is_instance_valid(jump_node):
+		return
 
 	var controller = context.quest_controller
 	var logger = context.logger

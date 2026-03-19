@@ -17,6 +17,7 @@ func _init():
 	# although usually the flow jumps back to the StartScopeNode.
 	output_ports = ["On Reset"]
 
+
 func get_editor_summary() -> String:
 	var line1 = "Reset Scope:"
 	var line2: String
@@ -28,11 +29,14 @@ func get_editor_summary() -> String:
 
 	return "%s\n%s" % [line1, line2]
 
+
 func get_description() -> String:
 	return "Resets all nodes within a specific Scope to their initial state to allow replaying."
 
+
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/erase.svg")
+
 
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
@@ -40,16 +44,23 @@ func to_dictionary() -> Dictionary:
 	data["restart_scope_on_completion"] = self.restart_scope_on_completion
 	return data
 
+
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
 	self.target_scope_id = StringName(data.get("target_scope_id", &""))
 	self.restart_scope_on_completion = data.get("restart_scope_on_completion", true)
 
+
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	if target_scope_id.is_empty():
-		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Reset Progress: Target Scope ID is not set.", id))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.ERROR, "Reset Progress: Target Scope ID is not set.", id
+			)
+		)
 	return results
+
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL

@@ -23,6 +23,7 @@ var _is_setting_up := false
 
 @onready var add_reward_button: Button = %AddRewardButton
 
+
 func _ready() -> void:
 	quest_id_edit.text_submitted.connect(func(_t): quest_id_edit.release_focus())
 	quest_id_edit.focus_exited.connect(_on_quest_id_confirmed)
@@ -62,7 +63,8 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 
 
 func _safe_rebuild() -> void:
-	if not is_instance_valid(rewards_container) or not is_instance_valid(edited_node_data): return
+	if not is_instance_valid(rewards_container) or not is_instance_valid(edited_node_data):
+		return
 
 	for child in rewards_container.get_children():
 		child.queue_free()
@@ -75,7 +77,7 @@ func _safe_rebuild() -> void:
 		var reward_dict = context_node.rewards[i]
 		if reward_dict is Dictionary:
 			var id_val = reward_dict.get("id", &"")
-			var is_temp = (id_val == &"")
+			var is_temp = id_val == &""
 
 			var entry = QWConstants.RewardEntryScene.instantiate()
 			rewards_container.add_child(entry)
@@ -105,43 +107,63 @@ func _on_reward_delete_requested(index: int) -> void:
 
 func _on_reward_entry_data_changed() -> void:
 	if is_instance_valid(edited_node_data) and edited_node_data is QuestContextNodeResource:
-		property_update_requested.emit(edited_node_data.id, "rewards", edited_node_data.rewards.duplicate(true), null, {})
+		property_update_requested.emit(
+			edited_node_data.id, "rewards", edited_node_data.rewards.duplicate(true), null, {}
+		)
 	call_deferred(&"_safe_rebuild")
 
 
 # --- CORE PROPERTY HANDLERS ---
 
+
 func _on_quest_id_confirmed() -> void:
-	if _is_setting_up: return
-	if not is_instance_valid(edited_node_data): return
+	if _is_setting_up:
+		return
+	if not is_instance_valid(edited_node_data):
+		return
 	if edited_node_data.quest_id != quest_id_edit.text:
-		property_update_requested.emit(edited_node_data.id, "quest_id", StringName(quest_id_edit.text), null, {})
+		property_update_requested.emit(
+			edited_node_data.id, "quest_id", StringName(quest_id_edit.text), null, {}
+		)
 
 
 func _on_quest_type_changed(index: int):
-	if _is_setting_up: return
-	if not is_instance_valid(edited_node_data): return
+	if _is_setting_up:
+		return
+	if not is_instance_valid(edited_node_data):
+		return
 	if edited_node_data.quest_type != index:
 		property_update_requested.emit(edited_node_data.id, "quest_type", index, null, {})
 
 
 func _on_title_confirmed() -> void:
-	if _is_setting_up: return
-	if not is_instance_valid(edited_node_data): return
+	if _is_setting_up:
+		return
+	if not is_instance_valid(edited_node_data):
+		return
 	if edited_node_data.quest_title != title_edit.text:
-		property_update_requested.emit(edited_node_data.id, "quest_title", title_edit.text, null, {})
+		property_update_requested.emit(
+			edited_node_data.id, "quest_title", title_edit.text, null, {}
+		)
 
 
 func _on_description_confirmed() -> void:
-	if _is_setting_up: return
-	if not is_instance_valid(edited_node_data): return
+	if _is_setting_up:
+		return
+	if not is_instance_valid(edited_node_data):
+		return
 	if edited_node_data.quest_description != description_edit.text:
-		property_update_requested.emit(edited_node_data.id, "quest_description", description_edit.text, null, {})
+		property_update_requested.emit(
+			edited_node_data.id, "quest_description", description_edit.text, null, {}
+		)
 
 
 func _on_log_on_start_confirmed() -> void:
-	if _is_setting_up: return
-	if not is_instance_valid(edited_node_data): return
+	if _is_setting_up:
+		return
+	if not is_instance_valid(edited_node_data):
+		return
 	if edited_node_data.log_on_start != log_on_start_edit.text:
-		property_update_requested.emit(edited_node_data.id, "log_on_start", log_on_start_edit.text, null, {})
-
+		property_update_requested.emit(
+			edited_node_data.id, "log_on_start", log_on_start_edit.text, null, {}
+		)

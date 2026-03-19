@@ -10,6 +10,7 @@ signal removed
 @onready var value_edit: LineEdit = %ValueEdit
 @onready var remove_button: Button = %RemoveButton
 
+
 func _ready() -> void:
 	op_picker.clear()
 
@@ -23,16 +24,14 @@ func _ready() -> void:
 	value_edit.focus_exited.connect(_on_value_changed)
 	remove_button.pressed.connect(removed.emit)
 
+
 func set_data(data: Dictionary) -> void:
 	key_edit.text = data.get("key", "")
 	op_picker.select(int(data.get("op", 0)))
 	value_edit.text = data.get("value", "")
 
+
 func _on_value_changed() -> void:
-	var new_data = {
-		"key": key_edit.text,
-		"op": op_picker.selected,
-		"value": value_edit.text
-	}
+	var new_data = {"key": key_edit.text, "op": op_picker.selected, "value": value_edit.text}
 
 	changed.emit(new_data)

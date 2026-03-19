@@ -3,6 +3,7 @@
 class_name SwitchNodeExecutor
 extends NodeExecutor
 
+
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var switch_node = node as SwitchNodeResource
 	if not is_instance_valid(switch_node):
@@ -32,12 +33,16 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 
 	controller._mark_node_as_logically_complete(switch_node)
 
-func _get_variable_value(context: ExecutionContext, instance: QuestInstance, var_name: StringName) -> Variant:
+
+func _get_variable_value(
+	context: ExecutionContext, instance: QuestInstance, var_name: StringName
+) -> Variant:
 	if instance and instance.variables.has(var_name):
 		return instance.get_variable(var_name)
 	if is_instance_valid(context.game_state) and context.game_state.variables.has(var_name):
 		return context.game_state.get_variable(var_name)
 	return null
+
 
 func _values_equal(a: Variant, b: Variant) -> bool:
 	if a == null and b == null:

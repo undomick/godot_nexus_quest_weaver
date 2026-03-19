@@ -19,6 +19,7 @@ var stagger: float = 0.04
 
 var ease_type: Tween.EaseType = Tween.EASE_IN_OUT
 
+
 # This is the core function of the effect.
 func _process_custom_fx(char_fx: CharFXTransform) -> bool:
 	var char_start_time = stagger * char_fx.relative_index
@@ -34,17 +35,23 @@ func _process_custom_fx(char_fx: CharFXTransform) -> bool:
 		ShowUIMessageNodeResource.AnimationPreset.FADE:
 			char_fx.color.a = eased_progress
 		ShowUIMessageNodeResource.AnimationPreset.SLIDE_UP:
-			char_fx.color.a = eased_progress; char_fx.offset.y = lerp(20.0, 0.0, eased_progress)
+			char_fx.color.a = eased_progress
+			char_fx.offset.y = lerp(20.0, 0.0, eased_progress)
 		ShowUIMessageNodeResource.AnimationPreset.SLIDE_DOWN:
-			char_fx.color.a = eased_progress; char_fx.offset.y = lerp(-20.0, 0.0, eased_progress)
+			char_fx.color.a = eased_progress
+			char_fx.offset.y = lerp(-20.0, 0.0, eased_progress)
 		ShowUIMessageNodeResource.AnimationPreset.SCALE_UP:
 			var scale_val = lerp(0.0, 1.0, eased_progress)
-			char_fx.transform = Transform2D().scaled(Vector2(scale_val, scale_val)); char_fx.color.a = eased_progress
+			char_fx.transform = Transform2D().scaled(Vector2(scale_val, scale_val))
+			char_fx.color.a = eased_progress
 		ShowUIMessageNodeResource.AnimationPreset.SCALE_DOWN:
 			var scale_val = lerp(2.0, 1.0, eased_progress)
-			char_fx.transform = Transform2D().scaled(Vector2(scale_val, scale_val)); char_fx.color.a = eased_progress
+			char_fx.transform = Transform2D().scaled(Vector2(scale_val, scale_val))
+			char_fx.color.a = eased_progress
 		ShowUIMessageNodeResource.AnimationPreset.SLIDE_ROTATED:
-			char_fx.color.a = eased_progress; char_fx.offset.x = lerp(-20.0, 0.0, eased_progress); char_fx.rotation = lerp(-0.5, 0.0, eased_progress)
+			char_fx.color.a = eased_progress
+			char_fx.offset.x = lerp(-20.0, 0.0, eased_progress)
+			char_fx.rotation = lerp(-0.5, 0.0, eased_progress)
 		_:
 			char_fx.color.a = eased_progress
 
@@ -54,6 +61,7 @@ func _process_custom_fx(char_fx: CharFXTransform) -> bool:
 # --- NEW HELPER FUNCTION ---
 
 # This function correctly applies easing based on the Tween.EaseType enum.
+
 
 func _apply_ease(progress: float, p_ease_type: Tween.EaseType) -> float:
 	match p_ease_type:
@@ -70,6 +78,5 @@ func _apply_ease(progress: float, p_ease_type: Tween.EaseType) -> float:
 			else:
 				return 1.0 - pow(-2.0 * progress + 2.0, 2) / 2.0
 		# Add other ease types here if needed (e.g., CUBIC, SINE...)
-		_: # Default case: EASE_OUT_IN or any other, falls back to linear
+		_:  # Default case: EASE_OUT_IN or any other, falls back to linear
 			return progress
-

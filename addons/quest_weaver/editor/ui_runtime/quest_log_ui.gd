@@ -52,13 +52,19 @@ var _entry_pool: Array[QuestLogEntry] = []
 
 @onready var close_button: Button = %CloseButton
 
+
 func _ready() -> void:
 	self.visible = false
 
 	# Validate Input Action exists to prevent runtime errors
 	if not toggle_log_action.is_empty() and not InputMap.has_action(toggle_log_action):
-		push_warning("QuestLogUI: Input Action '%s' not found in Project Settings. Log toggle via keyboard disabled." % toggle_log_action)
-		toggle_log_action = &"" # Disable action to prevent crashes in _input
+		push_warning(
+			(
+				"QuestLogUI: Input Action '%s' not found in Project Settings. Log toggle via keyboard disabled."
+				% toggle_log_action
+			)
+		)
+		toggle_log_action = &""  # Disable action to prevent crashes in _input
 
 	# Initialize headers with default titles
 	active_quests_header.set_category_name("Active Quests")
@@ -118,6 +124,7 @@ func _on_controller_ready() -> void:
 
 # --- Signal Handlers ---
 
+
 func _on_quest_list_changed(_quest_id: StringName) -> void:
 	_request_list_redraw()
 
@@ -131,6 +138,7 @@ func _on_quest_data_changed(quest_id: StringName) -> void:
 
 
 # --- Redraw Logic (Debounced) ---
+
 
 func _request_list_redraw() -> void:
 	# Only schedule one redraw per frame, and only if visible
@@ -158,7 +166,8 @@ func _process_redraw() -> void:
 
 
 func _redraw_quest_list() -> void:
-	if not is_instance_valid(quest_controller): return
+	if not is_instance_valid(quest_controller):
+		return
 
 	# 1. Recycle existing entries to pool instead of freeing
 	active_quests_header.clear_entries(_entry_pool)
@@ -203,7 +212,9 @@ func _update_selection_and_highlights(all_quests: Array) -> void:
 
 	# If selection is invalid (empty or quest removed), try to select the first active quest
 	if not _current_selected_quest_id in all_quest_ids:
-		var active_quests = all_quests.filter(func(q): return q.get("status") == QWEnums.QuestState.ACTIVE)
+		var active_quests = all_quests.filter(
+			func(q): return q.get("status") == QWEnums.QuestState.ACTIVE
+		)
 		if not active_quests.is_empty():
 			_on_quest_entry_selected(active_quests[0].id)
 		else:
@@ -245,12 +256,15 @@ func _trim_entry_pool() -> void:
 
 # --- Detail View Logic ---
 
+
 func _clear_detail_view() -> void:
 	_current_selected_quest_id = &""
 	detail_title_label.text = "No Quest selected"
 	detail_description_label.text = ""
-	for child in detail_objectives_list.get_children(): child.queue_free()
-	for child in detail_log_list.get_children(): child.queue_free()
+	for child in detail_objectives_list.get_children():
+		child.queue_free()
+	for child in detail_log_list.get_children():
+		child.queue_free()
 
 
 func _update_detail_view() -> void:
@@ -260,7 +274,9 @@ func _update_detail_view() -> void:
 	if not is_instance_valid(quest_controller):
 		return
 
-	var quest_data = quest_controller.get_quest_data_manager().get_quest_data(_current_selected_quest_id)
+	var quest_data = quest_controller.get_quest_data_manager().get_quest_data(
+		_current_selected_quest_id
+	)
 	if quest_data.is_empty():
 		_clear_detail_view()
 		return
@@ -287,7 +303,11 @@ func _update_detail_view() -> void:
 	for child in detail_objectives_list.get_children():
 		child.queue_free()
 
-	var active_objectives = quest_controller.get_objective_manager().get_active_objectives_for_quest(_current_selected_quest_id)
+	var active_objectives = (
+		quest_controller
+		. get_objective_manager()
+		. get_active_objectives_for_quest(_current_selected_quest_id)
+	)
 	var quest_status = quest_data.get("status")
 
 	if active_objectives.is_empty() and quest_status == QWEnums.QuestState.ACTIVE:
@@ -307,7 +327,8 @@ func _update_detail_view() -> void:
 		detail_objectives_list.add_child(fail_label)
 	else:
 		for objective in active_objectives:
-			if objective.is_hidden: continue #hides hidden objectives
+			if objective.is_hidden:
+				continue  #hides hidden objectives
 			var obj_label = Label.new()
 
 			var prefix = "[ ] "
@@ -331,7 +352,11 @@ func _update_detail_view() -> void:
 								if key_str.begins_with("new_target_"):
 									continue
 								var max_val = objective.requirements[key]
-								var current = quest_controller.get_objective_manager().get_objective_progress_by_key(objective.id, key)
+								var current = (
+									quest_controller
+									. get_objective_manager()
+									. get_objective_progress_by_key(objective.id, key)
+								)
 								var display_name = _get_item_display_name(key_str)
 								parts.append("%s (%d/%d)" % [display_name, current, max_val])
 							if parts.size() > 0:
@@ -353,7 +378,11 @@ func _get_item_registry() -> Resource:
 		return null
 	_item_registry_load_attempted = true
 	var settings = QWConstants.get_settings()
-	if settings and settings.item_registry_path and ResourceLoader.exists(settings.item_registry_path):
+	if (
+		settings
+		and settings.item_registry_path
+		and ResourceLoader.exists(settings.item_registry_path)
+	):
 		_item_registry = ResourceLoader.load(settings.item_registry_path)
 	return _item_registry
 
@@ -376,4 +405,3 @@ func _get_services_safe() -> Node:
 
 func _on_close_button_pressed() -> void:
 	self.visible = false
-

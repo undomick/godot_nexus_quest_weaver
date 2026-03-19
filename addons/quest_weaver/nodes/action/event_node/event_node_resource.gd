@@ -4,7 +4,9 @@
 class_name EventNodeResource
 extends GraphNodeResource
 
-class PayloadEntry extends Resource:
+
+class PayloadEntry:
+	extends Resource
 	enum Type { STRING, INT, FLOAT, BOOL }
 	@export var key: StringName = &"my_key"
 	@export var value_string: String = ""
@@ -19,6 +21,7 @@ class PayloadEntry extends Resource:
 
 ## A List of PayloadEntries
 @export var payload_entries: Array[PayloadEntry] = []
+
 
 func _init() -> void:
 	category = "Action"
@@ -51,7 +54,8 @@ func get_icon() -> Texture2D:
 func get_runtime_payload() -> Dictionary:
 	var payload: Dictionary = {}
 	for entry in payload_entries:
-		if not is_instance_valid(entry) or entry.key.is_empty(): continue
+		if not is_instance_valid(entry) or entry.key.is_empty():
+			continue
 
 		var parsed_value: Variant
 
@@ -92,7 +96,9 @@ func from_dictionary(data: Dictionary):
 		var new_entry = PayloadEntry.new()
 		new_entry.key = StringName(entry_dict.get("key", &"my_key"))
 		new_entry.value_string = str(entry_dict.get("value_string", ""))
-		new_entry.value_type = _defensive_load(entry_dict, "value_type", PayloadEntry.Type.keys(), PayloadEntry.Type.STRING)
+		new_entry.value_type = _defensive_load(
+			entry_dict, "value_type", PayloadEntry.Type.keys(), PayloadEntry.Type.STRING
+		)
 		self.payload_entries.append(new_entry)
 	_update_ports_from_data()
 
@@ -107,10 +113,13 @@ func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: i
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	if event_name.is_empty():
-		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Event Node: Event name is not set.", id))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.ERROR, "Event Node: Event name is not set.", id
+			)
+		)
 	return results
 
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL
-

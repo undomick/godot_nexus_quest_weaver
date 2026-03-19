@@ -5,12 +5,12 @@ extends PanelContainer
 ## Emitted when the player accepts this quest.
 signal accept_requested(quest_id: StringName)
 
-
 var _quest_id: StringName = &""
 
 @onready var _title_label: Label = %BoardTitleLabel
 
 @onready var _desc_label: Label = %BoardDescLabel
+
 
 func get_quest_id() -> StringName:
 	return _quest_id
@@ -30,4 +30,3 @@ func set_quest_data(quest_data: Dictionary) -> void:
 func _on_accept_pressed() -> void:
 	if not _quest_id.is_empty():
 		accept_requested.emit(_quest_id)
-

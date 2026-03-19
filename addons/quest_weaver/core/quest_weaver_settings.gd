@@ -34,46 +34,32 @@ extends Resource
 
 @export_group("Integration")
 
-
 ## Quest Objectives might need Inventory Logic. The Inventory Adapter provides a way to let
 ## your Inventory talk with Quest Weaver, without rewriting Quest Weaver itself.
 ## Your Adapter has to extend 'QuestInventoryAdapterBase'!
 @export_file("*.gd") var inventory_adapter_script: String
 
-
-
 ## KILL objectives can optionally use a Kill Adapter for track_progress_since_activation.
 ## Your Adapter has to extend 'QuestKillAdapterBase'!
 @export_file("*.gd") var kill_adapter_script: String
-
-
 
 ## Path to the PresentationRegistry resource.
 ## This defines which UI templates (popup styles) are available for the 'Show UI Message' node.
 @export_file("*.tres", "res://") var presentation_registry_path: String
 
-
-
 ## Path to your Item Registry resource.
 ## This allows the editor to offer auto-completion for Item IDs in various nodes.
 @export_file("*.tres", "res://") var item_registry_path: String
 
-
-
 @export_group("Automation")
 
-
 @export_subgroup("Startup")
-
 
 ## A Quest Graph file (.quest) that should be automatically started when the game begins.
 ## Useful for "Master Quest" that listen for global events.
 @export_file("*.quest", "res://") var auto_start_quests: Array[String] = []
 
-
-
 @export_subgroup("Pools")
-
 
 @export_subgroup("Localization")
 
@@ -86,5 +72,3 @@ func _validate_property(property: Dictionary) -> void:
 	if property.name == &"additional_pool_scripts":
 		property.hint = PROPERTY_HINT_TYPE_STRING
 		property.hint_string = "%d/%d:*.gd" % [TYPE_STRING, PROPERTY_HINT_FILE]
-
-

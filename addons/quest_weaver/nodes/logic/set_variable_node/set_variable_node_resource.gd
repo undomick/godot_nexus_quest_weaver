@@ -16,6 +16,7 @@ enum Operator { SET, ADD, SUBTRACT, MULTIPLY, DIVIDE, TOGGLE }
 
 @export var operator: Operator = Operator.SET
 
+
 func _init():
 	category = "Logic"
 	input_ports = ["In"]
@@ -32,12 +33,18 @@ func _update_ports_from_data() -> void:
 func get_editor_summary() -> String:
 	var op_text: String
 	match operator:
-		Operator.SET: op_text = "="
-		Operator.ADD: op_text = "+="
-		Operator.SUBTRACT: op_text = "-="
-		Operator.MULTIPLY: op_text = "*="
-		Operator.DIVIDE: op_text = "/="
-		Operator.TOGGLE: op_text = "~="
+		Operator.SET:
+			op_text = "="
+		Operator.ADD:
+			op_text = "+="
+		Operator.SUBTRACT:
+			op_text = "-="
+		Operator.MULTIPLY:
+			op_text = "*="
+		Operator.DIVIDE:
+			op_text = "/="
+		Operator.TOGGLE:
+			op_text = "~="
 
 	var var_name_text = String(variable_name) if not variable_name.is_empty() else "???"
 
@@ -78,9 +85,19 @@ func from_dictionary(data: Dictionary):
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	if variable_name.is_empty():
-		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Set Variable: Variable name is not set.", id))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.ERROR, "Set Variable: Variable name is not set.", id
+			)
+		)
 	elif operator != Operator.TOGGLE and value_to_set_string.is_empty():
-		results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Set Variable: Value is empty (except for TOGGLE operator).", id))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.WARNING,
+				"Set Variable: Value is empty (except for TOGGLE operator).",
+				id
+			)
+		)
 	return results
 
 
@@ -94,4 +111,3 @@ func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: i
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL
-

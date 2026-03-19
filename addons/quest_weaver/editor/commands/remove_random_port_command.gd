@@ -11,6 +11,7 @@ var _original_index: int = -1
 # Stores the connection data for the undo operation.
 var _removed_connections_data: Array[Dictionary] = []
 
+
 func _init(p_graph: QuestGraphResource, p_node_data: RandomNodeResource, p_index: int):
 	self._graph = p_graph
 	self._node_data = p_node_data
@@ -19,8 +20,10 @@ func _init(p_graph: QuestGraphResource, p_node_data: RandomNodeResource, p_index
 		self._port_to_remove = p_node_data.outputs[p_index]
 		self._original_index = p_index
 
+
 func execute() -> void:
-	if not is_instance_valid(_port_to_remove): return
+	if not is_instance_valid(_port_to_remove):
+		return
 
 	# Step 1: Find, store, and remove connection DATA from the main graph.
 	_removed_connections_data = _graph.connections.filter(
@@ -40,8 +43,10 @@ func execute() -> void:
 	_node_data.outputs.erase(_port_to_remove)
 	_node_data._update_ports_from_data()
 
+
 func undo() -> void:
-	if not is_instance_valid(_port_to_remove) or _original_index == -1: return
+	if not is_instance_valid(_port_to_remove) or _original_index == -1:
+		return
 
 	# Step 1: Re-insert the port DATA into the node resource.
 	_node_data.outputs.insert(_original_index, _port_to_remove)

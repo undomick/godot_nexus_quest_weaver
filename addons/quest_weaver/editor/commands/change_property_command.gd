@@ -16,11 +16,13 @@ func _init(p_resource: Resource, p_property_name: String, p_new_value: Variant):
 
 
 func execute() -> void:
-	if not is_instance_valid(_resource): return
+	if not is_instance_valid(_resource):
+		return
 	_old_value = _resource.get(_property_name)
 	_resource.set(_property_name, _new_value)
 
 
 func undo() -> void:
-	if not is_instance_valid(_resource): return
+	if not is_instance_valid(_resource):
+		return
 	_resource.set(_property_name, _old_value)

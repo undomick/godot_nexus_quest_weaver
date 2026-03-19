@@ -7,6 +7,7 @@ extends GraphNodeResource
 @export var variable_name: StringName = &""
 @export var cases: Array[SwitchCasePort] = []
 
+
 func _init() -> void:
 	category = "Flow"
 	input_ports = ["In"]
@@ -21,6 +22,7 @@ func _init() -> void:
 		cases.append(c2)
 	_update_ports_from_data()
 
+
 func _update_ports_from_data() -> void:
 	output_ports.clear()
 	for c in cases:
@@ -28,18 +30,23 @@ func _update_ports_from_data() -> void:
 			output_ports.append(c.port_name)
 	output_ports.append(&"Default")
 
+
 func get_editor_summary() -> String:
 	var var_text = String(variable_name) if not variable_name.is_empty() else "[No Variable]"
 	return "Var: %s\n%d cases + Default" % [var_text, cases.size()]
 
+
 func get_display_name() -> String:
 	return "Switch"
+
 
 func get_description() -> String:
 	return "Branches flow based on a variable value. Routes to the matching case or Default when no match."
 
+
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/branch.svg")
+
 
 func add_switch_case(_payload: Dictionary = {}) -> void:
 	var new_case = SwitchCasePort.new()
@@ -48,22 +55,26 @@ func add_switch_case(_payload: Dictionary = {}) -> void:
 	cases.append(new_case)
 	_update_ports_from_data()
 
+
 func remove_switch_case(payload: Dictionary) -> void:
 	var idx: int = payload.get("index", -1)
 	if idx >= 0 and idx < cases.size():
 		cases.remove_at(idx)
 		_update_ports_from_data()
 
+
 func update_switch_case_value(payload: Dictionary) -> void:
 	var idx: int = payload.get("index", -1)
 	if idx >= 0 and idx < cases.size() and payload.has("new_value"):
 		cases[idx].value_string = str(payload["new_value"])
+
 
 func update_switch_case_name(payload: Dictionary) -> void:
 	var idx: int = payload.get("index", -1)
 	if idx >= 0 and idx < cases.size() and payload.has("new_name"):
 		cases[idx].port_name = StringName(str(payload["new_name"]))
 		_update_ports_from_data()
+
 
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
@@ -74,6 +85,7 @@ func to_dictionary() -> Dictionary:
 			cases_data.append(c.to_dictionary())
 	data["cases"] = cases_data
 	return data
+
 
 func from_dictionary(data: Dictionary) -> void:
 	super.from_dictionary(data)
@@ -86,11 +98,17 @@ func from_dictionary(data: Dictionary) -> void:
 		cases.append(new_c)
 	_update_ports_from_data()
 
+
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	if variable_name.is_empty():
-		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Switch: Variable name is not set.", id))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.ERROR, "Switch: Variable name is not set.", id
+			)
+		)
 	return results
+
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.LARGE

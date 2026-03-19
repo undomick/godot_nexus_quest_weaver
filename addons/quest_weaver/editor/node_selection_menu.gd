@@ -7,14 +7,14 @@ extends PopupPanel
 
 signal node_selected(type_name: StringName)
 
-
 var _all_node_types: Array[NodeTypeInfo] = []
 
-var _filtered_indices: Array[int] = [] # Maps list index to original array index
+var _filtered_indices: Array[int] = []  # Maps list index to original array index
 
 @onready var filter_edit: LineEdit = %FilterEdit
 
 @onready var node_list: ItemList = %NodeList
+
 
 func _ready() -> void:
 	filter_edit.text_changed.connect(_on_filter_text_changed)
@@ -26,9 +26,10 @@ func _ready() -> void:
 	node_list.item_activated.connect(_on_list_item_activated)
 
 	# Fix: Only trigger selection on left click to allow scrolling with the mouse wheel
-	node_list.item_clicked.connect(func(index, _at_pos, mouse_btn_index):
-		if mouse_btn_index == MOUSE_BUTTON_LEFT:
-			_on_list_item_activated(index)
+	node_list.item_clicked.connect(
+		func(index, _at_pos, mouse_btn_index):
+			if mouse_btn_index == MOUSE_BUTTON_LEFT:
+				_on_list_item_activated(index)
 	)
 
 	about_to_popup.connect(_on_about_to_popup)
@@ -37,10 +38,11 @@ func _ready() -> void:
 func set_available_nodes(node_types: Array[NodeTypeInfo]) -> void:
 	# Sort: Category first, then Name (duplicate to avoid mutating caller's array)
 	var sorted = node_types.duplicate()
-	sorted.sort_custom(func(a, b):
-		if a.category != b.category:
-			return a.category < b.category
-		return a.node_name < b.node_name
+	sorted.sort_custom(
+		func(a, b):
+			if a.category != b.category:
+				return a.category < b.category
+			return a.node_name < b.node_name
 	)
 	_all_node_types = sorted
 	_refresh_list("")
@@ -64,7 +66,7 @@ func _refresh_list(filter: String) -> void:
 		var display_text = info.node_name
 
 		# 1. Determine category color
-		var category_color = Color.GRAY # Standard fallback
+		var category_color = Color.GRAY  # Standard fallback
 		if category_resource and category_resource.categories.has(info.category):
 			category_color = category_resource.categories[info.category]
 
@@ -80,7 +82,7 @@ func _refresh_list(filter: String) -> void:
 			var img = Image.create(icon_size.x, icon_size.y, false, Image.FORMAT_RGBA8)
 			img.fill(category_color)
 			item_icon = ImageTexture.create_from_image(img)
-			use_modulate = false # Do not tint again
+			use_modulate = false  # Do not tint again
 
 		var item_idx = node_list.add_item(display_text, item_icon)
 
@@ -144,4 +146,3 @@ func _on_filter_gui_input(event: InputEvent) -> void:
 				node_list.select(current_selection - 1)
 				node_list.ensure_current_is_visible()
 			get_viewport().set_input_as_handled()
-

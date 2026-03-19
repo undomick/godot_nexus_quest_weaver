@@ -9,9 +9,11 @@ var _objective_to_remove: ObjectiveResource
 # These store the state for the undo operation.
 var _original_index: int = -1
 
+
 func _init(p_task_node: TaskNodeResource, p_objective_to_remove: ObjectiveResource):
 	self._task_node = p_task_node
 	self._objective_to_remove = p_objective_to_remove
+
 
 func execute() -> void:
 	# Store the state *before* performing the action.
@@ -19,6 +21,7 @@ func execute() -> void:
 
 	if _original_index != -1:
 		_task_node.objectives.erase(_objective_to_remove)
+
 
 func undo() -> void:
 	# Restore the state using the stored information.

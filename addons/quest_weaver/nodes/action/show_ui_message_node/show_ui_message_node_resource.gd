@@ -5,15 +5,7 @@ class_name ShowUIMessageNodeResource
 
 extends GraphNodeResource
 
-enum AnimationPreset {
-	NONE,
-	FADE,
-	SLIDE_UP,
-	SLIDE_DOWN,
-	SCALE_UP,
-	SCALE_DOWN,
-	SLIDE_ROTATED
-}
+enum AnimationPreset { NONE, FADE, SLIDE_UP, SLIDE_DOWN, SCALE_UP, SCALE_DOWN, SLIDE_ROTATED }
 
 @export var message_type: StringName = &"Default"
 
@@ -107,10 +99,14 @@ func from_dictionary(data: Dictionary):
 	self.title_override = str(data.get("title_override", ""))
 	self.message_override = str(data.get("message_override", ""))
 	self.wait_for_completion = data.get("wait_for_completion", true)
-	self.animation_in = _defensive_load(data, "animation_in", AnimationPreset.keys(), AnimationPreset.SLIDE_UP)
+	self.animation_in = _defensive_load(
+		data, "animation_in", AnimationPreset.keys(), AnimationPreset.SLIDE_UP
+	)
 	self.ease_in = _defensive_load(data, "ease_in", [0, 1, 2, 3], Tween.EASE_OUT)
 	self.per_character_in = data.get("per_character_in", false)
-	self.animation_out = _defensive_load(data, "animation_out", AnimationPreset.keys(), AnimationPreset.FADE)
+	self.animation_out = _defensive_load(
+		data, "animation_out", AnimationPreset.keys(), AnimationPreset.FADE
+	)
 	self.ease_out = _defensive_load(data, "ease_out", [0, 1, 2, 3], Tween.EASE_IN)
 	self.per_character_out = data.get("per_character_out", false)
 	self.duration_in = float(data.get("duration_in", 0.4))
@@ -126,4 +122,3 @@ func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: i
 	if val is int and val >= 0 and val < keys.size():
 		return val
 	return default_val
-

@@ -11,38 +11,48 @@ enum LogicMode { EXCLUSIVE, PARALLEL }
 @export var outputs: Array[SynchronizeOutputPort] = []
 @export var logic_mode: LogicMode = LogicMode.EXCLUSIVE
 
+
 func _init():
 	category = "Flow"
 
 	if id.is_empty():
 		if inputs.is_empty():
-			var in1 = SynchronizeInputPort.new(); in1.port_name = "In 1"
-			var in2 = SynchronizeInputPort.new(); in2.port_name = "In 2"
-			inputs.append(in1); inputs.append(in2)
+			var in1 = SynchronizeInputPort.new()
+			in1.port_name = "In 1"
+			var in2 = SynchronizeInputPort.new()
+			in2.port_name = "In 2"
+			inputs.append(in1)
+			inputs.append(in2)
 
 		if outputs.is_empty():
-			var out1 = SynchronizeOutputPort.new(); out1.port_name = "Out"
+			var out1 = SynchronizeOutputPort.new()
+			out1.port_name = "Out"
 			outputs.append(out1)
 
 	_ensure_pattern_integrity()
 	_update_ports_from_data()
+
 
 func get_editor_summary() -> String:
 	var mode_text = "Priority" if logic_mode == LogicMode.EXCLUSIVE else "Gateway"
 	var loop_text = " [Loop]" if keep_listening else ""
 	return "Sync (%s)%s\n%d In -> %d Out" % [mode_text, loop_text, inputs.size(), outputs.size()]
 
+
 func get_description() -> String:
 	return "Pattern Matching Gate. \nExclusive: First matching output fires.\nParallel: All matching outputs fire."
 
+
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/join.svg")
+
 
 # ==============================================================================
 # EDITOR API - Called by SynchronizeNodeEditor
 # ==============================================================================
 
 # --- Inputs ---
+
 
 func add_sync_input(_payload: Dictionary):
 	var new_input = SynchronizeInputPort.new()
@@ -55,6 +65,7 @@ func add_sync_input(_payload: Dictionary):
 
 	_update_ports_from_data()
 
+
 func remove_sync_input(payload: Dictionary):
 	if payload.has("index") and payload.index >= 0 and payload.index < inputs.size():
 		inputs.remove_at(payload.index)
@@ -66,6 +77,7 @@ func remove_sync_input(payload: Dictionary):
 
 		_update_ports_from_data()
 
+
 func update_sync_input_name(payload: Dictionary):
 	if payload.has("index") and payload.has("new_name"):
 		var index = payload.get("index")
@@ -73,7 +85,9 @@ func update_sync_input_name(payload: Dictionary):
 			inputs[index].port_name = payload.get("new_name")
 			_update_ports_from_data()
 
+
 # --- Outputs ---
+
 
 func add_sync_output(_payload: Dictionary):
 	var new_output = SynchronizeOutputPort.new()
@@ -86,10 +100,12 @@ func add_sync_output(_payload: Dictionary):
 	outputs.append(new_output)
 	_update_ports_from_data()
 
+
 func remove_sync_output(payload: Dictionary):
 	if payload.has("index") and payload.index >= 0 and payload.index < outputs.size():
 		outputs.remove_at(payload.index)
 		_update_ports_from_data()
+
 
 func update_sync_output_name(payload: Dictionary):
 	if payload.has("index") and payload.has("new_name"):
@@ -98,7 +114,9 @@ func update_sync_output_name(payload: Dictionary):
 			outputs[index].port_name = payload.get("new_name")
 			_update_ports_from_data()
 
+
 # --- Matrix Logic ---
+
 
 func update_sync_pattern(payload: Dictionary):
 	if payload.has_all(["output_index", "input_index", "state"]):
@@ -112,9 +130,11 @@ func update_sync_pattern(payload: Dictionary):
 			if in_idx >= 0 and in_idx < out.patterns.size():
 				out.patterns[in_idx] = state
 
+
 # ==============================================================================
 # SERIALIZATION
 # ==============================================================================
+
 
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
@@ -123,15 +143,18 @@ func to_dictionary() -> Dictionary:
 
 	var inputs_data = []
 	for i in self.inputs:
-		if is_instance_valid(i): inputs_data.append(i.to_dictionary())
+		if is_instance_valid(i):
+			inputs_data.append(i.to_dictionary())
 	data["inputs"] = inputs_data
 
 	var outputs_data = []
 	for o in self.outputs:
-		if is_instance_valid(o): outputs_data.append(o.to_dictionary())
+		if is_instance_valid(o):
+			outputs_data.append(o.to_dictionary())
 	data["outputs"] = outputs_data
 
 	return data
+
 
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
@@ -156,7 +179,9 @@ func from_dictionary(data: Dictionary):
 
 	_ensure_pattern_integrity()
 
+
 # --- PRIVATE HELPER FUNCTIONS ---
+
 
 func _ensure_pattern_integrity():
 	var needed_size = inputs.size()
@@ -170,6 +195,7 @@ func _ensure_pattern_integrity():
 			for i in range(min(old.size(), needed_size)):
 				out.patterns[i] = old[i]
 
+
 func _update_ports_from_data():
 	_ensure_pattern_integrity()
 	input_ports.clear()
@@ -182,11 +208,13 @@ func _update_ports_from_data():
 		if is_instance_valid(port):
 			output_ports.append(port.port_name)
 
+
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
 	var val = data.get(prop, default_val)
 	if val is int and val >= 0 and val < keys.size():
 		return val
 	return default_val
+
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.TOWER

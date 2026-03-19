@@ -19,10 +19,10 @@ static var _script_cache: Dictionary = {}
 
 @export var is_terminal: bool = false  # disables output
 
+
 ## Provides a brief, human-readable summary for display in the graph editor.
 func get_editor_summary() -> String:
 	return ""
-
 
 
 ## Returns a short description of what this node does.
@@ -31,13 +31,11 @@ func get_description() -> String:
 	return "No description available."
 
 
-
 ## Returns an icon for the menu and graph header.
 ## By default, it tries to load an SVG with the same name as the script
 ## from an 'icons' subfolder (Convention over Configuration).
 func get_icon() -> Texture2D:
 	return null
-
 
 
 func to_dictionary() -> Dictionary:
@@ -50,7 +48,6 @@ func to_dictionary() -> Dictionary:
 		"output_ports": output_ports,
 		"is_terminal": is_terminal
 	}
-
 
 
 func from_dictionary(data: Dictionary):
@@ -72,13 +69,11 @@ func from_dictionary(data: Dictionary):
 			self.output_ports.append(StringName(p))
 
 
-
 ## Virtual method for validation.
 ## 'context' contains references to 'item_registry' and 'quest_registry'.
 ## Override this in specific node resources to add custom checks.
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
-	return [] # By default, a node is considered valid.
-
+	return []  # By default, a node is considered valid.
 
 
 ## Returns the name displayed in the "Add Node" menu.
@@ -92,12 +87,10 @@ func get_display_name() -> String:
 	return clean_name.capitalize() + " Node"
 
 
-
 ## Determines the default visual size of the node in the graph.
 ## Override this in child classes to change the appearance (e.g., SMALL, LARGE).
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.MEDIUM
-
 
 
 ## Loads a script by path with caching. Use in from_dictionary() to avoid repeated load() calls.
@@ -112,7 +105,6 @@ static func get_script_cached(path: String) -> Script:
 	return s
 
 
-
 ## Creates a ConditionResource from script_path without loading the script when it's condition_resource.gd.
 ## Avoids load() for ConditionResource to reduce GDScriptCache refs (Godot #77513).
 static func new_condition_from_path(script_path: String) -> Resource:
@@ -124,11 +116,9 @@ static func new_condition_from_path(script_path: String) -> Resource:
 	return script.new() if script else null
 
 
-
 ## Clears the script cache. Call when editor cache is invalidated.
 static func clear_script_cache() -> void:
 	_script_cache.clear()
-
 
 
 ## Safely loads a Vector2 from a dictionary. Handles Vector2, Dictionary with x/y keys, or defaults.
@@ -141,7 +131,6 @@ func _safe_vector2(data: Dictionary, prop: String, default_val: Vector2) -> Vect
 	return default_val
 
 
-
 ## Safely loads a bool from a dictionary. Handles bool, string "true"/"false", or defaults.
 func _safe_bool(data: Dictionary, prop: String, default_val: bool) -> bool:
 	var val = data.get(prop, default_val)
@@ -152,11 +141,12 @@ func _safe_bool(data: Dictionary, prop: String, default_val: bool) -> bool:
 	return default_val
 
 
-
 ## Static helper for defensive enum deserialization. Use when loading enum values from dict.
 ## Returns the enum index if valid (int in range), otherwise default_val.
 ## Subclasses can call GraphNodeResource.defensive_load_enum(data, "prop", EnumType.keys(), default).
-static func defensive_load_enum(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
+static func defensive_load_enum(
+	data: Dictionary, prop: String, keys: Array, default_val: int
+) -> int:
 	var val = data.get(prop, default_val)
 	if val is int and val >= 0 and val < keys.size():
 		return val

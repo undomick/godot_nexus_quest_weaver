@@ -11,13 +11,14 @@ extends GraphNodeResource
 @export var keep_listening: bool = false
 
 @export var input_count: int:
-	get: return _input_count
+	get:
+		return _input_count
 	set(v):
 		_input_count = clampi(v, 1, 16)
 		_update_ports_from_data()
 
-
 var _input_count: int = 2
+
 
 func _init() -> void:
 	category = "Flow"
@@ -81,4 +82,3 @@ func remove_input(payload: Dictionary = {}) -> void:
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.SMALL
-

@@ -11,7 +11,6 @@ signal value_changed(key: StringName, new_amount: int)
 
 signal remove_requested(key: StringName)
 
-
 var _current_key: StringName = &""
 
 var _is_setup := false
@@ -25,6 +24,7 @@ var _is_temp_display := false
 @onready var amount_spinbox: SpinBox = %AmountSpinBox
 
 @onready var delete_button: Button = %DeleteButton
+
 
 func _ready() -> void:
 	if is_instance_valid(auto_complete):
@@ -66,7 +66,8 @@ func setup(index: int, item_id: StringName, amount: int, is_temp: bool = false) 
 
 
 func _on_id_submitted(new_text: String) -> void:
-	if _is_setup: return
+	if _is_setup:
+		return
 
 	if _is_temp_display and new_text.is_empty():
 		return
@@ -79,6 +80,6 @@ func _on_id_submitted(new_text: String) -> void:
 
 
 func _on_amount_changed(new_val: float) -> void:
-	if _is_setup: return
+	if _is_setup:
+		return
 	value_changed.emit(_current_key, int(new_val))
-

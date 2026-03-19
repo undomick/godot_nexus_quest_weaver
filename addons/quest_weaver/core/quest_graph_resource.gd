@@ -23,9 +23,12 @@ func add_node(node_data: GraphNodeResource) -> void:
 		return
 
 	if nodes.has(node_data.id):
-		push_warning("QuestGraphResource: Node with ID '%s' already exists. Overwriting." % node_data.id)
+		push_warning(
+			"QuestGraphResource: Node with ID '%s' already exists. Overwriting." % node_data.id
+		)
 
 	nodes[node_data.id] = node_data
+
 
 ## Removes a node and all connections referencing it.
 func remove_node(node_id: StringName) -> void:
@@ -33,36 +36,49 @@ func remove_node(node_id: StringName) -> void:
 		nodes.erase(node_id)
 
 	# Filter connections ensuring we compare StringNames. Use .get() for robust access when keys are from JSON.
-	connections = connections.filter(func(c: Dictionary) -> bool:
-		if not c or not c.has("from_node") or not c.has("to_node"):
-			return false
-		var from_id = StringName(c.get("from_node", &""))
-		var to_id = StringName(c.get("to_node", &""))
-		return from_id != node_id and to_id != node_id
+	connections = connections.filter(
+		func(c: Dictionary) -> bool:
+			if not c or not c.has("from_node") or not c.has("to_node"):
+				return false
+			var from_id = StringName(c.get("from_node", &""))
+			var to_id = StringName(c.get("to_node", &""))
+			return from_id != node_id and to_id != node_id
 	)
 
+
 ## Adds a connection if it does not already exist. No-op for duplicates.
-func add_connection(from_node: StringName, from_port: int, to_node: StringName, to_port: int) -> void:
+func add_connection(
+	from_node: StringName, from_port: int, to_node: StringName, to_port: int
+) -> void:
 	for c in connections:
-		if c.from_node == from_node and c.from_port == from_port and \
-				c.to_node == to_node and c.to_port == to_port:
+		if (
+			c.from_node == from_node
+			and c.from_port == from_port
+			and c.to_node == to_node
+			and c.to_port == to_port
+		):
 			return
 
-	connections.append({
-		"from_node": from_node,
-		"from_port": from_port,
-		"to_node": to_node,
-		"to_port": to_port
-	})
+	connections.append(
+		{"from_node": from_node, "from_port": from_port, "to_node": to_node, "to_port": to_port}
+	)
+
 
 ## Removes the first matching connection.
-func remove_connection(from_node: StringName, from_port: int, to_node: StringName, to_port: int) -> void:
+func remove_connection(
+	from_node: StringName, from_port: int, to_node: StringName, to_port: int
+) -> void:
 	for i in range(connections.size() - 1, -1, -1):
 		var c = connections[i]
-		if c.from_node == from_node and c.from_port == from_port and \
-				c.to_node == to_node and c.to_port == to_port:
+		if (
+			c.from_node == from_node
+			and c.from_port == from_port
+			and c.to_node == to_node
+			and c.to_port == to_port
+		):
 			connections.remove_at(i)
 			return
+
 
 ## Removes all connections from the given output port.
 func remove_connection_from_output(from_node: StringName, from_port: int) -> void:
@@ -70,6 +86,7 @@ func remove_connection_from_output(from_node: StringName, from_port: int) -> voi
 		var c = connections[i]
 		if c.from_node == from_node and c.from_port == from_port:
 			connections.remove_at(i)
+
 
 ## Serializes the graph to a Dictionary for save/load and import.
 func to_dictionary() -> Dictionary:
@@ -89,6 +106,7 @@ func to_dictionary() -> Dictionary:
 			data.nodes[node_id] = node_resource.to_dictionary()
 
 	return data
+
 
 ## Deserializes the graph from a Dictionary. Clears existing nodes and connections.
 func from_dictionary(data: Dictionary) -> void:
@@ -121,18 +139,33 @@ func from_dictionary(data: Dictionary) -> void:
 		var node_id = StringName(key)
 		var node_dict = nodes_data[key]
 		if not node_dict is Dictionary:
-			push_warning("QuestGraphResource: Node '%s' has invalid data (not Dictionary). Skipping." % node_id)
+			push_warning(
+				(
+					"QuestGraphResource: Node '%s' has invalid data (not Dictionary). Skipping."
+					% node_id
+				)
+			)
 			continue
 		var script_path = node_dict.get("@script_path")
 		if not script_path:
 			push_warning("QuestGraphResource: Node '%s' has no @script_path. Skipping." % node_id)
 			continue
 		if not ResourceLoader.exists(script_path):
-			push_warning("QuestGraphResource: Script path '%s' for node '%s' not found. Skipping." % [script_path, node_id])
+			push_warning(
+				(
+					"QuestGraphResource: Script path '%s' for node '%s' not found. Skipping."
+					% [script_path, node_id]
+				)
+			)
 			continue
 		var script = GraphNodeResource.get_script_cached(script_path)
 		if not script:
-			push_warning("QuestGraphResource: Could not load script '%s' for node '%s'. Skipping." % [script_path, node_id])
+			push_warning(
+				(
+					"QuestGraphResource: Could not load script '%s' for node '%s'. Skipping."
+					% [script_path, node_id]
+				)
+			)
 			continue
 		var new_node = script.new()
 		new_node.from_dictionary(node_dict)

@@ -6,12 +6,14 @@ extends EditorCommand
 var _node_data: GraphNodeResource
 var _action: String
 var _payload: Dictionary
-var _undo_data: Dictionary # To store state for undoing
+var _undo_data: Dictionary  # To store state for undoing
+
 
 func _init(p_node_data: GraphNodeResource, p_action: String, p_payload: Dictionary):
 	self._node_data = p_node_data
 	self._action = p_action
 	self._payload = p_payload
+
 
 func execute() -> void:
 	# Store the state BEFORE the action for undo purposes.
@@ -33,7 +35,9 @@ func execute() -> void:
 		"remove_parallel_output", "remove_random_output", "remove_sync_output":
 			var index = _payload.get("index", -1)
 			if index >= 0 and index < _node_data.outputs.size():
-				_undo_data = {"port_data": _node_data.outputs[index].duplicate(true), "index": index}
+				_undo_data = {
+					"port_data": _node_data.outputs[index].duplicate(true), "index": index
+				}
 
 		"remove_sync_input":
 			var index = _payload.get("index", -1)
@@ -44,10 +48,11 @@ func execute() -> void:
 	if _node_data.has_method(StringName(_action)):
 		_node_data.call(_action, _payload)
 
+
 func undo() -> void:
 	match _action:
 		"add_objective":
-			_node_data.objectives.pop_back() # Remove the last added one
+			_node_data.objectives.pop_back()  # Remove the last added one
 		"remove_objective":
 			var objective = _undo_data.get("objective")
 			var index = _undo_data.get("index")

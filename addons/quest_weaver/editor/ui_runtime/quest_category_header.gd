@@ -15,6 +15,7 @@ var is_expanded: bool = true
 
 @onready var separator: HSeparator = %QuestTypeSeparator
 
+
 func _ready() -> void:
 	header_button.toggle_mode = true
 	header_button.button_pressed = is_expanded
@@ -36,10 +37,12 @@ func set_category_name(new_name: String) -> void:
 	category_name = new_name
 
 
-func add_quest_entry(entry_node: QuestLogEntry, quest_type: QuestContextNodeResource.QuestType) -> void:
+func add_quest_entry(
+	entry_node: QuestLogEntry, quest_type: QuestContextNodeResource.QuestType
+) -> void:
 	if quest_type == QuestContextNodeResource.QuestType.MAIN:
 		main_quest_list.add_child(entry_node)
-	else: # SIDE
+	else:  # SIDE
 		side_quest_list.add_child(entry_node)
 
 
@@ -74,4 +77,3 @@ func update_display() -> void:
 
 	if is_expanded:
 		separator.visible = _should_separator_be_visible()
-

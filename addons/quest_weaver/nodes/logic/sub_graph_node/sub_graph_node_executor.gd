@@ -2,6 +2,7 @@
 class_name SubGraphNodeExecutor
 extends NodeExecutor
 
+
 ## Starts the configured sub-graph. If wait_for_completion, pushes to call stack and returns when sub-graph finishes.
 ## Otherwise completes immediately and runs sub-graph in parallel.
 func execute(context: ExecutionContext, node: GraphNodeResource, _instance: QuestInstance) -> void:

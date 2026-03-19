@@ -3,17 +3,25 @@
 class_name CreateBackdropCommand
 extends EditorCommand
 
-const BackdropNodeScript = preload("res://addons/quest_weaver/nodes/common/backdrop/backdrop_node_resource.gd")
+const BackdropNodeScript = preload(
+	"res://addons/quest_weaver/nodes/common/backdrop/backdrop_node_resource.gd"
+)
 
 var _graph: QuestGraphResource
 var _selected_nodes: Array[GraphElement]
 var _creation_position: Vector2
 var _new_backdrop_data: BackdropNodeResource
 
-func _init(p_graph: QuestGraphResource, p_selected_nodes: Array[GraphElement], p_creation_position: Vector2 = Vector2.ZERO):
+
+func _init(
+	p_graph: QuestGraphResource,
+	p_selected_nodes: Array[GraphElement],
+	p_creation_position: Vector2 = Vector2.ZERO
+):
 	self._graph = p_graph
 	self._selected_nodes = p_selected_nodes
 	self._creation_position = p_creation_position
+
 
 func execute() -> void:
 	if _selected_nodes.is_empty():
@@ -40,9 +48,11 @@ func execute() -> void:
 
 	_graph.add_node(_new_backdrop_data)
 
+
 func undo() -> void:
 	if is_instance_valid(_new_backdrop_data):
 		_graph.remove_node(_new_backdrop_data.id)
+
 
 func get_created_backdrop_id() -> StringName:
 	if is_instance_valid(_new_backdrop_data):

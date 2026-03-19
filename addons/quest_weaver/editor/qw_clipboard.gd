@@ -10,23 +10,29 @@ extends RefCounted
 var _clipboard_data: Dictionary = {}
 var _node_registry: NodeTypeRegistry
 
+
 func initialize(p_node_registry: NodeTypeRegistry) -> void:
 	self._node_registry = p_node_registry
 
+
 func is_empty() -> bool:
 	return _clipboard_data.is_empty()
+
 
 ## Clears clipboard. Call before shutdown to release references (e.g. ConditionResource) and avoid leaks.
 func clear() -> void:
 	_clipboard_data.clear()
 
-func copy_selection_to_clipboard(selected_nodes_data: Array[GraphNodeResource], connections: Array[Dictionary]) -> void:
+
+func copy_selection_to_clipboard(
+	selected_nodes_data: Array[GraphNodeResource], connections: Array[Dictionary]
+) -> void:
 	if selected_nodes_data.is_empty():
 		_clipboard_data.clear()
 		return
 
 	const DEFAULT_NODE_VISUAL_SIZE := Vector2(200, 100)
-	var copied_node_ids_set: Dictionary = {} # StringName -> true for O(1) lookup
+	var copied_node_ids_set: Dictionary = {}  # StringName -> true for O(1) lookup
 	var bounding_rect: Rect2
 	var first = true
 
@@ -43,7 +49,10 @@ func copy_selection_to_clipboard(selected_nodes_data: Array[GraphNodeResource], 
 	# Only copy connections that exist between the selected nodes
 	var copied_connections: Array[Dictionary] = []
 	for connection in connections:
-		if copied_node_ids_set.has(connection.from_node) and copied_node_ids_set.has(connection.to_node):
+		if (
+			copied_node_ids_set.has(connection.from_node)
+			and copied_node_ids_set.has(connection.to_node)
+		):
 			copied_connections.append(connection)
 
 	_clipboard_data = {
@@ -51,6 +60,7 @@ func copy_selection_to_clipboard(selected_nodes_data: Array[GraphNodeResource], 
 		"connections": copied_connections,
 		"bounding_rect_center": bounding_rect.get_center()
 	}
+
 
 func get_paste_data(paste_position: Vector2) -> Dictionary:
 	if is_empty():
@@ -93,17 +103,20 @@ func get_paste_data(paste_position: Vector2) -> Dictionary:
 		var new_to_node = new_id_map.get(old_to_node)
 
 		if new_from_node and new_to_node:
-			new_connections_data.append({
-				"from_node": new_from_node, "from_port": original_conn.get("from_port"),
-				"to_node": new_to_node, "to_port": original_conn.get("to_port")
-			})
+			new_connections_data.append(
+				{
+					"from_node": new_from_node,
+					"from_port": original_conn.get("from_port"),
+					"to_node": new_to_node,
+					"to_port": original_conn.get("to_port")
+				}
+			)
 
-	return {
-		"nodes": new_nodes_data,
-		"connections": new_connections_data
-	}
+	return {"nodes": new_nodes_data, "connections": new_connections_data}
+
 
 # --- PRIVATE HELPER FUNCTIONS ---
+
 
 func _deep_duplicate_node_recursively(original_node: GraphNodeResource) -> GraphNodeResource:
 	if not is_instance_valid(original_node):
@@ -162,11 +175,16 @@ func _deep_duplicate_node_recursively(original_node: GraphNodeResource) -> Graph
 
 	elif new_node is EventListenerNodeResource:
 		if is_instance_valid(new_node.payload_condition):
-			new_node.payload_condition = _deep_duplicate_condition_recursively(new_node.payload_condition)
+			new_node.payload_condition = _deep_duplicate_condition_recursively(
+				new_node.payload_condition
+			)
 
 	return new_node
 
-func _deep_duplicate_condition_recursively(original_condition: ConditionResource) -> ConditionResource:
+
+func _deep_duplicate_condition_recursively(
+	original_condition: ConditionResource
+) -> ConditionResource:
 	if not is_instance_valid(original_condition):
 		return null
 

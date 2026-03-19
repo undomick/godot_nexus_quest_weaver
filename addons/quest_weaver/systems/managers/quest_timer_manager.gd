@@ -12,16 +12,20 @@ const TICK_INTERVAL := 1.0  ## Seconds between ticks; duration and ticks are 1:1
 var _active_timer_nodes: Dictionary = {}
 var _controller_weak: WeakRef
 
+
 func _init(p_controller: QuestController):
 	self._controller_weak = weakref(p_controller)
+
 
 func _get_controller() -> QuestController:
 	return _controller_weak.get_ref() as QuestController
 
+
 ## Starts a new timer. Called by TimerNodeExecutor.
 func start_timer(node_def: TimerNodeResource, instance: QuestInstance) -> void:
 	var controller = _get_controller()
-	if not controller: return
+	if not controller:
+		return
 
 	# node_def.id is StringName
 	if _active_timer_nodes.has(node_def.id):
@@ -45,6 +49,7 @@ func start_timer(node_def: TimerNodeResource, instance: QuestInstance) -> void:
 
 	timer.start()
 
+
 ## Stops and removes the physical timer.
 func remove_timer(node_id: StringName) -> bool:
 	if _active_timer_nodes.has(node_id):
@@ -56,12 +61,14 @@ func remove_timer(node_id: StringName) -> bool:
 		return true
 	return false
 
+
 ## Cleans up all running timers (e.g. on game exit or reload).
 func clear_all_timers() -> void:
 	for timer in _active_timer_nodes.values():
 		if is_instance_valid(timer):
 			timer.queue_free()
 	_active_timer_nodes.clear()
+
 
 ## Called every second.
 func _on_timer_tick(node_id: StringName):
@@ -91,27 +98,32 @@ func _on_timer_tick(node_id: StringName):
 
 	var logger = controller._get_logger()
 	if logger:
-		logger.log("Flow", "  - TimerNode '%s' ticked. (%d/%d)" % [node_id, ticks, node_def.duration])
+		logger.log(
+			"Flow", "  - TimerNode '%s' ticked. (%d/%d)" % [node_id, ticks, node_def.duration]
+		)
 
 	# 4. Logic
-	controller._trigger_next_nodes_from_port(node_def, 1) # Port 1: "On Tick"
+	controller._trigger_next_nodes_from_port(node_def, 1)  # Port 1: "On Tick"
 
 	if ticks >= node_def.duration:
-		if logger: logger.log("Flow", "  <- TimerNode '%s' finished." % node_id)
+		if logger:
+			logger.log("Flow", "  <- TimerNode '%s' finished." % node_id)
 
-		controller._trigger_next_nodes_from_port(node_def, 2) # Port 2: "On Finish"
+		controller._trigger_next_nodes_from_port(node_def, 2)  # Port 2: "On Finish"
 
 		remove_timer(node_id)
 
 		# Complete the node in the controller
 		controller.complete_node(node_def)
 
+
 ## Reconstructs physical timers from loaded instance data.
 ## Called by PersistenceManager after loading QuestInstances.
 func restore_timers_from_instances(active_instances: Dictionary) -> void:
 	clear_all_timers()
 	var controller = _get_controller()
-	if not controller: return
+	if not controller:
+		return
 
 	for instance: QuestInstance in active_instances.values():
 		# Scan this instance for active nodes that are timers

@@ -42,6 +42,7 @@ var qw_global = null
 
 # Adventure related stuff
 
+
 func _ready() -> void:
 	# We find the inventory controller when the scene starts.
 	# The adapter looks for it via the group, so we do the same here.
@@ -170,4 +171,3 @@ func _on_collect_button_4_pressed() -> void:
 # Helper to get the singleton safely without breaking compilation on first import
 func _get_global_bus() -> Node:
 	return get_tree().root.get_node_or_null("QuestWeaverGlobal")
-

@@ -27,11 +27,15 @@ signal interaction_lock_changed(is_locked: bool)
 
 ## Emit when the progress of an objective changes. Used for UI updates.
 ## Example: QuestWeaverGlobal.quest_objective_progress_changed.emit("main_quest_act1", "kill_rats", 10, 100)
-signal quest_objective_progress_changed(quest_id: StringName, objective_id: StringName, current_progress: int, max_progress: int)
+signal quest_objective_progress_changed(
+	quest_id: StringName, objective_id: StringName, current_progress: int, max_progress: int
+)
 
 ## Emit when the state of an objective changes. Used for UI updates.
 ## Example: QuestWeaverGlobal.quest_objective_state_changed.emit("main_quest_act1", "kill_rats", ObjectiveResource.Status.COMPLETED)
-signal quest_objective_state_changed(quest_id: StringName, objective_id: StringName, new_status: int)
+signal quest_objective_state_changed(
+	quest_id: StringName, objective_id: StringName, new_status: int
+)
 
 ## Emit when active objective markers (waypoints for map/minimap) may have changed. Connect to refresh map UI.
 ## Example: QuestWeaverGlobal.quest_markers_changed.connect(_refresh_map_markers)
@@ -56,13 +60,17 @@ var _gamestate_weak: WeakRef = null
 
 # --- SIGNALS ---
 
+
 func register_controller(controller: Node) -> void:
 	if not is_instance_valid(controller):
 		return
 	_controller_weak = weakref(controller)
 	debug = QuestDebugProxy.new(controller as QuestController)
 	var qc = controller as QuestController
-	if is_instance_valid(qc) and not qc.quest_markers_changed.is_connected(_on_quest_markers_changed):
+	if (
+		is_instance_valid(qc)
+		and not qc.quest_markers_changed.is_connected(_on_quest_markers_changed)
+	):
 		qc.quest_markers_changed.connect(_on_quest_markers_changed)
 
 
@@ -75,6 +83,7 @@ func _on_quest_markers_changed() -> void:
 # ==============================================================================
 
 ## Checks if a quest is available (Status 1).
+
 
 ## Example: QuestWeaverGlobal.is_quest_available("main_quest_act1")
 func is_quest_available(quest_id: StringName) -> bool:
@@ -103,7 +112,8 @@ func is_quest_failed(quest_id: StringName) -> bool:
 ## Example: QuestWeaverGlobal.get_quest_state("main_quest_act1")
 func get_quest_state(quest_id: StringName) -> int:
 	var controller = _get_controller_safe()
-	if not controller: return QWEnums.QuestState.UNAVAILABLE
+	if not controller:
+		return QWEnums.QuestState.UNAVAILABLE
 	return controller.get_quest_data_manager().get_quest_state(quest_id)
 
 
@@ -120,10 +130,14 @@ func get_quest_rewards(quest_id: StringName) -> Dictionary:
 ## Example: QuestWeaverGlobal.is_objective_completed("kill_rats")
 func is_objective_completed(objective_id: StringName) -> bool:
 	var controller = _get_controller_safe()
-	if not controller: return false
+	if not controller:
+		return false
 
 	# Mapping directly to ObjectiveResource.Status for clarity
-	return controller.get_objective_manager().get_objective_status(objective_id) == ObjectiveResource.Status.COMPLETED
+	return (
+		controller.get_objective_manager().get_objective_status(objective_id)
+		== ObjectiveResource.Status.COMPLETED
+	)
 
 
 ## Returns the current progress count of an objective.
@@ -158,6 +172,7 @@ func get_quest_variable(quest_id: StringName, key: StringName, default: Variant 
 
 ## Sets a variable in the game state.
 
+
 ## Example: QuestWeaverGlobal.set_variable("player_level", 10)
 func set_variable(key: StringName, value: Variant) -> void:
 	var gs = _get_gamestate_safe()
@@ -180,59 +195,68 @@ func get_variable(key: StringName, default: Variant = null) -> Variant:
 
 ## Marks a quest as available (e.g. for a Quest Board) without starting the logic.
 
+
 func set_quest_available(quest_id: StringName) -> void:
 	if not _is_id_valid(quest_id, "set_quest_available"):
 		return
 	var controller = _get_controller_safe()
-	if controller: controller.get_quest_pool_manager().set_quest_available(quest_id)
+	if controller:
+		controller.get_quest_pool_manager().set_quest_available(quest_id)
 
 
 ## Returns a list of all quests that are currently in the AVAILABLE state.
 func get_available_quests() -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_quest_pool_manager().get_available_quests()
+	if controller:
+		return controller.get_quest_pool_manager().get_available_quests()
 	return []
 
 
 ## Returns a list of all quests that are currently ACTIVE.
 func get_active_quests() -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_quest_pool_manager().get_active_quests()
+	if controller:
+		return controller.get_quest_pool_manager().get_active_quests()
 	return []
 
 
 ## Returns a list of all quests that are COMPLETED.
 func get_completed_quests() -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_quest_pool_manager().get_completed_quests()
+	if controller:
+		return controller.get_quest_pool_manager().get_completed_quests()
 	return []
 
 
 ## Returns a list of all quests that are FAILED.
 func get_failed_quests() -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_quest_pool_manager().get_failed_quests()
+	if controller:
+		return controller.get_quest_pool_manager().get_failed_quests()
 	return []
 
 
 ## Returns IDs of all custom pools (from additional_pool_scripts).
 func get_all_custom_pool_ids() -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_quest_pool_manager().get_all_custom_pool_ids()
+	if controller:
+		return controller.get_quest_pool_manager().get_all_custom_pool_ids()
 	return []
 
 
 ## Returns quest IDs in a custom pool.
 func get_quests_in_pool(pool_id: StringName) -> Array[StringName]:
 	var controller = _get_controller_safe()
-	if controller: return controller.get_quest_pool_manager().get_quests_in_pool(pool_id)
+	if controller:
+		return controller.get_quest_pool_manager().get_quests_in_pool(pool_id)
 	return []
 
 
 ## Moves a quest to a custom pool (e.g. "daily", "seasonal").
 func move_quest_to_custom_pool(quest_id: StringName, pool_id: StringName) -> void:
 	var controller = _get_controller_safe()
-	if controller: controller.get_quest_pool_manager().move_quest_to_custom_pool(quest_id, pool_id)
+	if controller:
+		controller.get_quest_pool_manager().move_quest_to_custom_pool(quest_id, pool_id)
 
 
 ## Starts a quest by its Logical ID (QuestContext). Auto-loads if registered.
@@ -240,7 +264,8 @@ func start_quest_id(quest_id: StringName) -> void:
 	if not _is_id_valid(quest_id, "start_quest_id"):
 		return
 	var controller = _get_controller_safe()
-	if controller: controller.start_quest_id(quest_id)
+	if controller:
+		controller.start_quest_id(quest_id)
 
 
 ## Starts a quest by its File Name (without .quest). Does NOT auto-load from registry reliably.
@@ -248,7 +273,8 @@ func start_quest_file(file_id: StringName) -> void:
 	if not _is_id_valid(file_id, "start_quest_file", "file_id"):
 		return
 	var controller = _get_controller_safe()
-	if controller: controller.start_quest_file(file_id)
+	if controller:
+		controller.start_quest_file(file_id)
 
 
 ## Restarts a quest by ID (Full Reset). Use it for Debug.
@@ -256,14 +282,16 @@ func restart_quest_id(quest_id: StringName) -> void:
 	if not _is_id_valid(quest_id, "restart_quest_id"):
 		return
 	var controller = _get_controller_safe()
-	if controller: controller.restart_quest_id(quest_id)
+	if controller:
+		controller.restart_quest_id(quest_id)
 
 
 func restart_quest_file(file_id: StringName) -> void:
 	if not _is_id_valid(file_id, "restart_quest_file", "file_id"):
 		return
 	var controller = _get_controller_safe()
-	if controller: controller.restart_quest_file(file_id)
+	if controller:
+		controller.restart_quest_file(file_id)
 
 
 ## Starts a quest with parameters (Templates). Uses Logical ID preference.
@@ -271,7 +299,8 @@ func start_quest_with_parameters(quest_id: StringName, params: Dictionary) -> vo
 	if not _is_id_valid(quest_id, "start_quest_with_parameters"):
 		return
 	var controller = _get_controller_safe()
-	if controller: controller.start_quest_with_parameters(quest_id, params)
+	if controller:
+		controller.start_quest_with_parameters(quest_id, params)
 
 
 ## Completes a quest. Success=true -> COMPLETED, Success=false -> FAILED.
@@ -279,26 +308,32 @@ func complete_quest_id(quest_id: StringName, success: bool = true) -> void:
 	if not _is_id_valid(quest_id, "complete_quest_id"):
 		return
 	var controller = _get_controller_safe()
-	if controller: controller.complete_quest_id(quest_id, success)
+	if controller:
+		controller.complete_quest_id(quest_id, success)
 
 
 func complete_quest_file(file_id: StringName, success: bool = true) -> void:
 	if not _is_id_valid(file_id, "complete_quest_file", "file_id"):
 		return
 	var controller = _get_controller_safe()
-	if controller: controller.complete_quest_file(file_id, success)
+	if controller:
+		controller.complete_quest_file(file_id, success)
 
 
 ## Manually completes a specific objective by ID.
 func complete_objective(objective_id: StringName) -> void:
 	var controller = _get_controller_safe()
-	if controller: controller.get_objective_manager().set_manual_objective_status(objective_id, ObjectiveResource.Status.COMPLETED)
+	if controller:
+		controller.get_objective_manager().set_manual_objective_status(
+			objective_id, ObjectiveResource.Status.COMPLETED
+		)
 
 
 ## Debug: Jump to node
 func jump_to_node(node_id: StringName) -> void:
 	var controller = _get_controller_safe()
-	if controller: controller.jump_to_node(node_id)
+	if controller:
+		controller.jump_to_node(node_id)
 
 
 # ==============================================================================
@@ -306,6 +341,7 @@ func jump_to_node(node_id: StringName) -> void:
 # ==============================================================================
 
 ## Returns a combined save dictionary for quest state and game state (variables, kill counts).
+
 
 ## Use this when saving your game. Store the result in your save file.
 ## Example: var save_data = QuestWeaverGlobal.get_quest_save_data()
@@ -372,7 +408,10 @@ func get_active_objective_markers() -> Array:
 ## Sets a runtime description override for a quest (by quest_id or node_id).
 func set_quest_description(quest_or_node_id: StringName, description: String) -> void:
 	var controller = _get_controller_safe()
-	if controller: controller.get_quest_data_manager().set_quest_description_by_quest_id(quest_or_node_id, description)
+	if controller:
+		controller.get_quest_data_manager().set_quest_description_by_quest_id(
+			quest_or_node_id, description
+		)
 
 
 # ==============================================================================
@@ -380,6 +419,7 @@ func set_quest_description(quest_or_node_id: StringName, description: String) ->
 # ==============================================================================
 
 ## Call this to force-skip the currently blocking action (Cutscene/Dialog).
+
 
 func skip_action() -> void:
 	if is_locked and _current_blocker_node_id != &"":
@@ -390,7 +430,8 @@ func skip_action() -> void:
 
 ## Internal: Called by Nodes.
 func lock_interaction(node_id: StringName) -> void:
-	if is_locked: return
+	if is_locked:
+		return
 	is_locked = true
 	_current_blocker_node_id = node_id
 	interaction_lock_changed.emit(true)
@@ -407,6 +448,7 @@ func unlock_interaction(node_id: StringName) -> void:
 # ==============================================================================
 # INTERNAL HELPERS
 # ==============================================================================
+
 
 func _is_id_valid(id: StringName, method_name: String, param_name: String = "quest_id") -> bool:
 	if id == &"" or String(id).strip_edges().is_empty():
@@ -463,4 +505,3 @@ func quest_file(filename_id: StringName) -> QuestProxy:
 	if controller:
 		return QuestProxy.new(filename_id, controller, true)
 	return QuestProxy.new(filename_id, null, true)
-

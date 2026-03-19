@@ -14,6 +14,7 @@ var _removed_connections_data: Array[Dictionary] = []
 # Stores the pattern column data for undo { output_index: state_int }
 var _removed_patterns_column: Dictionary = {}
 
+
 func _init(p_graph: QuestGraphResource, p_node_data: SynchronizeNodeResource, p_index: int):
 	self._graph = p_graph
 	self._node_data = p_node_data
@@ -22,8 +23,10 @@ func _init(p_graph: QuestGraphResource, p_node_data: SynchronizeNodeResource, p_
 		self._port_to_remove = p_node_data.inputs[p_index]
 		self._original_index = p_index
 
+
 func execute() -> void:
-	if not is_instance_valid(_port_to_remove): return
+	if not is_instance_valid(_port_to_remove):
+		return
 
 	# 1. Handle Connections (Standard)
 	_removed_connections_data = _graph.connections.filter(
@@ -53,8 +56,10 @@ func execute() -> void:
 
 	_node_data._update_ports_from_data()
 
+
 func undo() -> void:
-	if not is_instance_valid(_port_to_remove) or _original_index == -1: return
+	if not is_instance_valid(_port_to_remove) or _original_index == -1:
+		return
 
 	# 1. Restore Port
 	_node_data.inputs.insert(_original_index, _port_to_remove)
@@ -62,7 +67,7 @@ func undo() -> void:
 	# 2. Restore Pattern Column
 	for i in range(_node_data.outputs.size()):
 		var out = _node_data.outputs[i]
-		var restored_state = _removed_patterns_column.get(i, 0) # Default IGNORE
+		var restored_state = _removed_patterns_column.get(i, 0)  # Default IGNORE
 
 		if _original_index <= out.patterns.size():
 			out.patterns.insert(_original_index, restored_state)

@@ -3,18 +3,17 @@
 class_name TextNodeResource
 extends GraphNodeResource
 
-enum TextTarget {
-	ADD_TO_QUEST_LOG,      # Adds a new entry to the quest log (multiline support)
-	SET_QUEST_DESCRIPTION  # Overwrites the current quest description (multiline support)
-}
+enum TextTarget { ADD_TO_QUEST_LOG, SET_QUEST_DESCRIPTION }  # Adds a new entry to the quest log (multiline support)  # Overwrites the current quest description (multiline support)
 
 @export var target_property: TextTarget = TextTarget.ADD_TO_QUEST_LOG
 @export_multiline var text_content: String = ""
+
 
 func _init() -> void:
 	category = "Logic"
 	input_ports = ["In"]
 	output_ports = ["Out"]
+
 
 func get_editor_summary() -> String:
 	var category_text: String
@@ -34,11 +33,14 @@ func get_editor_summary() -> String:
 	# intelligent wrapping and truncation logic.
 	return "[TRUNCATE]" + category_text + single_line_text
 
+
 func get_description() -> String:
 	return "Updates the quest log or changes the current visible quest description."
 
+
 func get_icon() -> Texture2D:
 	return preload("res://addons/quest_weaver/assets/icons/text.svg")
+
 
 func to_dictionary() -> Dictionary:
 	var data = super.to_dictionary()
@@ -46,10 +48,14 @@ func to_dictionary() -> Dictionary:
 	data["text_content"] = self.text_content
 	return data
 
+
 func from_dictionary(data: Dictionary):
 	super.from_dictionary(data)
-	self.target_property = _defensive_load(data, "target_property", TextTarget.keys(), TextTarget.ADD_TO_QUEST_LOG)
+	self.target_property = _defensive_load(
+		data, "target_property", TextTarget.keys(), TextTarget.ADD_TO_QUEST_LOG
+	)
 	self.text_content = data.get("text_content", "")
+
 
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
 	var val = data.get(prop, default_val)
@@ -57,10 +63,15 @@ func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: i
 		return val
 	return default_val
 
+
 func _validate(_context: Dictionary) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 
 	if text_content.is_empty():
-		results.append(ValidationResult.new(ValidationResult.Severity.INFO, "Quest Text: Text content is empty.", id))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.INFO, "Quest Text: Text content is empty.", id
+			)
+		)
 
 	return results

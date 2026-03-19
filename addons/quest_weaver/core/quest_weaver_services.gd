@@ -20,6 +20,7 @@ var _game_state_instance: Node = null
 # res://addons/quest_weaver/core/quest_weaver_services.gd
 ## Autoload singleton that holds runtime references to QuestController, PresentationManager,
 
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_EXIT_TREE:
 		_on_exit_cleanup()
@@ -64,8 +65,10 @@ func register_game_state(instance: Node) -> void:
 		_game_state_instance = instance
 		game_state_ready.emit()
 	else:
-		if logger: logger.warn("System", "Attempted to register GameState instance multiple times.")
-		else: push_warning("[QW] GameState double registration.")
+		if logger:
+			logger.warn("System", "Attempted to register GameState instance multiple times.")
+		else:
+			push_warning("[QW] GameState double registration.")
 
 
 func has_game_state() -> bool:
@@ -82,4 +85,3 @@ func get_game_state() -> Node:
 				push_warning("[QW] get_game_state called but game state is invalid.")
 		return null
 	return _game_state_instance
-

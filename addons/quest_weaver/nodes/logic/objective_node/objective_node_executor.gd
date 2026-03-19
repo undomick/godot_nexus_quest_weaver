@@ -2,6 +2,7 @@
 class_name ObjectiveNodeExecutor
 extends NodeExecutor
 
+
 ## Applies the configured objective action (Complete/Fail/Reset) to the target manual objective.
 ## Affects objectives globally across all active quest instances. Always completes the current node.
 func execute(context: ExecutionContext, node: GraphNodeResource, _instance: QuestInstance) -> void:
@@ -25,6 +26,8 @@ func execute(context: ExecutionContext, node: GraphNodeResource, _instance: Ques
 			target_status = ObjectiveResource.Status.ACTIVE
 
 	# This affects objectives globally (in any active quest instance)
-	context.quest_controller.get_objective_manager().set_manual_objective_status(obj_node.target_objective_id, target_status)
+	context.quest_controller.get_objective_manager().set_manual_objective_status(
+		obj_node.target_objective_id, target_status
+	)
 
 	context.quest_controller.complete_node(node)

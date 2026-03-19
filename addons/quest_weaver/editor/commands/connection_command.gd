@@ -9,10 +9,18 @@ var _from_node: StringName
 var _from_port: int
 var _to_node: StringName
 var _to_port: int
-var _is_connect_action: bool # true for connect, false for disconnect
+var _is_connect_action: bool  # true for connect, false for disconnect
 
 
-func _init(p_editor: QuestWeaverEditor, p_graph: QuestGraphResource, p_from: StringName, p_from_p: int, p_to: StringName, p_to_p: int, p_is_connect: bool):
+func _init(
+	p_editor: QuestWeaverEditor,
+	p_graph: QuestGraphResource,
+	p_from: StringName,
+	p_from_p: int,
+	p_to: StringName,
+	p_to_p: int,
+	p_is_connect: bool
+):
 	self._editor = p_editor
 	self._graph = p_graph
 	self._from_node = p_from

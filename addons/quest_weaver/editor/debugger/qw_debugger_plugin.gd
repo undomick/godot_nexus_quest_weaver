@@ -5,9 +5,9 @@ class_name QuestWeaverDebuggerPlugin
 
 extends EditorDebuggerPlugin
 
-signal session_started()
+signal session_started
 
-signal session_ended()
+signal session_ended
 
 signal node_activated_in_game(node_id: StringName)
 
@@ -17,12 +17,14 @@ signal node_failed_in_game(node_id: StringName)
 
 signal instance_updated(payload: Dictionary)
 
-
-const VIEWER_SCENE = preload("res://addons/quest_weaver/editor/debugger/quest_weaver_debugger_viewer.tscn")
+const VIEWER_SCENE = preload(
+	"res://addons/quest_weaver/editor/debugger/quest_weaver_debugger_viewer.tscn"
+)
 
 var _session_id_to_viewer: Dictionary = {}
 
 var _session_stopped_callables: Dictionary = {}
+
 
 func _has_capture(capture: String) -> bool:
 	return capture == "quest_weaver"
@@ -85,4 +87,3 @@ func _capture(message: String, data: Array, session_id: int) -> bool:
 
 		_:
 			return false
-

@@ -13,7 +13,9 @@ func add_instance(instance: QuestInstance) -> void:
 		push_error("BaseQuestPool: Cannot add invalid instance or instance with empty file_id.")
 		return
 	if _instances.has(instance.file_id):
-		push_warning("BaseQuestPool: Overwriting existing instance for file_id '%s'." % instance.file_id)
+		push_warning(
+			"BaseQuestPool: Overwriting existing instance for file_id '%s'." % instance.file_id
+		)
 	_instances[instance.file_id] = instance
 
 

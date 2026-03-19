@@ -12,6 +12,7 @@ var _item_registry: Resource
 
 var _quest_registry: Resource
 
+
 ## Clears the graph cache. Call when quests are saved to avoid stale validation.
 static func clear_graph_cache() -> void:
 	_graph_cache.clear()
@@ -31,24 +32,41 @@ func validate_quests_at_paths(paths: Array[String]) -> Array[ValidationResult]:
 	for path in paths:
 		if path.is_empty() or not ResourceLoader.exists(path):
 			var quest_id = path.get_file().get_basename() if not path.is_empty() else "?"
-			all_results.append(ValidationResult.new(
-				ValidationResult.Severity.ERROR, "Quest '%s': File not found at '%s'." % [quest_id, path], "", path, ""
-			))
+			all_results.append(
+				ValidationResult.new(
+					ValidationResult.Severity.ERROR,
+					"Quest '%s': File not found at '%s'." % [quest_id, path],
+					"",
+					path,
+					""
+				)
+			)
 			continue
 		var graph: QuestGraphResource = _graph_cache.get(path)
 		if graph == null:
-			graph = ResourceLoader.load(path, "QuestGraphResource", ResourceLoader.CACHE_MODE_IGNORE) as QuestGraphResource
+			graph = (
+				ResourceLoader.load(path, "QuestGraphResource", ResourceLoader.CACHE_MODE_IGNORE)
+				as QuestGraphResource
+			)
 			if is_instance_valid(graph):
 				_graph_cache[path] = graph
 		if not is_instance_valid(graph):
 			var quest_id = path.get_file().get_basename()
-			all_results.append(ValidationResult.new(
-				ValidationResult.Severity.ERROR, "Quest '%s': Failed to load graph from '%s'." % [quest_id, path], "", path, ""
-			))
+			all_results.append(
+				ValidationResult.new(
+					ValidationResult.Severity.ERROR,
+					"Quest '%s': Failed to load graph from '%s'." % [quest_id, path],
+					"",
+					path,
+					""
+				)
+			)
 			continue
 		var results = validate_graph(graph)
 		for r in results:
-			all_results.append(ValidationResult.new(r.severity, r.message, r.node_id, path, r.node_type))
+			all_results.append(
+				ValidationResult.new(r.severity, r.message, r.node_id, path, r.node_type)
+			)
 	return all_results
 
 
@@ -72,23 +90,36 @@ func validate_all_quests_in_registry() -> Array[ValidationResult]:
 			continue
 		seen_paths[path] = true
 		if not ResourceLoader.exists(path):
-			all_results.append(ValidationResult.new(
-				ValidationResult.Severity.ERROR, "File not found at '%s'." % path, "", path, ""
-			))
+			all_results.append(
+				ValidationResult.new(
+					ValidationResult.Severity.ERROR, "File not found at '%s'." % path, "", path, ""
+				)
+			)
 			continue
 		var graph: QuestGraphResource = _graph_cache.get(path)
 		if graph == null:
-			graph = ResourceLoader.load(path, "QuestGraphResource", ResourceLoader.CACHE_MODE_IGNORE) as QuestGraphResource
+			graph = (
+				ResourceLoader.load(path, "QuestGraphResource", ResourceLoader.CACHE_MODE_IGNORE)
+				as QuestGraphResource
+			)
 			if is_instance_valid(graph):
 				_graph_cache[path] = graph
 		if not is_instance_valid(graph):
-			all_results.append(ValidationResult.new(
-				ValidationResult.Severity.ERROR, "Failed to load graph from '%s'." % path, "", path, ""
-			))
+			all_results.append(
+				ValidationResult.new(
+					ValidationResult.Severity.ERROR,
+					"Failed to load graph from '%s'." % path,
+					"",
+					path,
+					""
+				)
+			)
 			continue
 		var results = validate_graph(graph)
 		for r in results:
-			all_results.append(ValidationResult.new(r.severity, r.message, r.node_id, path, r.node_type))
+			all_results.append(
+				ValidationResult.new(r.severity, r.message, r.node_id, path, r.node_type)
+			)
 	return all_results
 
 
@@ -117,11 +148,13 @@ func export_validation_report(format: String = "json", output_path: String = "")
 func _format_report_json(results: Array[ValidationResult]) -> String:
 	var arr: Array = []
 	for r in results:
-		arr.append({
-			"severity": ValidationResult.Severity.keys()[r.severity],
-			"message": r.message,
-			"node_id": r.node_id
-		})
+		arr.append(
+			{
+				"severity": ValidationResult.Severity.keys()[r.severity],
+				"message": r.message,
+				"node_id": r.node_id
+			}
+		)
 	return JSON.stringify(arr, "\t")
 
 
@@ -130,13 +163,14 @@ func _format_report_markdown(results: Array[ValidationResult]) -> String:
 	if results.is_empty():
 		md += "No issues found.\n"
 		return md
-	var by_severity: Dictionary = { "ERROR": [], "WARNING": [], "INFO": [] }
+	var by_severity: Dictionary = {"ERROR": [], "WARNING": [], "INFO": []}
 	for r in results:
 		var key = ValidationResult.Severity.keys()[r.severity]
 		by_severity[key].append(r)
 	for sev in ["ERROR", "WARNING", "INFO"]:
 		var items = by_severity[sev]
-		if items.is_empty(): continue
+		if items.is_empty():
+			continue
 		md += "## %s (%d)\n\n" % [sev, items.size()]
 		for r in items:
 			md += "- %s" % r.message
@@ -149,7 +183,8 @@ func _format_report_markdown(results: Array[ValidationResult]) -> String:
 
 func validate_graph(graph: QuestGraphResource) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
-	if not is_instance_valid(graph): return results
+	if not is_instance_valid(graph):
+		return results
 
 	var settings = QWConstants.get_settings()
 	if not is_instance_valid(settings):
@@ -179,7 +214,8 @@ func validate_graph(graph: QuestGraphResource) -> Array[ValidationResult]:
 	for node_id in graph.nodes:
 		var node: GraphNodeResource = graph.nodes[node_id]
 
-		if node is BackdropNodeResource or node is CommentNodeResource: continue
+		if node is BackdropNodeResource or node is CommentNodeResource:
+			continue
 
 		results.append_array(_validate_node_connections(node, graph, port_connected_map))
 		results.append_array(_validate_node_properties(node))
@@ -199,24 +235,57 @@ func validate_graph(graph: QuestGraphResource) -> Array[ValidationResult]:
 		elif node is JumpNodeResource:
 			if not node.target_anchor_name.is_empty():
 				if not valid_anchors.has(node.target_anchor_name):
-					results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Jump Target '%s' does not exist in this graph." % node.target_anchor_name, str(node_id), "", _get_node_type_name(node)))
+					results.append(
+						ValidationResult.new(
+							ValidationResult.Severity.ERROR,
+							(
+								"Jump Target '%s' does not exist in this graph."
+								% node.target_anchor_name
+							),
+							str(node_id),
+							"",
+							_get_node_type_name(node)
+						)
+					)
 
 		# Check Reset Targets
 		elif node is ResetProgressNodeResource:
 			if not node.target_scope_id.is_empty():
 				if not valid_scopes.has(node.target_scope_id):
-					results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Target Scope '%s' not found (StartScopeNode missing?)." % node.target_scope_id, str(node_id), "", _get_node_type_name(node)))
+					results.append(
+						ValidationResult.new(
+							ValidationResult.Severity.ERROR,
+							(
+								"Target Scope '%s' not found (StartScopeNode missing?)."
+								% node.target_scope_id
+							),
+							str(node_id),
+							"",
+							_get_node_type_name(node)
+						)
+					)
 		# Check Cancel Scope Targets
 		elif node is CancelScopeNodeResource:
 			if not node.target_scope_id.is_empty():
 				if not valid_scopes.has(node.target_scope_id):
-					results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Target Scope '%s' not found (StartScopeNode missing?)." % node.target_scope_id, str(node_id), "", _get_node_type_name(node)))
+					results.append(
+						ValidationResult.new(
+							ValidationResult.Severity.ERROR,
+							(
+								"Target Scope '%s' not found (StartScopeNode missing?)."
+								% node.target_scope_id
+							),
+							str(node_id),
+							"",
+							_get_node_type_name(node)
+						)
+					)
 
 	return results
 
 
-
 # --- HELPER FUNCTIONS ---
+
 
 func _get_node_type_name(node: GraphNodeResource) -> String:
 	if not is_instance_valid(node):
@@ -226,10 +295,7 @@ func _get_node_type_name(node: GraphNodeResource) -> String:
 
 func _validate_node_properties(node: GraphNodeResource) -> Array[ValidationResult]:
 	# We pack the registries into a context dictionary to pass it to the node.
-	var context = {
-		"item_registry": _item_registry,
-		"quest_registry": _quest_registry
-	}
+	var context = {"item_registry": _item_registry, "quest_registry": _quest_registry}
 
 	# Delegate the validation logic to the node resource itself.
 	var results = node._validate(context)
@@ -240,52 +306,131 @@ func _validate_node_properties(node: GraphNodeResource) -> Array[ValidationResul
 	return results
 
 
-func _validate_condition(condition: ConditionResource, node: GraphNodeResource) -> Array[ValidationResult]:
+func _validate_condition(
+	condition: ConditionResource, node: GraphNodeResource
+) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 	var node_id_str := str(node.id) if node else ""
 	var type_name := _get_node_type_name(node)
 
 	if not is_instance_valid(condition):
-		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "A Condition is invalid/null.", node_id_str, "", type_name))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.ERROR,
+				"A Condition is invalid/null.",
+				node_id_str,
+				"",
+				type_name
+			)
+		)
 		return results
 
 	match condition.type:
 		ConditionResource.ConditionType.CHECK_ITEM:
 			var item_id = condition.item_id
 			if item_id == &"":
-				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Check Item Condition: No Item ID specified.", node_id_str, "", type_name))
+				results.append(
+					ValidationResult.new(
+						ValidationResult.Severity.ERROR,
+						"Check Item Condition: No Item ID specified.",
+						node_id_str,
+						"",
+						type_name
+					)
+				)
 
 			elif is_instance_valid(_item_registry):
 				if _item_registry.has_method(&"find"):
 					if not _item_registry.find(str(item_id)):
-						results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Item ID '%s' not found in registry." % item_id, node_id_str, "", type_name))
+						results.append(
+							ValidationResult.new(
+								ValidationResult.Severity.WARNING,
+								"Item ID '%s' not found in registry." % item_id,
+								node_id_str,
+								"",
+								type_name
+							)
+						)
 
 		ConditionResource.ConditionType.CHECK_QUEST_STATUS:
 			var target_id = condition.quest_id
 			if target_id == &"":
-				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Check Quest Status: No target Quest ID specified.", node_id_str, "", type_name))
+				results.append(
+					ValidationResult.new(
+						ValidationResult.Severity.ERROR,
+						"Check Quest Status: No target Quest ID specified.",
+						node_id_str,
+						"",
+						type_name
+					)
+				)
 
-			elif is_instance_valid(_quest_registry) and not _quest_registry.quest_path_map.has(target_id):
-				results.append(ValidationResult.new(
-					ValidationResult.Severity.WARNING, "Check Quest Status: Target Quest ID '%s' not found in Quest Registry." % target_id, node_id_str, "", type_name))
+			elif (
+				is_instance_valid(_quest_registry)
+				and not _quest_registry.quest_path_map.has(target_id)
+			):
+				results.append(
+					ValidationResult.new(
+						ValidationResult.Severity.WARNING,
+						(
+							"Check Quest Status: Target Quest ID '%s' not found in Quest Registry."
+							% target_id
+						),
+						node_id_str,
+						"",
+						type_name
+					)
+				)
 
 		ConditionResource.ConditionType.CHECK_OBJECTIVE_STATUS:
 			if condition.objective_id == &"":
-				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Check Objective Status: No Objective ID specified.", node_id_str, "", type_name))
+				results.append(
+					ValidationResult.new(
+						ValidationResult.Severity.ERROR,
+						"Check Objective Status: No Objective ID specified.",
+						node_id_str,
+						"",
+						type_name
+					)
+				)
 
 		ConditionResource.ConditionType.CHECK_OBJECTIVE_REQUIREMENT:
 			if condition.objective_id == &"":
-				results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Check Requirement Met: No Objective ID specified.", node_id_str, "", type_name))
+				results.append(
+					ValidationResult.new(
+						ValidationResult.Severity.ERROR,
+						"Check Requirement Met: No Objective ID specified.",
+						node_id_str,
+						"",
+						type_name
+					)
+				)
 
 		ConditionResource.ConditionType.COMPOUND:
 			if condition.sub_conditions.is_empty():
-				results.append(ValidationResult.new(ValidationResult.Severity.INFO, "Compound Condition is empty.", node_id_str, "", type_name))
+				results.append(
+					ValidationResult.new(
+						ValidationResult.Severity.INFO,
+						"Compound Condition is empty.",
+						node_id_str,
+						"",
+						type_name
+					)
+				)
 			else:
 				for sub_condition in condition.sub_conditions:
 					if is_instance_valid(sub_condition):
 						results.append_array(_validate_condition(sub_condition, node))
 					else:
-						results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Compound Condition contains an invalid entry.", node_id_str, "", type_name))
+						results.append(
+							ValidationResult.new(
+								ValidationResult.Severity.ERROR,
+								"Compound Condition contains an invalid entry.",
+								node_id_str,
+								"",
+								type_name
+							)
+						)
 
 		_:
 			pass
@@ -303,39 +448,56 @@ func _build_port_connection_map(graph: QuestGraphResource) -> Dictionary:
 	return map
 
 
-func _validate_node_connections(node: GraphNodeResource, _graph: QuestGraphResource, port_connected_map: Dictionary) -> Array[ValidationResult]:
+func _validate_node_connections(
+	node: GraphNodeResource, _graph: QuestGraphResource, port_connected_map: Dictionary
+) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
 
 	if node is BranchNodeResource:
 		var true_connected = port_connected_map.get("%s|%d" % [node.id, 0], false)
 		var false_connected = port_connected_map.get("%s|%d" % [node.id, 1], false)
 		if not true_connected and not false_connected:
-			results.append(ValidationResult.new(ValidationResult.Severity.WARNING, "Branch: Both 'True' and 'False' outputs are unconnected.", str(node.id), "", _get_node_type_name(node)))
+			results.append(
+				ValidationResult.new(
+					ValidationResult.Severity.WARNING,
+					"Branch: Both 'True' and 'False' outputs are unconnected.",
+					str(node.id),
+					"",
+					_get_node_type_name(node)
+				)
+			)
 		return results
 
-	if node is EndNodeResource or \
-		node is RandomNodeResource or \
-		node is TimerNodeResource or \
-		node is ParallelNodeResource or \
-		node is SynchronizeNodeResource or \
-		node is GiveTakeItemNodeResource or \
-		node is EventListenerNodeResource or \
-		node is PlayCutsceneNodeResource:
+	if (
+		node is EndNodeResource
+		or node is RandomNodeResource
+		or node is TimerNodeResource
+		or node is ParallelNodeResource
+		or node is SynchronizeNodeResource
+		or node is GiveTakeItemNodeResource
+		or node is EventListenerNodeResource
+		or node is PlayCutsceneNodeResource
+	):
 		return results
 
 	for i in range(node.output_ports.size()):
 		if not port_connected_map.get("%s|%d" % [node.id, i], false):
 			var port_name = node.output_ports[i]
-			results.append(ValidationResult.new(
-				ValidationResult.Severity.WARNING,
-				"Output port '%s' is unconnected. Flow stops here." % port_name,
-				str(node.id), "", _get_node_type_name(node)
-			))
+			results.append(
+				ValidationResult.new(
+					ValidationResult.Severity.WARNING,
+					"Output port '%s' is unconnected. Flow stops here." % port_name,
+					str(node.id),
+					"",
+					_get_node_type_name(node)
+				)
+			)
 
 	return results
 
 
 # --- GRAPH STRUCTURE RULES ---
+
 
 func _check_start_node_count(graph: QuestGraphResource) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
@@ -345,15 +507,32 @@ func _check_start_node_count(graph: QuestGraphResource) -> Array[ValidationResul
 		if node is StartNodeResource:
 			start_nodes.append(node_id)
 	if start_nodes.is_empty():
-		results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Graph has no StartNode. Exactly one is required.", "", "", "Start Node"))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.ERROR,
+				"Graph has no StartNode. Exactly one is required.",
+				"",
+				"",
+				"Start Node"
+			)
+		)
 	elif start_nodes.size() > 1:
 		for nid in start_nodes:
 			var n = graph.nodes.get(nid)
-			results.append(ValidationResult.new(ValidationResult.Severity.ERROR, "Graph has more than one StartNode. Exactly one is required.", str(nid), "", _get_node_type_name(n) if n else "Start Node"))
+			results.append(
+				ValidationResult.new(
+					ValidationResult.Severity.ERROR,
+					"Graph has more than one StartNode. Exactly one is required.",
+					str(nid),
+					"",
+					_get_node_type_name(n) if n else "Start Node"
+				)
+			)
 	return results
 
 
 # --- Helpers & Algorithms ---
+
 
 func _check_for_orphan_nodes(graph: QuestGraphResource) -> Array[ValidationResult]:
 	var results: Array[ValidationResult] = []
@@ -386,11 +565,15 @@ func _check_for_orphan_nodes(graph: QuestGraphResource) -> Array[ValidationResul
 			continue
 
 		# If none of the exceptions apply, issue a warning.
-		results.append(ValidationResult.new(
-			ValidationResult.Severity.WARNING,
-			"This node is unreachable (no incoming connection).",
-			str(node_id), "", _get_node_type_name(node)
-		))
+		results.append(
+			ValidationResult.new(
+				ValidationResult.Severity.WARNING,
+				"This node is unreachable (no incoming connection).",
+				str(node_id),
+				"",
+				_get_node_type_name(node)
+			)
+		)
 
 	return results
 
@@ -415,11 +598,15 @@ func _check_for_cycles(graph: QuestGraphResource) -> Array[ValidationResult]:
 		if not visited[node_id]:
 			if _is_cyclic_iterative(node_id, visited, recursion_stack, neighbors_cache):
 				var n = graph.nodes.get(node_id)
-				results.append(ValidationResult.new(
-					ValidationResult.Severity.ERROR,
-					"An infinite loop was detected starting from this node.",
-					str(node_id), "", _get_node_type_name(n) if n else ""
-				))
+				results.append(
+					ValidationResult.new(
+						ValidationResult.Severity.ERROR,
+						"An infinite loop was detected starting from this node.",
+						str(node_id),
+						"",
+						_get_node_type_name(n) if n else ""
+					)
+				)
 				return results
 
 	return results
@@ -436,7 +623,12 @@ func _build_neighbors_cache(graph: QuestGraphResource) -> Dictionary:
 
 
 ## Iterative DFS for cycle detection. Avoids stack overflow on very deep graphs.
-func _is_cyclic_iterative(start_node_id: StringName, visited: Dictionary, recursion_stack: Dictionary, neighbors_cache: Dictionary) -> bool:
+func _is_cyclic_iterative(
+	start_node_id: StringName,
+	visited: Dictionary,
+	recursion_stack: Dictionary,
+	neighbors_cache: Dictionary
+) -> bool:
 	var stack: Array = []
 	stack.append({"node": start_node_id, "idx": 0})
 

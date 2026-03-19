@@ -2,6 +2,7 @@
 class_name SetVariableNodeExecutor
 extends NodeExecutor
 
+
 ## Applies the configured operator to the GameState variable. Supports SET, ADD, SUBTRACT, MULTIPLY, DIVIDE, TOGGLE.
 ## Value supports $variable references. Always completes the current node.
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
@@ -16,7 +17,9 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 
 	if var_node.variable_name.is_empty() or not is_instance_valid(game_state):
 		if is_instance_valid(logger):
-			logger.warn("Executor", "SetVariableNode: variable_name is empty or GameState not found.")
+			logger.warn(
+				"Executor", "SetVariableNode: variable_name is empty or GameState not found."
+			)
 		context.quest_controller.complete_node(var_node)
 		return
 
@@ -25,13 +28,21 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 
 	# Only check for 'null' if the operator actually requires a value (Toggle does not).
 	if var_node.operator != var_node.Operator.TOGGLE and value_to_apply == null:
-		push_error("SetVariableNode '%s': Could not resolve value for '%s'." % [var_node.id, var_node.value_to_set_string])
+		push_error(
+			(
+				"SetVariableNode '%s': Could not resolve value for '%s'."
+				% [var_node.id, var_node.value_to_set_string]
+			)
+		)
 		context.quest_controller.complete_node(var_node)
 		return
 
 	if is_instance_valid(logger):
 		var op_name = var_node.Operator.keys()[var_node.operator]
-		logger.log("Executor", "SetVariableNode: '%s' %s %s" % [var_node.variable_name, op_name, str(value_to_apply)])
+		logger.log(
+			"Executor",
+			"SetVariableNode: '%s' %s %s" % [var_node.variable_name, op_name, str(value_to_apply)]
+		)
 
 	match var_node.operator:
 		var_node.Operator.SET:
@@ -65,9 +76,12 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 				game_state.set_variable(var_node.variable_name, not current)
 			else:
 				if is_instance_valid(logger):
-					logger.warn("Executor", "SetVariableNode: TOGGLE operator expects a boolean variable.")
+					logger.warn(
+						"Executor", "SetVariableNode: TOGGLE operator expects a boolean variable."
+					)
 
 	context.quest_controller.complete_node(var_node)
+
 
 func _get_value_from_string(text: String, game_state, instance: QuestInstance) -> Variant:
 	# 1. Dynamic Variable Reference
@@ -85,13 +99,18 @@ func _get_value_from_string(text: String, game_state, instance: QuestInstance) -
 		return null
 
 	# 2. Static Value Parsing
-	if text.is_valid_int(): return text.to_int()
-	if text.is_valid_float(): return text.to_float()
-	if text.to_lower() == "true": return true
-	if text.to_lower() == "false": return false
+	if text.is_valid_int():
+		return text.to_int()
+	if text.is_valid_float():
+		return text.to_float()
+	if text.to_lower() == "true":
+		return true
+	if text.to_lower() == "false":
+		return false
 
 	# Default: String
 	return text
+
 
 func _is_number(v: Variant) -> bool:
 	return v is float or v is int

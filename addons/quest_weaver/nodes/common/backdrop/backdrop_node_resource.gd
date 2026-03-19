@@ -53,4 +53,3 @@ func from_dictionary(data: Dictionary):
 
 func determine_default_size() -> QWNodeSizes.Size:
 	return QWNodeSizes.Size.LARGE
-

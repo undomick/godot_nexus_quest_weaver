@@ -12,6 +12,7 @@ var _controller_weak: WeakRef
 
 # Map: StringName -> Array[StringName]
 
+
 func _init(p_controller: QuestController):
 	self._controller_weak = weakref(p_controller)
 
@@ -40,9 +41,11 @@ func unregister_listener(listener_node: EventListenerNodeResource) -> void:
 
 func on_global_event(event_name: StringName, payload: Dictionary) -> void:
 	var controller = _get_controller()
-	if not controller: return
+	if not controller:
+		return
 
-	if not _event_listeners.has(event_name): return
+	if not _event_listeners.has(event_name):
+		return
 
 	# Typed Array for performance
 	var listeners: Array[StringName] = []
@@ -50,7 +53,9 @@ func on_global_event(event_name: StringName, payload: Dictionary) -> void:
 
 	for node_id: StringName in listeners:
 		# 1. Resolve Instance
-		var instance: QuestInstance = controller.get_quest_data_manager().get_instance_for_node(node_id)
+		var instance: QuestInstance = controller.get_quest_data_manager().get_instance_for_node(
+			node_id
+		)
 
 		# If instance or node is not active, ignore/cleanup
 		if not instance or not instance.is_node_active(node_id):
@@ -70,7 +75,9 @@ func on_global_event(event_name: StringName, payload: Dictionary) -> void:
 			if condition_passes:
 				var logger = controller._get_logger()
 				if logger:
-					logger.log("Flow", "Event '%s' triggered listener '%s'." % [event_name, node_id])
+					logger.log(
+						"Flow", "Event '%s' triggered listener '%s'." % [event_name, node_id]
+					)
 
 				if node_def.keep_listening:
 					controller._trigger_next_nodes_from_port(node_def, 0)
@@ -95,23 +102,27 @@ func remove_listeners_for_quest(nodes_in_quest: Dictionary) -> void:
 
 # --- Helper for Simple Conditions ---
 func _check_simple_conditions(conditions: Array[Dictionary], payload: Dictionary) -> bool:
-	if conditions.is_empty(): return true
+	if conditions.is_empty():
+		return true
 
 	for c in conditions:
 		var key = c.get("key", "")
 		var op = c.get("op", 0)
 		var val_str = c.get("value", "")
 
-		if key.is_empty(): continue
+		if key.is_empty():
+			continue
 
 		# Special handling for "HAS" (SimpleOperator.HAS)
 		if op == EventListenerNodeResource.SimpleOperator.HAS:
-			if not payload.has(key): return false
+			if not payload.has(key):
+				return false
 			continue
 
 		if not payload.has(key):
 			# If key is missing, only NOT_EQUALS (1) should pass
-			if op != QWConditionLogic.Op.NOT_EQUALS: return false
+			if op != QWConditionLogic.Op.NOT_EQUALS:
+				return false
 			continue
 
 		var actual = payload[key]
@@ -121,4 +132,3 @@ func _check_simple_conditions(conditions: Array[Dictionary], payload: Dictionary
 			return false
 
 	return true
-

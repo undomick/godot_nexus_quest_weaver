@@ -9,7 +9,6 @@ signal text_changed(new_text: String)
 
 signal text_submitted(final_text: String)
 
-
 var text: String:
 	get:
 		return filter_edit.text if is_instance_valid(filter_edit) else ""
@@ -18,7 +17,6 @@ var text: String:
 			filter_edit.text = value
 		else:
 			call_deferred(&"set", "text", value)
-
 
 var _all_items: Array[String] = []
 
@@ -31,6 +29,7 @@ var _mouse_is_over_popup := false
 @onready var popup_container: PanelContainer = %PopupContainer
 
 @onready var result_list: ItemList = %ResultList
+
 
 func _ready() -> void:
 	result_list.focus_mode = Control.FOCUS_NONE
@@ -46,9 +45,10 @@ func _ready() -> void:
 	filter_edit.item_rect_changed.connect(_update_popup_position)
 
 	result_list.item_activated.connect(_on_item_confirmed)
-	result_list.item_clicked.connect(func(index, _at_pos, mouse_btn):
-		if mouse_btn == MOUSE_BUTTON_LEFT:
-			_on_item_confirmed(index)
+	result_list.item_clicked.connect(
+		func(index, _at_pos, mouse_btn):
+			if mouse_btn == MOUSE_BUTTON_LEFT:
+				_on_item_confirmed(index)
 	)
 
 	# Connect mouse events to track hover state.
@@ -74,6 +74,7 @@ func _on_internal_text_submitted(final_text: String) -> void:
 # ==============================================================================
 # ============================== CORE LOGIC ====================================
 # ==============================================================================
+
 
 func _on_focus_exited() -> void:
 	# If the mouse is over the popup list, the focus loss was caused by
@@ -153,13 +154,13 @@ func _update_popup_position() -> void:
 # FOCUS PROXYING
 # ==============================================================================
 
-func grab_focus(_hide_focus:bool=false) -> void:
+
+func grab_focus(_hide_focus: bool = false) -> void:
 	if is_instance_valid(filter_edit):
 		filter_edit.grab_focus()
 
 
-func has_focus(_ignore_hidden_focus:bool=false) -> bool:
+func has_focus(_ignore_hidden_focus: bool = false) -> bool:
 	if is_instance_valid(filter_edit):
 		return filter_edit.has_focus()
 	return false
-

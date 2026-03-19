@@ -19,6 +19,7 @@ var translation_parser: EditorTranslationParserPlugin
 var _save_debounce_timer: Timer
 var _cached_version: String = ""
 
+
 func _enable_plugin() -> void:
 	var base_path = get_plugin_path()
 	var global_path = base_path + "/core/quest_weaver_global.gd"
@@ -29,6 +30,7 @@ func _enable_plugin() -> void:
 	add_autoload_singleton("QuestWeaverServices", services_path)
 	add_autoload_singleton("QuestWeaverGameState", gamestate_path)
 	_load_editor_data()
+
 
 func _disable_plugin() -> void:
 	if Engine.is_editor_hint() and is_instance_valid(_save_debounce_timer):
@@ -59,6 +61,7 @@ func _disable_plugin() -> void:
 	remove_autoload_singleton("QuestWeaverGlobal")
 	remove_autoload_singleton("QuestWeaverServices")
 
+
 ## Tears down main_view and releases all editor refs. Idempotent: safe to call multiple times.
 ## Called from both _disable_plugin and _exit_tree; Godot's plugin shutdown order is undefined.
 func _tear_down_main_view() -> void:
@@ -75,11 +78,17 @@ func _tear_down_main_view() -> void:
 				push_warning("QuestWeaver: Failed to save editor data on exit (error %d)." % err)
 		editor_data = null
 	_make_visible(false)
-	if is_instance_valid(main_view.properties_panel) and main_view.properties_panel.has_method("clear_inspection"):
+	if (
+		is_instance_valid(main_view.properties_panel)
+		and main_view.properties_panel.has_method("clear_inspection")
+	):
 		main_view.properties_panel.clear_inspection()
 	if is_instance_valid(main_view.get_history()):
 		main_view.get_history().cleanup()
-	if is_instance_valid(main_view.graph_controller) and main_view.graph_controller.has_method("clear_visual_graph_sync"):
+	if (
+		is_instance_valid(main_view.graph_controller)
+		and main_view.graph_controller.has_method("clear_visual_graph_sync")
+	):
 		main_view.graph_controller.clear_visual_graph_sync()
 	if is_instance_valid(main_view.data_manager):
 		main_view.data_manager.clear_all()
@@ -92,6 +101,7 @@ func _tear_down_main_view() -> void:
 	main_view.free()
 	main_view = null
 
+
 func _enter_tree() -> void:
 	if Engine.is_editor_hint():
 		import_plugin = QuestWeaverImportPlugin.new()
@@ -101,7 +111,9 @@ func _enter_tree() -> void:
 		add_export_plugin(export_plugin)
 		ResourceSaver.add_resource_format_saver(saver)
 
-		add_custom_type(QWConstants.RESOURCE_TYPE_NAME, "Resource", QuestGraphResource, _PLUGIN_ICON)
+		add_custom_type(
+			QWConstants.RESOURCE_TYPE_NAME, "Resource", QuestGraphResource, _PLUGIN_ICON
+		)
 
 		var base_control = EditorInterface.get_base_control()
 		validator_dock = base_control.find_child(QWConstants.VALIDATOR_DOCK_NAME, true, false)
@@ -111,7 +123,9 @@ func _enter_tree() -> void:
 			validator_dock.name = QWConstants.VALIDATOR_DOCK_NAME
 			add_control_to_bottom_panel(validator_dock, "Quest Validator")
 
-		var inspector_script = load("res://addons/quest_weaver/editor/inspector/qw_registry_inspector.gd")
+		var inspector_script = load(
+			"res://addons/quest_weaver/editor/inspector/qw_registry_inspector.gd"
+		)
 		if inspector_script:
 			registry_inspector = inspector_script.new()
 			add_inspector_plugin(registry_inspector)
@@ -132,6 +146,7 @@ func _enter_tree() -> void:
 
 		call_deferred(&"_connect_filesystem_signals")
 
+
 func _exit_tree() -> void:
 	if Engine.is_editor_hint():
 		_disconnect_signals()
@@ -140,7 +155,9 @@ func _exit_tree() -> void:
 
 		var base_control = EditorInterface.get_base_control()
 		if is_instance_valid(base_control):
-			var dock_to_remove = base_control.find_child(QWConstants.VALIDATOR_DOCK_NAME, true, false)
+			var dock_to_remove = base_control.find_child(
+				QWConstants.VALIDATOR_DOCK_NAME, true, false
+			)
 			if is_instance_valid(dock_to_remove):
 				remove_control_from_bottom_panel(dock_to_remove)
 				dock_to_remove.free()
@@ -167,6 +184,7 @@ func _exit_tree() -> void:
 		# Run synchronously to avoid call_deferred executing on destroyed plugin during editor shutdown
 		_do_plugin_cleanup()
 
+
 func _do_plugin_cleanup() -> void:
 	# Format saver is removed in _disable_plugin only; avoid remove here (can fail with "i >= saver_count" during editor shutdown)
 	if is_instance_valid(export_plugin):
@@ -176,6 +194,7 @@ func _do_plugin_cleanup() -> void:
 	import_plugin = null
 	export_plugin = null
 	saver = null
+
 
 func _load_editor_data() -> QuestEditorData:
 	var path = QWConstants.get_settings().editor_data_path
@@ -188,11 +207,14 @@ func _load_editor_data() -> QuestEditorData:
 			push_error("QuestWeaver: Could not save new editor_data resource at '%s'" % path)
 		return new_data
 
+
 func _has_main_screen() -> bool:
 	return true
 
+
 func _make_visible(visible: bool):
-	if not Engine.is_editor_hint(): return # Runtime protection
+	if not Engine.is_editor_hint():
+		return  # Runtime protection
 	if not visible:
 		if is_instance_valid(main_view):
 			main_view.cancel_any_active_drags()
@@ -220,11 +242,14 @@ func _make_visible(visible: bool):
 
 	main_view.visible = true
 
+
 func _handles(object: Object) -> bool:
 	return object is QuestGraphResource
 
+
 func _build() -> bool:
-	if not Engine.is_editor_hint(): return true # Runtime protection
+	if not Engine.is_editor_hint():
+		return true  # Runtime protection
 	if is_instance_valid(main_view) and main_view.is_node_ready():
 		var action_handler = main_view.get_action_handler()
 
@@ -233,29 +258,37 @@ func _build() -> bool:
 
 	return true
 
+
 func _edit(object: Object) -> void:
-	if not Engine.is_editor_hint(): return # Runtime protection
+	if not Engine.is_editor_hint():
+		return  # Runtime protection
 	if object is QuestGraphResource:
 		_make_visible(true)
 		# Defer so initialize() runs first when main_view was just created
 		main_view.call_deferred(&"edit_graph", object.resource_path)
 
+
 func _connect_filesystem_signals() -> void:
 	var editor_interface = get_editor_interface()
 	if editor_interface:
 		var fs = editor_interface.get_resource_filesystem()
-		if not fs: return
+		if not fs:
+			return
 
 		if not fs.filesystem_changed.is_connected(_on_filesystem_changed):
 			fs.filesystem_changed.connect(_on_filesystem_changed)
 
+
 func _connect_signals() -> void:
-	if not Engine.is_editor_hint(): return # Runtime protection
+	if not Engine.is_editor_hint():
+		return  # Runtime protection
 	if is_instance_valid(validator_dock) and is_instance_valid(main_view):
 		validator_dock.set_open_files_provider(Callable(main_view.side_panel, "get_open_files"))
 		if not validator_dock.validation_requested.is_connected(main_view._on_validation_requested):
 			validator_dock.validation_requested.connect(main_view._on_validation_requested)
-		if not validator_dock.result_selected.is_connected(main_view._on_validation_result_selected):
+		if not validator_dock.result_selected.is_connected(
+			main_view._on_validation_result_selected
+		):
 			validator_dock.result_selected.connect(main_view._on_validation_result_selected)
 		if not main_view.validation_finished.is_connected(validator_dock.display_results):
 			main_view.validation_finished.connect(validator_dock.display_results)
@@ -265,9 +298,13 @@ func _connect_signals() -> void:
 			debugger_node.session_started.connect(main_view._on_debug_session_started)
 		if not debugger_node.session_ended.is_connected(main_view._on_debug_session_ended):
 			debugger_node.session_ended.connect(main_view._on_debug_session_ended)
-		if not debugger_node.node_activated_in_game.is_connected(main_view._on_debug_node_activated):
+		if not debugger_node.node_activated_in_game.is_connected(
+			main_view._on_debug_node_activated
+		):
 			debugger_node.node_activated_in_game.connect(main_view._on_debug_node_activated)
-		if not debugger_node.node_completed_in_game.is_connected(main_view._on_debug_node_completed):
+		if not debugger_node.node_completed_in_game.is_connected(
+			main_view._on_debug_node_completed
+		):
 			debugger_node.node_completed_in_game.connect(main_view._on_debug_node_completed)
 		if debugger_node.has_signal("node_failed_in_game"):
 			if not debugger_node.node_failed_in_game.is_connected(main_view._on_debug_node_failed):
@@ -275,8 +312,10 @@ func _connect_signals() -> void:
 		if not debugger_node.instance_updated.is_connected(main_view._on_debug_instance_updated):
 			debugger_node.instance_updated.connect(main_view._on_debug_instance_updated)
 
+
 func _disconnect_signals() -> void:
-	if not Engine.is_editor_hint(): return
+	if not Engine.is_editor_hint():
+		return
 	var editor_interface = get_editor_interface()
 
 	if is_instance_valid(editor_interface):
@@ -302,19 +341,26 @@ func _disconnect_signals() -> void:
 			debugger_node.node_activated_in_game.disconnect(main_view._on_debug_node_activated)
 		if debugger_node.node_completed_in_game.is_connected(main_view._on_debug_node_completed):
 			debugger_node.node_completed_in_game.disconnect(main_view._on_debug_node_completed)
-		if debugger_node.has_signal("node_failed_in_game") and debugger_node.node_failed_in_game.is_connected(main_view._on_debug_node_failed):
+		if (
+			debugger_node.has_signal("node_failed_in_game")
+			and debugger_node.node_failed_in_game.is_connected(main_view._on_debug_node_failed)
+		):
 			debugger_node.node_failed_in_game.disconnect(main_view._on_debug_node_failed)
 		if debugger_node.instance_updated.is_connected(main_view._on_debug_instance_updated):
 			debugger_node.instance_updated.disconnect(main_view._on_debug_instance_updated)
 
+
 func _on_filesystem_changed() -> void:
-	if not Engine.is_editor_hint(): return
+	if not Engine.is_editor_hint():
+		return
 
 	if is_instance_valid(main_view) and main_view.has_method("validate_open_files_exist"):
 		main_view.call_deferred(&"validate_open_files_exist")
 
+
 func save_setting(key: String, value: Variant) -> void:
-	if not Engine.is_editor_hint(): return # Runtime protection
+	if not Engine.is_editor_hint():
+		return  # Runtime protection
 	var setting_key = "plugins/quest_weaver/%s" % key
 	var editor_settings = get_editor_interface().get_editor_settings()
 	editor_settings.set_setting(setting_key, value)
@@ -323,11 +369,14 @@ func save_setting(key: String, value: Variant) -> void:
 	else:
 		ProjectSettings.save()
 
+
 func _flush_project_settings() -> void:
 	ProjectSettings.save()
 
+
 func load_setting(key: String, default_value: Variant) -> Variant:
-	if not Engine.is_editor_hint(): return # Runtime protection
+	if not Engine.is_editor_hint():
+		return  # Runtime protection
 	var setting_key = "plugins/quest_weaver/%s" % key
 	var editor_settings = get_editor_interface().get_editor_settings()
 
@@ -336,14 +385,18 @@ func load_setting(key: String, default_value: Variant) -> Variant:
 	else:
 		return default_value
 
+
 func get_plugin_path() -> String:
 	return get_script().resource_path.get_base_dir()
+
 
 func _get_plugin_name() -> String:
 	return "QuestWeaver"
 
+
 func _get_plugin_icon() -> Texture2D:
 	return _PLUGIN_ICON
+
 
 func get_version() -> String:
 	if _cached_version.is_empty():

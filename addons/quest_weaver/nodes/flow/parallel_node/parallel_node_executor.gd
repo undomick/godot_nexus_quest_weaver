@@ -4,9 +4,11 @@
 class_name ParallelNodeExecutor
 extends NodeExecutor
 
+
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var parallel_node = node as ParallelNodeResource
-	if not is_instance_valid(parallel_node): return
+	if not is_instance_valid(parallel_node):
+		return
 
 	if not parallel_node.keep_listening:
 		var has_fired: bool = instance.get_node_data(parallel_node.id, &"_parallel_fired", false)

@@ -7,14 +7,22 @@ var _editor: QuestWeaverEditor
 var _history: QWEditorHistory
 var _action_handler: QWActionHandler
 var _graph_controller: QuestWeaverGraphController
-var _editor_interface # Removed type hint 'EditorInterface'
+var _editor_interface  # Removed type hint 'EditorInterface'
 
-func initialize(p_editor: QuestWeaverEditor, p_history: QWEditorHistory, p_action_handler: QWActionHandler, p_graph_controller: QuestWeaverGraphController, p_editor_interface):
+
+func initialize(
+	p_editor: QuestWeaverEditor,
+	p_history: QWEditorHistory,
+	p_action_handler: QWActionHandler,
+	p_graph_controller: QuestWeaverGraphController,
+	p_editor_interface
+):
 	self._editor = p_editor
 	self._history = p_history
 	self._action_handler = p_action_handler
 	self._graph_controller = p_graph_controller
 	self._editor_interface = p_editor_interface
+
 
 func handle_event(event: InputEvent) -> bool:
 	if not _editor_has_focus():
@@ -61,12 +69,16 @@ func handle_event(event: InputEvent) -> bool:
 
 	return false
 
+
 func _is_text_input_focused() -> bool:
 	if not is_instance_valid(_editor_interface):
 		return false
 
-	var focus_owner: Control = _editor_interface.get_editor_main_screen().get_viewport().gui_get_focus_owner()
+	var focus_owner: Control = (
+		_editor_interface.get_editor_main_screen().get_viewport().gui_get_focus_owner()
+	)
 	return focus_owner is LineEdit or focus_owner is TextEdit
+
 
 func _editor_has_focus() -> bool:
 	var focus_owner = _editor.get_viewport().gui_get_focus_owner()

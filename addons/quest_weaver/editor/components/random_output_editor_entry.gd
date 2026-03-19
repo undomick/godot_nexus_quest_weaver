@@ -21,6 +21,7 @@ var _port_name_undo_value: String = ""
 
 @onready var remove_button: Button = %RemoveButton
 
+
 func _ready() -> void:
 	port_name_edit.focus_entered.connect(func(): _port_name_undo_value = port_name_edit.text)
 	port_name_edit.text_submitted.connect(func(_text): _on_port_name_confirmed())
@@ -51,4 +52,3 @@ func _on_weight_edit_finished() -> void:
 	var new_weight = int(weight_spinbox.value)
 	if _weight_undo_value != new_weight:
 		weight_changed.emit(new_weight)
-

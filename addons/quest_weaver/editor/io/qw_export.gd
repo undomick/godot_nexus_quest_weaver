@@ -7,8 +7,10 @@ extends EditorExportPlugin
 ## .quest files are exported as-is by Godot's default behavior.
 ## This hook can be used later for e.g. validation or format conversion on export.
 
+
 func _get_name() -> String:
 	return "QuestWeaverExport"
+
 
 func _export_file(path: String, _type: String, _features: PackedStringArray) -> void:
 	if path.ends_with(".quest"):

@@ -3,7 +3,13 @@
 
 extends PanelContainer
 
-signal property_update_requested(node_id: StringName, property_name: String, new_value: Variant, sub_resource: Resource, extra: Dictionary)
+signal property_update_requested(
+	node_id: StringName,
+	property_name: String,
+	new_value: Variant,
+	sub_resource: Resource,
+	extra: Dictionary
+)
 
 signal property_preview_requested(node_id: StringName, property_name: String, value: Variant)
 
@@ -12,7 +18,6 @@ signal complex_action_requested(node_id: StringName, action: String, payload: Di
 signal dive_in_requested(graph_path: String)
 
 signal node_ports_changed(node_id: StringName)
-
 
 # --- Dependencies & State ---
 var node_registry: NodeTypeRegistry
@@ -25,7 +30,7 @@ var current_editor_instance: Node
 
 var _inspected_node_data: GraphNodeResource
 
-var _editor_scene_cache: Dictionary = {} # editor_path -> PackedScene
+var _editor_scene_cache: Dictionary = {}  # editor_path -> PackedScene
 
 var _last_refreshed_graph_path: String = ""
 
@@ -36,12 +41,15 @@ var _last_refreshed_graph_path: String = ""
 
 @onready var no_selection_label: Label = %NoSelectionLabel
 
+
 func _ready() -> void:
 	# Removed window specific signals (close_requested etc.)
 	_update_visibility()
 
 
-func initialize(p_node_registry: NodeTypeRegistry, p_data_manager: QWGraphData, p_editor_plugin) -> void:
+func initialize(
+	p_node_registry: NodeTypeRegistry, p_data_manager: QWGraphData, p_editor_plugin
+) -> void:
 	self.node_registry = p_node_registry
 	self.data_manager = p_data_manager
 	self.editor_plugin = p_editor_plugin
@@ -85,12 +93,16 @@ func inspect_node(node_data: GraphNodeResource) -> void:
 		current_editor_instance = editor_scene.instantiate()
 
 		if current_editor_instance.has_signal(&"property_update_requested"):
-			current_editor_instance.connect(&"property_update_requested",
-				func(id: StringName, prop: String, val: Variant, sub_res: Resource, extra: Dictionary):
+			current_editor_instance.connect(
+				&"property_update_requested",
+				func(
+					id: StringName, prop: String, val: Variant, sub_res: Resource, extra: Dictionary
+				):
 					property_update_requested.emit(id, prop, val, sub_res, extra)
 			)
 		if current_editor_instance.has_signal(&"property_preview_requested"):
-			current_editor_instance.connect(&"property_preview_requested",
+			current_editor_instance.connect(
+				&"property_preview_requested",
 				func(id: StringName, prop: String, val: Variant):
 					property_preview_requested.emit(id, prop, val)
 			)
@@ -124,16 +136,19 @@ func clear_inspection() -> void:
 
 
 func refresh_inspected_node() -> void:
-	if not is_instance_valid(_inspected_node_data): return
+	if not is_instance_valid(_inspected_node_data):
+		return
 	var current_graph = data_manager.get_active_graph()
-	if not is_instance_valid(current_graph): return
+	if not is_instance_valid(current_graph):
+		return
 	var fresh_node_data = current_graph.nodes.get(_inspected_node_data.id)
 	if is_instance_valid(fresh_node_data):
 		inspect_node(fresh_node_data)
 
 
 func get_inspected_node_id() -> StringName:
-	if is_instance_valid(_inspected_node_data): return _inspected_node_data.id
+	if is_instance_valid(_inspected_node_data):
+		return _inspected_node_data.id
 	return &""
 
 
@@ -149,4 +164,3 @@ func _update_visibility() -> void:
 
 	if is_instance_valid(no_selection_label):
 		no_selection_label.visible = not has_target
-

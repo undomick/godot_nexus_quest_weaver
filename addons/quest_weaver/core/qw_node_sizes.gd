@@ -5,6 +5,7 @@ extends RefCounted
 
 enum Size { TINY, SMALL, MEDIUM, LARGE, TOWER }
 
+
 static func get_vector_for_size(size_enum: Size) -> Vector2:
 	match size_enum:
 		Size.TINY:
@@ -17,4 +18,4 @@ static func get_vector_for_size(size_enum: Size) -> Vector2:
 			return Vector2(360, 240)
 		Size.TOWER:
 			return Vector2(240, 240)
-	return Vector2(280, 120) # Fallback
+	return Vector2(280, 120)  # Fallback

@@ -48,14 +48,12 @@ var objective_states: Dictionary = {}
 
 # --- PERSISTENT STATE (Saved to disk) ---
 
-
-
 # --- INITIALIZATION ---
+
 
 func _init(p_file_id: StringName) -> void:
 	self.file_id = p_file_id
 	self.current_status = QWEnums.QuestState.UNAVAILABLE
-
 
 
 # --- NODE STATE MANAGEMENT ---
@@ -70,17 +68,14 @@ func set_node_active(node_id: StringName, is_active: bool, meta: Dictionary = {}
 		active_node_ids.erase(node_id)
 
 
-
 func is_node_active(node_id: StringName) -> bool:
 	return active_node_ids.has(node_id)
-
 
 
 func set_node_data(node_id: StringName, key: StringName, value: Variant) -> void:
 	if not node_states.has(node_id):
 		node_states[node_id] = {}
 	node_states[node_id][key] = value
-
 
 
 ## Gets stored data for a node by key.
@@ -90,14 +85,13 @@ func get_node_data(node_id: StringName, key: StringName, default: Variant = null
 	return default
 
 
-
 func clear_node_state(node_id: StringName) -> void:
 	node_states.erase(node_id)
 	active_node_ids.erase(node_id)
 
 
-
 # --- OBJECTIVE STATE MANAGEMENT ---
+
 
 func _get_objective_state_by_id(objective_id: StringName):
 	if objective_states.has(objective_id):
@@ -109,15 +103,13 @@ func _get_objective_state_by_id(objective_id: StringName):
 	return null
 
 
-
 func _get_or_create_objective_state(objective_id: StringName):
 	var existing = _get_objective_state_by_id(objective_id)
 	if existing != null:
 		return existing
 	var key_n = StringName(objective_id)
-	objective_states[key_n] = { "status": ObjectiveResource.Status.ACTIVE, "progress": {} }
+	objective_states[key_n] = {"status": ObjectiveResource.Status.ACTIVE, "progress": {}}
 	return objective_states[key_n]
-
 
 
 ## Returns the status of an objective (ObjectiveResource.Status).
@@ -127,13 +119,13 @@ func get_objective_status(objective_id: StringName) -> int:
 	return ObjectiveResource.Status.INACTIVE
 
 
-
 ## Sets the status of an objective.
 func set_objective_status(objective_id: StringName, status: int) -> void:
 	if not objective_states.has(objective_id):
-		objective_states[objective_id] = { "status": ObjectiveResource.Status.INACTIVE, "progress": 0 }
+		objective_states[objective_id] = {
+			"status": ObjectiveResource.Status.INACTIVE, "progress": 0
+		}
 	objective_states[objective_id]["status"] = status
-
 
 
 ## Returns the TOTAL progress sum (simple int) or 0.
@@ -144,11 +136,11 @@ func get_objective_progress(objective_id: StringName) -> int:
 		# If it's a dictionary (Multi-Target), return the sum of all values
 		if p is Dictionary:
 			var total = 0
-			for val in p.values(): total += int(val)
+			for val in p.values():
+				total += int(val)
 			return total
 		return int(p)
 	return 0
-
 
 
 ## Returns progress for a specific target (e.g. amount of "wood" collected).
@@ -167,10 +159,11 @@ func get_objective_progress_by_key(objective_id: StringName, target_key: StringN
 	return 0
 
 
-
 ## Updates progress for a specific target.
 ## Uses a single key (StringName) and clears any duplicate key with same string value so get finds it.
-func set_objective_progress_by_key(objective_id: StringName, target_key: StringName, value: int) -> void:
+func set_objective_progress_by_key(
+	objective_id: StringName, target_key: StringName, value: int
+) -> void:
 	var state = _get_or_create_objective_state(objective_id)
 	var prog = state.get("progress")
 	if not prog is Dictionary:
@@ -188,21 +181,20 @@ func set_objective_progress_by_key(objective_id: StringName, target_key: StringN
 	state["status"] = ObjectiveResource.Status.ACTIVE
 
 
-
 ## Sets the total progress for an objective (simple int).
 func set_objective_progress(objective_id: StringName, value: int) -> void:
 	if not objective_states.has(objective_id):
-		objective_states[objective_id] = { "status": ObjectiveResource.Status.ACTIVE, "progress": 0 }
+		objective_states[objective_id] = {"status": ObjectiveResource.Status.ACTIVE, "progress": 0}
 	objective_states[objective_id]["progress"] = value
-
 
 
 ## Sets a runtime description override for an objective.
 func set_objective_description_override(objective_id: StringName, text: String) -> void:
 	if not objective_states.has(objective_id):
-		objective_states[objective_id] = { "status": ObjectiveResource.Status.INACTIVE, "progress": 0 }
+		objective_states[objective_id] = {
+			"status": ObjectiveResource.Status.INACTIVE, "progress": 0
+		}
 	objective_states[objective_id]["description_override"] = text
-
 
 
 ## Returns the description override if set, otherwise the default blueprint text.
@@ -214,7 +206,6 @@ func get_objective_description(objective_id: StringName, default_blueprint_text:
 	return default_blueprint_text
 
 
-
 # --- VARIABLE / PARAMETER MANAGEMENT ---
 
 ## Sets a variable for this instance.
@@ -224,11 +215,9 @@ func set_variable(key: StringName, value: Variant) -> void:
 	variables[key] = value
 
 
-
 ## Gets a variable from this instance.
 func get_variable(key: StringName, default: Variant = null) -> Variant:
 	return variables.get(key, default)
-
 
 
 ## Replaces placeholders. Supports variables "{my_var}" and Expressions "{item(0).amount}".
@@ -256,13 +245,18 @@ func resolve_text(text: String, context_obj: Resource = null) -> String:
 	# unless identical placeholders exist (which resolves same anyway).
 
 	for regex_match in matches:
-		var full_placeholder = regex_match.get_string(0) # "{...}"
-		var content = regex_match.get_string(1).strip_edges() # "..."
+		var full_placeholder = regex_match.get_string(0)  # "{...}"
+		var content = regex_match.get_string(1).strip_edges()  # "..."
 
-		var replacement_value = full_placeholder # Default: Keep original if fail
+		var replacement_value = full_placeholder  # Default: Keep original if fail
 
 		# Fast path: Simple variable (no ., (, [, space) - avoid Expression entirely
-		var is_simple_var = not content.contains(".") and not content.contains("(") and not content.contains("[") and not content.contains(" ")
+		var is_simple_var = (
+			not content.contains(".")
+			and not content.contains("(")
+			and not content.contains("[")
+			and not content.contains(" ")
+		)
 		if is_simple_var:
 			var simple_lookup = get_variable(content, null)
 			if simple_lookup == null and global_qw:
@@ -309,29 +303,30 @@ func resolve_text(text: String, context_obj: Resource = null) -> String:
 	return result
 
 
-
 # --- REWARD FORMATTING HELPERS ---
+
 
 func _get_local_rewards_string(index: int, global_qw: Node) -> String:
 	# "Local" means defined in THIS quest's ContextNode.
 	# We fetch it via Global because ContextNode is static data in Controller, not in Instance.
-	if not global_qw: return ""
+	if not global_qw:
+		return ""
 	# Try Logical ID first, then File ID
 	var q_id = quest_id if quest_id != &"" else file_id
 	var dict = global_qw.get_quest_rewards(q_id)
 	return _format_rewards_dict(dict, index)
 
 
-
 func _get_remote_rewards_string(target_quest_id: StringName, index: int, global_qw: Node) -> String:
-	if not global_qw: return ""
+	if not global_qw:
+		return ""
 	var dict = global_qw.get_quest_rewards(target_quest_id)
 	return _format_rewards_dict(dict, index)
 
 
-
 func _format_rewards_dict(dict: Dictionary, index: int) -> String:
-	if dict.is_empty(): return ""
+	if dict.is_empty():
+		return ""
 
 	# 1. Sort Keys (Alphabetical) to match Editor view
 	var keys = dict.keys()
@@ -344,7 +339,7 @@ func _format_rewards_dict(dict: Dictionary, index: int) -> String:
 			var val = dict[key]
 			return _format_single_reward(key, val)
 		else:
-			return "" # Index out of bounds -> empty string
+			return ""  # Index out of bounds -> empty string
 
 	# 3. Case: Full List
 	var list_strings: PackedStringArray = []
@@ -355,14 +350,12 @@ func _format_rewards_dict(dict: Dictionary, index: int) -> String:
 	return ", ".join(list_strings)
 
 
-
 func _format_single_reward(key: Variant, val: Variant) -> String:
 	# Heuristic:
 	# If Value is 1, maybe just show Key? -> "Sword" instead of "1 Sword"
 	# Or always "Amount Key"? -> "1 Sword". Let's stick to "Amount Key" for consistency.
 	# But if key is "Gold" and val is 100 -> "100 Gold".
 	return "%s %s" % [str(val), str(key)]
-
 
 
 ## Resolves a parameter value.
@@ -372,9 +365,8 @@ func resolve_parameter(input: Variant) -> Variant:
 	if input is String:
 		if input.begins_with("{") and input.ends_with("}"):
 			var key = input.substr(1, input.length() - 2)
-			return get_variable(key, input) # Fallback to input string if var missing
+			return get_variable(key, input)  # Fallback to input string if var missing
 	return input
-
 
 
 # --- SERIALIZATION ---
@@ -407,7 +399,6 @@ func get_save_data() -> Dictionary:
 		"node_states": node_states.duplicate(true),
 		"objective_states": objective_states_serializable
 	}
-
 
 
 ## Restores instance state from a previously saved dictionary.

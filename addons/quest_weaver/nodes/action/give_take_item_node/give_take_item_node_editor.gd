@@ -11,6 +11,7 @@ var _is_setting_up := false
 
 @onready var content_container: VBoxContainer = %ItemContainer
 
+
 func _ready() -> void:
 	action_picker.item_selected.connect(_on_action_changed)
 	terminal_checkbox.toggled.connect(_on_terminal_toggled)
@@ -36,7 +37,8 @@ func set_node_data(node_data: GraphNodeResource) -> void:
 
 
 func _rebuild_ui() -> void:
-	if not is_instance_valid(content_container): return
+	if not is_instance_valid(content_container):
+		return
 
 	for child in content_container.get_children():
 		child.queue_free()
@@ -63,6 +65,7 @@ func _rebuild_ui() -> void:
 
 # --- UI BUILDERS ---
 
+
 func _build_quest_picker_ui(node: GiveTakeItemNodeResource) -> void:
 	var label = Label.new()
 	label.text = "Source Quest ID:"
@@ -73,11 +76,15 @@ func _build_quest_picker_ui(node: GiveTakeItemNodeResource) -> void:
 	quest_edit.text = str(node.target_quest_id)
 	var filter_edit = quest_edit.get_node_or_null("%FilterEdit")
 	if is_instance_valid(filter_edit):
-		filter_edit.focus_entered.connect(func(): QWEditorUtils.refresh_quest_id_completer_from_active_graph(quest_edit))
+		filter_edit.focus_entered.connect(
+			func(): QWEditorUtils.refresh_quest_id_completer_from_active_graph(quest_edit)
+		)
 
-	quest_edit.text_submitted.connect(func(t):
-		if _is_setting_up: return
-		property_update_requested.emit(node.id, "target_quest_id", StringName(t), null, {})
+	quest_edit.text_submitted.connect(
+		func(t):
+			if _is_setting_up:
+				return
+			property_update_requested.emit(node.id, "target_quest_id", StringName(t), null, {})
 	)
 
 	content_container.add_child(quest_edit)
@@ -93,14 +100,20 @@ func _build_objective_picker_ui(node: GiveTakeItemNodeResource) -> void:
 	obj_edit.placeholder_text = "e.g. collect_wood_objective"
 	obj_edit.tooltip_text = "The ID of the objective that defines the required items."
 
-	obj_edit.text_submitted.connect(func(t):
-		if _is_setting_up: return
-		property_update_requested.emit(node.id, "target_objective_id", StringName(t), null, {})
+	obj_edit.text_submitted.connect(
+		func(t):
+			if _is_setting_up:
+				return
+			property_update_requested.emit(node.id, "target_objective_id", StringName(t), null, {})
 	)
-	obj_edit.focus_exited.connect(func():
-		if _is_setting_up: return
-		if str(node.target_objective_id) != obj_edit.text:
-			property_update_requested.emit(node.id, "target_objective_id", StringName(obj_edit.text), null, {})
+	obj_edit.focus_exited.connect(
+		func():
+			if _is_setting_up:
+				return
+			if str(node.target_objective_id) != obj_edit.text:
+				property_update_requested.emit(
+					node.id, "target_objective_id", StringName(obj_edit.text), null, {}
+				)
 	)
 
 	content_container.add_child(obj_edit)
@@ -115,9 +128,11 @@ func _add_partial_checkbox(node: GiveTakeItemNodeResource) -> void:
 	cb.button_pressed = node.allow_partial_deposit
 	cb.set_block_signals(false)
 
-	cb.toggled.connect(func(v):
-		if _is_setting_up: return
-		property_update_requested.emit(node.id, "allow_partial_deposit", v, null, {})
+	cb.toggled.connect(
+		func(v):
+			if _is_setting_up:
+				return
+			property_update_requested.emit(node.id, "allow_partial_deposit", v, null, {})
 	)
 	content_container.add_child(cb)
 
@@ -131,9 +146,11 @@ func _add_complete_objective_checkbox(node: GiveTakeItemNodeResource) -> void:
 	cb.button_pressed = node.complete_objective_on_success
 	cb.set_block_signals(false)
 
-	cb.toggled.connect(func(v):
-		if _is_setting_up: return
-		property_update_requested.emit(node.id, "complete_objective_on_success", v, null, {})
+	cb.toggled.connect(
+		func(v):
+			if _is_setting_up:
+				return
+			property_update_requested.emit(node.id, "complete_objective_on_success", v, null, {})
 	)
 	content_container.add_child(cb)
 
@@ -185,8 +202,10 @@ func _build_item_list_ui(node: GiveTakeItemNodeResource) -> void:
 
 # --- LOGIC HANDLERS ---
 
+
 func _on_action_changed(index: int) -> void:
-	if _is_setting_up: return # GUARD
+	if _is_setting_up:
+		return  # GUARD
 
 	if is_instance_valid(edited_node_data):
 		property_update_requested.emit(edited_node_data.id, "action", index, null, {})
@@ -195,7 +214,8 @@ func _on_action_changed(index: int) -> void:
 
 
 func _on_add_item_pressed() -> void:
-	if _is_setting_up: return # GUARD
+	if _is_setting_up:
+		return  # GUARD
 
 	var node = edited_node_data as GiveTakeItemNodeResource
 	var new_key = StringName("__new_%d" % Time.get_ticks_msec())
@@ -205,7 +225,8 @@ func _on_add_item_pressed() -> void:
 	_rebuild_ui()
 
 	await get_tree().process_frame
-	if not is_instance_valid(content_container): return
+	if not is_instance_valid(content_container):
+		return
 
 	var list_container = content_container.get_child(0)
 	if list_container.get_child_count() > 0:
@@ -215,14 +236,18 @@ func _on_add_item_pressed() -> void:
 
 
 func _on_item_key_changed(old_key: StringName, new_key_text: String):
-	if _is_setting_up: return # GUARD
-	if new_key_text.is_empty(): return
-	if str(old_key) == new_key_text: return
+	if _is_setting_up:
+		return  # GUARD
+	if new_key_text.is_empty():
+		return
+	if str(old_key) == new_key_text:
+		return
 
 	var node = edited_node_data as GiveTakeItemNodeResource
 	var new_key = StringName(new_key_text)
 
-	if not node.items.has(old_key): return
+	if not node.items.has(old_key):
+		return
 
 	if node.items.has(new_key):
 		push_warning("Item '%s' is already in the list." % new_key)
@@ -238,14 +263,16 @@ func _on_item_key_changed(old_key: StringName, new_key_text: String):
 
 
 func _on_item_val_changed(key, new_val):
-	if _is_setting_up: return # GUARD
+	if _is_setting_up:
+		return  # GUARD
 	var node = edited_node_data as GiveTakeItemNodeResource
 	node.items[key] = new_val
 	_emit_items_update()
 
 
 func _on_item_deleted(key):
-	if _is_setting_up: return # GUARD
+	if _is_setting_up:
+		return  # GUARD
 	var node = edited_node_data as GiveTakeItemNodeResource
 	node.items.erase(key)
 	_emit_items_update()
@@ -258,10 +285,10 @@ func _emit_items_update():
 
 
 func _on_terminal_toggled(pressed: bool) -> void:
-	if _is_setting_up: return # GUARD
+	if _is_setting_up:
+		return  # GUARD
 
 	if is_instance_valid(edited_node_data):
 		property_update_requested.emit(edited_node_data.id, "is_terminal", pressed, null, {})
 		edited_node_data.is_terminal = pressed
 		edited_node_data._update_ports_from_data()
-

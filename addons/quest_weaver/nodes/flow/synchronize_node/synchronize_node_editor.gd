@@ -19,6 +19,7 @@ var _is_setting_up := false
 
 @onready var matrix_container: GridContainer = %MatrixContainer2
 
+
 func _ready():
 	if is_instance_valid(keep_listening_checkbox):
 		keep_listening_checkbox.toggled.connect(_on_keep_listening_toggled)
@@ -54,19 +55,23 @@ func _on_keep_listening_toggled(pressed: bool) -> void:
 
 
 func _on_logic_mode_changed(index: int) -> void:
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	if is_instance_valid(edited_node_data):
 		property_update_requested.emit(edited_node_data.id, "logic_mode", index, null, {})
 
 
 func _rebuild_ui():
-	if not is_instance_valid(edited_node_data): return
+	if not is_instance_valid(edited_node_data):
+		return
 	var sync_node: SynchronizeNodeResource = edited_node_data
 
 	# Ensure container exists
-	if not is_instance_valid(matrix_container): return
+	if not is_instance_valid(matrix_container):
+		return
 
-	for child in matrix_container.get_children(): child.queue_free()
+	for child in matrix_container.get_children():
+		child.queue_free()
 
 	# Transposed Layout:
 	# Columns = Corner(1) + N Outputs + InputDelete(1)
@@ -79,7 +84,7 @@ func _rebuild_ui():
 
 	# 1. Corner Top-Left
 	var corner_tl = Label.new()
-	corner_tl.text = "In \\ Out" # Inputs are Rows, Outputs are Cols
+	corner_tl.text = "In \\ Out"  # Inputs are Rows, Outputs are Cols
 	corner_tl.modulate = Color(1, 1, 1, 0.5)
 	corner_tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	matrix_container.add_child(corner_tl)
@@ -182,15 +187,12 @@ func _update_pattern_button_visual(btn: Button, state: int):
 func _on_pattern_cycle(out_idx: int, in_idx: int, current_state: int):
 	var next_state = (current_state + 1) % 3
 
-	var payload = {
-		"output_index": out_idx,
-		"input_index": in_idx,
-		"state": next_state
-	}
+	var payload = {"output_index": out_idx, "input_index": in_idx, "state": next_state}
 	complex_action_requested.emit(edited_node_data.id, "update_sync_pattern", payload)
 
 
 # --- Input Handlers ---
+
 
 func _on_add_input_pressed():
 	complex_action_requested.emit(edited_node_data.id, "add_sync_input", {})
@@ -202,12 +204,14 @@ func _on_remove_input_pressed(index: int):
 
 
 func _on_input_name_changed(new_name: String, index: int):
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	var payload = {"index": index, "new_name": new_name}
 	complex_action_requested.emit(edited_node_data.id, "update_sync_input_name", payload)
 
 
 # --- Output Handlers ---
+
 
 func _on_add_output_pressed():
 	complex_action_requested.emit(edited_node_data.id, "add_sync_output", {})
@@ -218,7 +222,7 @@ func _on_remove_output_pressed(index: int):
 
 
 func _on_output_name_changed(new_name: String, index: int):
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	var payload = {"index": index, "new_name": new_name}
 	complex_action_requested.emit(edited_node_data.id, "update_sync_output_name", payload)
-

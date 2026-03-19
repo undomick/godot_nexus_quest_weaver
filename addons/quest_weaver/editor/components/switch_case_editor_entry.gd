@@ -16,6 +16,7 @@ signal remove_requested
 
 @onready var port_name_edit: LineEdit = %PortNameEdit
 
+
 func _ready() -> void:
 	remove_button.pressed.connect(remove_requested.emit)
 	value_edit.text_submitted.connect(func(_t): value_changed.emit(value_edit.text))
@@ -28,4 +29,3 @@ func display_data(case_port: SwitchCasePort) -> void:
 	if is_instance_valid(case_port):
 		value_edit.text = case_port.value_string
 		port_name_edit.text = case_port.port_name
-

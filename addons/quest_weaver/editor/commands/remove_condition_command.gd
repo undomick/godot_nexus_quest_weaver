@@ -7,9 +7,11 @@ var _branch_node: BranchNodeResource
 var _condition_to_remove: ConditionResource
 var _original_index: int = -1
 
+
 func _init(p_branch_node: BranchNodeResource, p_condition_to_remove: ConditionResource):
 	self._branch_node = p_branch_node
 	self._condition_to_remove = p_condition_to_remove
+
 
 func execute() -> void:
 	# Store the state *before* performing the action for undo.
@@ -17,6 +19,7 @@ func execute() -> void:
 
 	if _original_index != -1:
 		_branch_node.conditions.erase(_condition_to_remove)
+
 
 func undo() -> void:
 	# Restore the state using the stored information.

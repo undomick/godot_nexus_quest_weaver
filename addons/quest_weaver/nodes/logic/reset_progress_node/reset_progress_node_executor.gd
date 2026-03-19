@@ -5,9 +5,11 @@ extends NodeExecutor
 ## Uses QuestController internals (_scope_manager, _node_definitions, _cleanup_node_runtime,
 ## _mark_node_as_logically_complete, _activate_node) by design. Scope reset requires tight integration.
 
+
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var reset_node = node as ResetProgressNodeResource
-	if not is_instance_valid(reset_node): return
+	if not is_instance_valid(reset_node):
+		return
 
 	var controller = context.quest_controller
 	var scope_manager = controller._scope_manager
@@ -25,12 +27,17 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 
 	if nodes_to_reset_ids.is_empty():
 		if is_instance_valid(logger):
-			logger.warn("Flow", "ResetProgressNode: Scope '%s' is empty or invalid." % target_scope_id)
+			logger.warn(
+				"Flow", "ResetProgressNode: Scope '%s' is empty or invalid." % target_scope_id
+			)
 		controller.complete_node(reset_node)
 		return
 
 	if is_instance_valid(logger):
-		logger.log("Flow", "Resetting %d nodes in scope '%s'." % [nodes_to_reset_ids.size(), target_scope_id])
+		logger.log(
+			"Flow",
+			"Resetting %d nodes in scope '%s'." % [nodes_to_reset_ids.size(), target_scope_id]
+		)
 
 	for node_id in nodes_to_reset_ids:
 		# 1. Clean up runtime hooks via Controller Helper (Stop Timers, Unregister Listeners)
@@ -52,7 +59,12 @@ func execute(context: ExecutionContext, node: GraphNodeResource, instance: Quest
 		if is_instance_valid(start_node_def):
 			controller._activate_node(start_node_def)
 		else:
-			push_error("ResetProgressNode: Could not find StartScopeNode for scope '%s' to restart." % target_scope_id)
+			push_error(
+				(
+					"ResetProgressNode: Could not find StartScopeNode for scope '%s' to restart."
+					% target_scope_id
+				)
+			)
 	else:
 		# Flow continues normally after this node via the "On Reset" port
 		controller.complete_node(reset_node)

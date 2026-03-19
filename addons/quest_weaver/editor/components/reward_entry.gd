@@ -29,6 +29,7 @@ var _is_temp_display := false
 
 @onready var delete_button: Button = %DeleteButton
 
+
 func _ready() -> void:
 	if is_instance_valid(auto_complete):
 		auto_complete.text_submitted.connect(_on_id_submitted)
@@ -83,7 +84,8 @@ func setup(data: Dictionary, index: int, is_temp: bool = false) -> void:
 
 
 func _on_id_submitted(new_text: String) -> void:
-	if _is_setup: return
+	if _is_setup:
+		return
 
 	if _is_temp_display and new_text.is_empty():
 		return
@@ -94,13 +96,15 @@ func _on_id_submitted(new_text: String) -> void:
 
 
 func _on_amount_changed(new_val: float) -> void:
-	if _is_setup: return
+	if _is_setup:
+		return
 	_reward_data["amount"] = int(new_val)
 	data_changed.emit()
 
 
 func _on_optional_toggled(toggled_on: bool) -> void:
-	if not is_instance_valid(objective_edit): return
+	if not is_instance_valid(objective_edit):
+		return
 
 	objective_container.visible = toggled_on
 
@@ -114,9 +118,9 @@ func _on_optional_toggled(toggled_on: bool) -> void:
 
 
 func _on_objective_changed() -> void:
-	if _is_setup: return
+	if _is_setup:
+		return
 	var new_text = objective_edit.text
 	if _reward_data.get("linked_objective_id", "") != new_text:
 		_reward_data["linked_objective_id"] = StringName(new_text)
 		data_changed.emit()
-

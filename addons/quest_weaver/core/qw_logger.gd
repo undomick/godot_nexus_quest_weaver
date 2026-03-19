@@ -10,12 +10,15 @@ var _active_categories: Dictionary = {}
 
 # category (StringName) -> bool
 
+
 # This is called once by the QuestController when the game starts.
 func initialize() -> void:
 	var settings: QuestWeaverDebugSettings
 	if ResourceLoader.exists(QWConstants.DEBUG_SETTINGS_PATH):
 		# Load the resource fresh from disk to get the latest editor settings.
-		settings = ResourceLoader.load(QWConstants.DEBUG_SETTINGS_PATH, "", ResourceLoader.CACHE_MODE_REPLACE)
+		settings = ResourceLoader.load(
+			QWConstants.DEBUG_SETTINGS_PATH, "", ResourceLoader.CACHE_MODE_REPLACE
+		)
 		if is_instance_valid(settings):
 			_active_categories = settings.active_categories.duplicate()
 		else:
@@ -42,4 +45,3 @@ func error(category: StringName, message: String) -> void:
 
 func _format(category: StringName, message: String) -> String:
 	return "[%s] %s" % [str(category).to_upper(), message]
-

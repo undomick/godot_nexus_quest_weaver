@@ -9,6 +9,7 @@ extends Resource
 var _definitions_dict: Dictionary = {}
 var _is_initialized := false
 
+
 ## Finds an item definition by its ID.
 func find(item_id: String) -> QWItemDefinition:
 	if not _is_initialized:
@@ -16,9 +17,11 @@ func find(item_id: String) -> QWItemDefinition:
 
 	return _definitions_dict.get(item_id)
 
+
 # This function builds the fast lookup dictionary from the array.
 func _build_lookup_dict():
-	if _is_initialized: return
+	if _is_initialized:
+		return
 	_definitions_dict.clear()
 	for definition in item_definitions:
 		# Safety check in case a slot in the array is empty

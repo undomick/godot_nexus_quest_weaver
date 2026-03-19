@@ -4,7 +4,10 @@
 class_name QWFormat
 extends RefCounted
 
-class QuestGraphFormatSaver extends ResourceFormatSaver:
+
+class QuestGraphFormatSaver:
+	extends ResourceFormatSaver
+
 	func _get_recognized_extensions(_for_resource: Resource = null) -> PackedStringArray:
 		return PackedStringArray([QWConstants.FILE_EXTENSION])
 

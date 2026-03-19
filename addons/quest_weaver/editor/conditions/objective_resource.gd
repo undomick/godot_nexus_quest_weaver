@@ -42,10 +42,10 @@ var owner_task_node_id: StringName = &""
 
 var current_progress: Variant = 0
 
+
 func _init():
 	requirements = {}
 	trigger_params = {}
-
 
 
 func to_dictionary() -> Dictionary:
@@ -64,11 +64,12 @@ func to_dictionary() -> Dictionary:
 	}
 
 
-
 func from_dictionary(data: Dictionary) -> void:
 	self.id = StringName(data.get("id", &""))
 	self.description = data.get("description", "")
-	self.trigger_type = _defensive_load(data, "trigger_type", TriggerType.keys(), TriggerType.MANUAL)
+	self.trigger_type = _defensive_load(
+		data, "trigger_type", TriggerType.keys(), TriggerType.MANUAL
+	)
 
 	# Load Requirements with StringName Keys
 	self.requirements = {}
@@ -102,11 +103,8 @@ func from_dictionary(data: Dictionary) -> void:
 	self.owner_task_node_id = &""
 
 
-
 func _defensive_load(data: Dictionary, prop: String, keys: Array, default_val: int) -> int:
 	var val = data.get(prop, default_val)
 	if val is int and val >= 0 and val < keys.size():
 		return val
 	return default_val
-
-

@@ -3,6 +3,7 @@
 class_name BranchNodeExecutor
 extends NodeExecutor
 
+
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var branch_node = node as BranchNodeResource
 	if not is_instance_valid(branch_node):

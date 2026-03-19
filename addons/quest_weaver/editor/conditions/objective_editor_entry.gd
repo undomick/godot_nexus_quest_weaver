@@ -53,6 +53,7 @@ var _is_setting_up := false
 
 @onready var sort_editor: QWSortEditor = find_child("SortEditor", true, false)
 
+
 func _ready() -> void:
 	if is_instance_valid(sort_editor):
 		sort_editor.move_up_requested.connect(move_up_requested.emit)
@@ -121,15 +122,22 @@ func _finish_setup() -> void:
 func _rebuild_trigger_param_ui():
 	for child in trigger_params_container.get_children():
 		child.queue_free()
-	if not is_instance_valid(objective_resource): return
+	if not is_instance_valid(objective_resource):
+		return
 
 	var type = objective_resource.trigger_type
 
 	# CASE A: LIST BASED (Requirements Dictionary)
-	if type == ObjectiveResource.TriggerType.ITEM_COLLECT or type == ObjectiveResource.TriggerType.KILL:
+	if (
+		type == ObjectiveResource.TriggerType.ITEM_COLLECT
+		or type == ObjectiveResource.TriggerType.KILL
+	):
 		_build_requirements_list_ui()
 		# Track progress since activation: for ITEM_COLLECT (inventory snapshot) and KILL (future kill-adapter parity)
-		track_progress_checkbox.visible = (type == ObjectiveResource.TriggerType.ITEM_COLLECT or type == ObjectiveResource.TriggerType.KILL)
+		track_progress_checkbox.visible = (
+			type == ObjectiveResource.TriggerType.ITEM_COLLECT
+			or type == ObjectiveResource.TriggerType.KILL
+		)
 		complete_on_delivery_checkbox.visible = (type == ObjectiveResource.TriggerType.ITEM_COLLECT)
 		counter_checkbox.visible = true
 	# CASE B: SINGLE PARAMETER (Legacy Trigger Params)
@@ -223,7 +231,11 @@ func _build_requirements_list_ui():
 
 	# Add Button
 	var add_btn = Button.new()
-	var type_label = "Item" if objective_resource.trigger_type == ObjectiveResource.TriggerType.ITEM_COLLECT else "Enemy"
+	var type_label = (
+		"Item"
+		if objective_resource.trigger_type == ObjectiveResource.TriggerType.ITEM_COLLECT
+		else "Enemy"
+	)
 	add_btn.text = "+ Add %s" % type_label
 	add_btn.pressed.connect(_on_req_add_pressed)
 	trigger_params_container.add_child(add_btn)
@@ -236,7 +248,8 @@ func _build_singular_param_ui():
 		ObjectiveResource.TriggerType.INTERACT: "target_path"
 	}
 	var param_key = key_map.get(objective_resource.trigger_type, "")
-	if param_key == "": return # Manual?
+	if param_key == "":
+		return  # Manual?
 
 	var param_edit = LineEdit.new()
 	param_edit.text = str(objective_resource.trigger_params.get(param_key, ""))
@@ -248,6 +261,7 @@ func _build_singular_param_ui():
 
 # --- REQUIREMENTS HANDLERS ---
 
+
 func _on_req_add_pressed():
 	# Create unique temp key
 	var new_key = StringName("new_target_%d" % Time.get_ticks_msec())
@@ -258,20 +272,26 @@ func _on_req_add_pressed():
 
 	# Set focus to the new field
 	await get_tree().process_frame
-	if not is_instance_valid(trigger_params_container): return
+	if not is_instance_valid(trigger_params_container):
+		return
 
 	if trigger_params_container.get_child_count() > 1:
-		var last_row = trigger_params_container.get_child(trigger_params_container.get_child_count() - 2)
+		var last_row = trigger_params_container.get_child(
+			trigger_params_container.get_child_count() - 2
+		)
 		if last_row is HBoxContainer and last_row.get_child_count() > 1:
 			last_row.get_child(1).grab_focus()
 
 
 func _on_req_key_changed(old_key, new_key_text):
-	if new_key_text.is_empty(): return
-	if str(old_key) == new_key_text: return
+	if new_key_text.is_empty():
+		return
+	if str(old_key) == new_key_text:
+		return
 
 	# FIX: Ensure old key still exists before modification
-	if not objective_resource.requirements.has(old_key): return
+	if not objective_resource.requirements.has(old_key):
+		return
 
 	var new_key = StringName(new_key_text)
 
@@ -305,50 +325,65 @@ func _emit_req_update():
 
 # --- Signal Handlers ---
 
+
 func _on_description_changed(new_text: String):
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	if is_instance_valid(objective_resource) and objective_resource.description != new_text:
 		description_changed.emit(new_text)
 
 
 func _on_id_submitted(new_text: String) -> void:
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	if is_instance_valid(objective_resource) and String(objective_resource.id) != new_text:
 		id_changed.emit(new_text)
 
 
 func _on_trigger_type_selected(index: int):
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	if is_instance_valid(objective_resource) and objective_resource.trigger_type != index:
 		trigger_type_changed.emit(index)
 
 
 func _on_counter_toggled(is_pressed: bool):
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	if is_instance_valid(objective_resource) and objective_resource.show_counter != is_pressed:
 		direct_property_changed.emit("show_counter", is_pressed)
 
 
 func _on_track_progress_toggled(is_pressed: bool):
-	if _is_setting_up: return
-	if is_instance_valid(objective_resource) and objective_resource.track_progress_since_activation != is_pressed:
+	if _is_setting_up:
+		return
+	if (
+		is_instance_valid(objective_resource)
+		and objective_resource.track_progress_since_activation != is_pressed
+	):
 		direct_property_changed.emit("track_progress_since_activation", is_pressed)
 
 
 func _on_complete_on_delivery_toggled(is_pressed: bool):
-	if _is_setting_up: return
-	if is_instance_valid(objective_resource) and objective_resource.complete_on_delivery != is_pressed:
+	if _is_setting_up:
+		return
+	if (
+		is_instance_valid(objective_resource)
+		and objective_resource.complete_on_delivery != is_pressed
+	):
 		direct_property_changed.emit("complete_on_delivery", is_pressed)
 
 
 func _on_optional_toggled(is_pressed: bool):
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	if is_instance_valid(objective_resource) and objective_resource.is_optional != is_pressed:
 		direct_property_changed.emit("is_optional", is_pressed)
 
 
 func _on_hidden_toggled(is_pressed: bool):
-	if _is_setting_up: return
+	if _is_setting_up:
+		return
 	if is_instance_valid(objective_resource) and objective_resource.is_hidden != is_pressed:
 		direct_property_changed.emit("is_hidden", is_pressed)
 
@@ -366,4 +401,3 @@ func add_param_row(label_text: String, control: Control) -> void:
 	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(control)
 	trigger_params_container.add_child(row)
-

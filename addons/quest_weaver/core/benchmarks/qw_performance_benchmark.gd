@@ -42,33 +42,61 @@ func _run_benchmarks() -> void:
 	_prepare_test_data()
 	print("\n=== QuestWeaver Performance Benchmark ===\n")
 	print("operation,iterations,median_us,p99_us")
-	_benchmark("get_quest_state", ITERATIONS_SMALL, func() -> void:
-		if _quest_ids.is_empty(): return
-		var q = _quest_ids[0]
-		_controller.get_quest_data_manager().get_quest_state(q)
+	_benchmark(
+		"get_quest_state",
+		ITERATIONS_SMALL,
+		func() -> void:
+			if _quest_ids.is_empty():
+				return
+			var q = _quest_ids[0]
+			_controller.get_quest_data_manager().get_quest_state(q)
 	)
-	_benchmark("get_objective_progress", ITERATIONS_SMALL, func() -> void:
-		if _objective_ids.is_empty(): return
-		_controller.get_objective_manager().get_objective_progress(_objective_ids[0])
+	_benchmark(
+		"get_objective_progress",
+		ITERATIONS_SMALL,
+		func() -> void:
+			if _objective_ids.is_empty():
+				return
+			_controller.get_objective_manager().get_objective_progress(_objective_ids[0])
 	)
-	_benchmark("get_objective_progress_by_key", ITERATIONS_SMALL, func() -> void:
-		if _objective_ids.is_empty(): return
-		_controller.get_objective_manager().get_objective_progress_by_key(_objective_ids[0], &"wood")
+	_benchmark(
+		"get_objective_progress_by_key",
+		ITERATIONS_SMALL,
+		func() -> void:
+			if _objective_ids.is_empty():
+				return
+			_controller.get_objective_manager().get_objective_progress_by_key(
+				_objective_ids[0], &"wood"
+			)
 	)
-	_benchmark("get_objective_status", ITERATIONS_SMALL, func() -> void:
-		if _objective_ids.is_empty(): return
-		_controller.get_objective_manager().get_objective_status(_objective_ids[0])
+	_benchmark(
+		"get_objective_status",
+		ITERATIONS_SMALL,
+		func() -> void:
+			if _objective_ids.is_empty():
+				return
+			_controller.get_objective_manager().get_objective_status(_objective_ids[0])
 	)
-	_benchmark("get_quest_data", ITERATIONS_SMALL, func() -> void:
-		if _quest_ids.is_empty(): return
-		_controller.get_quest_data_manager().get_quest_data(_quest_ids[0])
+	_benchmark(
+		"get_quest_data",
+		ITERATIONS_SMALL,
+		func() -> void:
+			if _quest_ids.is_empty():
+				return
+			_controller.get_quest_data_manager().get_quest_data(_quest_ids[0])
 	)
-	_benchmark("get_active_quests", ITERATIONS_SMALL, func() -> void:
-		_controller.get_quest_pool_manager().get_active_quests()
+	_benchmark(
+		"get_active_quests",
+		ITERATIONS_SMALL,
+		func() -> void: _controller.get_quest_pool_manager().get_active_quests()
 	)
-	_benchmark("_resolve_instance_file_id", ITERATIONS_LARGE, func() -> void:
-		if _quest_ids.is_empty(): return
-		_controller._resolve_instance_file_id(_quest_ids[0])
+	_benchmark(
+		"_resolve_instance_file_id",
+		ITERATIONS_LARGE,
+		func() -> void:
+			if _quest_ids.is_empty():
+				return
+			_controller._resolve_instance_file_id(_quest_ids[0])
 	)
 	print("\n=== Benchmark Complete ===\n")
 
@@ -94,7 +122,9 @@ func _prepare_test_data() -> void:
 			if not qid.is_empty():
 				_quest_ids.append(qid)
 				break
-	var objectives = obj_mgr.get_active_objectives_for_quest(_quest_ids[0]) if not _quest_ids.is_empty() else []
+	var objectives = (
+		obj_mgr.get_active_objectives_for_quest(_quest_ids[0]) if not _quest_ids.is_empty() else []
+	)
 	for obj in objectives:
 		_objective_ids.append(obj.id)
 	if _objective_ids.is_empty():

@@ -14,7 +14,6 @@ signal property_changed(property_name: String, new_value: Variant, target_resour
 
 signal type_changed(new_script: Script)
 
-
 var output_port: SynchronizeOutputPort
 
 var _port_name_undo_value: String = ""
@@ -24,6 +23,7 @@ var _port_name_undo_value: String = ""
 @onready var port_name_edit: LineEdit = %PortNameEdit
 
 @onready var condition_editor: PanelContainer = %ConditionEditor
+
 
 func _ready() -> void:
 	remove_button.pressed.connect(remove_requested.emit)
@@ -54,8 +54,8 @@ func display_data(p_output_port: SynchronizeOutputPort) -> void:
 
 
 func _on_port_name_confirmed() -> void:
-	if not is_instance_valid(output_port): return
+	if not is_instance_valid(output_port):
+		return
 	var new_name = port_name_edit.text
 	if _port_name_undo_value != new_name:
 		name_changed.emit(new_name)
-

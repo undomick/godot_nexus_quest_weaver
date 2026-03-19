@@ -3,9 +3,11 @@
 class_name EventListenerNodeExecutor
 extends NodeExecutor
 
+
 func execute(context: ExecutionContext, node: GraphNodeResource, instance: QuestInstance) -> void:
 	var listener_node = node as EventListenerNodeResource
-	if not is_instance_valid(listener_node): return
+	if not is_instance_valid(listener_node):
+		return
 
 	var controller = context.quest_controller
 
