@@ -6,4 +6,4 @@ extends RefCounted
 ## to avoid dependencies on external game state scripts.
 
 # 0 Hidden / Not discovered  # 1 Visible on Quest Board / Minimap, but logic not running  # 2 Running  # 3 Done  # 4 Failed  # 5 In a custom pool (see custom_pool_id on QuestInstance)
-enum QuestState { UNAVAILABLE, AVAILABLE, ACTIVE, COMPLETED, FAILED, CUSTOM }  
+enum QuestState { UNAVAILABLE, AVAILABLE, ACTIVE, COMPLETED, FAILED, CUSTOM }
